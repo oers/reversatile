@@ -10,6 +10,14 @@ before_install:
  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r9c
  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_NDK_HOME}
 
+install:
+  - echo y | android update sdk -u -a -t tools
+  - echo y | android update sdk -u -a -t platform-tools
+  - echo y | android update sdk -u -a -t build-tools-25.0.2
+  - echo y | android update sdk -u -a -t android-19
+  - echo y | android update sdk -u -a -t extra-google-m2repository
+  - echo y | android update sdk -u -a -t extra-android-m2repository
+
 before_cache:
     - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 
@@ -21,9 +29,6 @@ cache:
 
 android:
   components:
-    - tools
-    - build-tools-25.0.0
-    - android-19
     - extra
     - ndk-bundle
 
