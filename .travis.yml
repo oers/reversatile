@@ -35,6 +35,7 @@ before_script:
 script: ./gradlew build connectedCheck
 
 after_script:
+- git status
 - find . -name *.apk
 - cat logcat.log
 deploy:
