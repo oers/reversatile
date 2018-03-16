@@ -4,8 +4,6 @@ before_install:
 - rm -fr $HOME/android-ndk-r16b
 - curl -L http://dl.google.com/android/repository/android-ndk-r16b-linux-x86_64.zip -O
 - unzip -oq android-ndk-r16b-linux-x86_64.zip
-- ls -ltr .
-- pwd
 - rm android-ndk-r16b-linux-x86_64.zip
 - export ANDROID_NDK_HOME=./android-ndk-r16b
 - ls -ltr $ANDROID_NDK_HOME
@@ -19,6 +17,7 @@ cache:
   - $HOME/.gradle/daemon
   - $HOME/.gradle/native
   - $HOME/.gradle/wrapper
+  - $HOME/.m2
 android:
   components:
   - tools
