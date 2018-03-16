@@ -3,10 +3,11 @@ jdk: oraclejdk8
 before_install:
 - rm -fr $HOME/android-ndk-r16b
 - curl -L http://dl.google.com/android/repository/android-ndk-r16b-linux-x86_64.zip -O
-- unzip -o android-ndk-r16b-linux-x86_64.zip
+- unzip -oq android-ndk-r16b-linux-x86_64.zip
 - ls -ltr .
+- pwd
 - rm android-ndk-r16b-linux-x86_64.zip
-- export ANDROID_NDK_HOME=$HOME/android-ndk-r16b
+- export ANDROID_NDK_HOME=./android-ndk-r16b
 - ls -ltr $ANDROID_NDK_HOME
 - ls -ltr $ANDROID_NDK_HOME/platforms
 - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_NDK_HOME}
