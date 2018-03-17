@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="CustomActionBarTheme">
+        @style/MyActionBar
+        @color/statustextcolor</style>
+
+    <style name="MyActionBar">
+        @style/board_color
+        @style/MyActionBarTitleText</style>
+
+    <style name="MyActionBarTitleText">
+        @style/statustextcolor
+    </style>
+</resources>

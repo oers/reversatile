@@ -422,15 +422,19 @@ public class BoardView extends View {
 		boolean bMakeMove = (
 				keyCode == KeyEvent.KEYCODE_DPAD_CENTER
 				|| keyCode == KeyEvent.KEYCODE_SPACE );
-		
-		updateSelection(newMX, newMY, bMakeMove, true);
+
+        updateSelection(newMX, newMY, bMakeMove);
 
 		return false;
 	}
 
+    @Override
+    public boolean performClick() {
+        return super.performClick();
+    }
 
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
 		if(mIsAnimationRunning) return false;
 		
 		int action = event.getAction();
@@ -440,12 +444,12 @@ public class BoardView extends View {
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_MOVE:
 			mShowSelectionHelpers = true;
-	        updateSelection(bx, by, false, true);
-			break;
+            updateSelection(bx, by, false);
+            break;
 		case MotionEvent.ACTION_UP:
 			mShowSelectionHelpers = false;
-	        updateSelection(bx, by, true, true);
-			break;
+            updateSelection(bx, by, true);
+            break;
 		} 
 		return true;
 	}
@@ -461,8 +465,8 @@ public class BoardView extends View {
 		
 		switch(event.getAction()) {
 		case MotionEvent.ACTION_DOWN: {
-			updateSelection(mMoveSelection.getX(), mMoveSelection.getY(), true, true);
-		} break;
+            updateSelection(mMoveSelection.getX(), mMoveSelection.getY(), true);
+        } break;
 		
 		case MotionEvent.ACTION_MOVE: { 
 			int newMX = mMoveSelection.getX();
@@ -478,8 +482,8 @@ public class BoardView extends View {
 		        else 
 		        	newMY--;
 			}
-			updateSelection(newMX, newMY, false, true);
-		} break;
+            updateSelection(newMX, newMY, false);
+        } break;
 		
 		default:
 			return false;
@@ -488,8 +492,8 @@ public class BoardView extends View {
 		return true;
 	}
 
-	private void updateSelection(int bX, int bY, boolean bMakeMove, boolean bShowSelection ) {
-		boolean bInvalidate = false;
+    private void updateSelection(int bX, int bY, boolean bMakeMove) {
+        boolean bInvalidate = false;
 		
 		if(bX<0 || bX>=DroidZebra.boardSize) 
 			bX = mMoveSelection.getX();
@@ -497,9 +501,9 @@ public class BoardView extends View {
 		if(bY<0 || bY>=DroidZebra.boardSize) 
 			bY = mMoveSelection.getY();
 
-		if( mShowSelection!=bShowSelection ) {
-			mShowSelection = bShowSelection;
-			bInvalidate = true;
+        if (mShowSelection != true) {
+            mShowSelection = true;
+            bInvalidate = true;
 		}
 
 		if( bX!=mMoveSelection.getX() || bY!=mMoveSelection.getY()) {

@@ -5,7 +5,7 @@ apply from: "signing.gradle"
 project.ext.set("archivesBaseName", "reversatile")
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 25
     buildToolsVersion '26.0.2'
 
 
@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation  'com.android.support:support-v4:19.1.0'
+    implementation  'com.android.support:support-v4:25.0.0'
 
     implementation 'com.google.dagger:dagger:2.10'
     implementation 'com.google.dagger:dagger-android:2.10'

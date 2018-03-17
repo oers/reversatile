@@ -34,6 +34,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+
+import de.earthlingz.oerszebra.BuildConfig;
 //import android.util.Log;
 
 // DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler 
@@ -102,14 +105,15 @@ public class ZebraEngine extends Thread {
 
 	// player info
 	public static class PlayerInfo {
-		public PlayerInfo(int _player, int _skill, int _exact_skill, int _wld_skill, int _player_time, int _increment) {
-			assert(_player==PLAYER_BLACK || _player==PLAYER_WHITE || _player==PLAYER_ZEBRA);
+		public PlayerInfo(int _player, int _skill, int _exact_skill, int _wld_skill) {
+			if (BuildConfig.DEBUG && !(_player == PLAYER_BLACK || _player == PLAYER_WHITE || _player == PLAYER_ZEBRA))
+				throw new AssertionError();
 			playerColor = _player;
 			skill = _skill;
 			exactSolvingSkill = _exact_skill;
 			wldSolvingSkill = _wld_skill;
-			playerTime = _player_time;
-			playerTimeIncrement = _increment;
+			playerTime = ZebraEngine.INFINIT_TIME;
+			playerTimeIncrement = 0;
 
 		}
 		public int playerColor;
@@ -191,9 +195,9 @@ public class ZebraEngine extends Thread {
 
 	// player info
 	private PlayerInfo[] mPlayerInfo = {
-			new PlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINIT_TIME, 0),
-			new PlayerInfo(PLAYER_ZEBRA, 4, 12, 12, INFINIT_TIME, 0),
-			new PlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINIT_TIME, 0)
+			new PlayerInfo(PLAYER_BLACK, 0, 0, 0),
+			new PlayerInfo(PLAYER_ZEBRA, 4, 12, 12),
+			new PlayerInfo(PLAYER_WHITE, 0, 0, 0)
 	};
 	private boolean mPlayerInfoChanged = false;
 	private int mSideToMove = PLAYER_ZEBRA;
@@ -473,7 +477,7 @@ public class ZebraEngine extends Thread {
 	public void setPlayerInfo(PlayerInfo playerInfo)  throws EngineError
 	{
 		if( playerInfo.playerColor!=PLAYER_BLACK && playerInfo.playerColor!=PLAYER_WHITE && playerInfo.playerColor!=PLAYER_ZEBRA)
-			throw new EngineError(String.format("Invalid player type %d", playerInfo.playerColor));
+			throw new EngineError(String.format(Locale.getDefault(), "Invalid player type %d", playerInfo.playerColor));
 
 		mPlayerInfo[playerInfo.playerColor] = playerInfo;
 
@@ -593,13 +597,13 @@ public class ZebraEngine extends Thread {
 	//}
 
 	// called by native code - see droidzebra-msg.c
-	private JSONObject Callback(int msgcode, JSONObject data) {
+	private JSONObject Callback(JSONObject data) {
 		JSONObject retval = null;
-		Message msg = mHandler.obtainMessage(msgcode);
+		Message msg = mHandler.obtainMessage(ZebraEngine.MSG_ERROR);
 		Bundle b = new Bundle();
 		msg.setData(b);
 		// Log.d("ZebraEngine", String.format("Callback(%d,%s)", msgcode, data.toString()));
-		if( bInCallback && msgcode != MSG_ERROR ) {
+		if (bInCallback && ZebraEngine.MSG_ERROR != MSG_ERROR) {
 			fatalError("Recursive callback call");
 			new Exception().printStackTrace();
 		}
@@ -608,7 +612,7 @@ public class ZebraEngine extends Thread {
 
 		try {
 			bInCallback = true;
-			switch(msgcode) {
+			switch (ZebraEngine.MSG_ERROR) {
 			case MSG_ERROR: { 
 				b.putString("error", data.getString("error"));
 				if(getEngineState()==ES_INITIAL) {
@@ -656,7 +660,8 @@ public class ZebraEngine extends Thread {
 					zeArray = info.getJSONArray("moves");
 					len = zeArray.length();
 					moves = new byte[len];
-					assert( 2*len<=mCurrentGameState.mMoveSequence.length );
+					if (BuildConfig.DEBUG && 2 * len > mCurrentGameState.mMoveSequence.length)
+						throw new AssertionError();
 					for( int i=0; i<len; i++) {
 						moves[i] = (byte)zeArray.getInt(i);
 						mCurrentGameState.mMoveSequence[2*i] = moves[i];
@@ -677,7 +682,8 @@ public class ZebraEngine extends Thread {
 					zeArray = info.getJSONArray("moves");
 					len = zeArray.length();
 					moves = new byte[len];
-					assert( (2*len+1)<=mCurrentGameState.mMoveSequence.length );
+					if (BuildConfig.DEBUG && (2 * len + 1) > mCurrentGameState.mMoveSequence.length)
+						throw new AssertionError();
 					for( int i=0; i<len; i++) {
 						moves[i] = (byte)zeArray.getInt(i);
 						mCurrentGameState.mMoveSequence[2*i+1] = moves[i];
@@ -832,7 +838,7 @@ public class ZebraEngine extends Thread {
 			} break;
 			
 			default: {
-				b.putString( "error", String.format("Unkown message ID %d", msgcode) );
+				b.putString("error", String.format(Locale.getDefault(), "Unkown message ID %d", ZebraEngine.MSG_ERROR));
 				msg.setData(b);
 				mHandler.sendMessage(msg);
 			} break;
@@ -926,7 +932,7 @@ public class ZebraEngine extends Thread {
 		try {
 			JSONObject json = new JSONObject();
 			json.put("error", message);
-			Callback(MSG_ERROR, json);
+			Callback(json);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
