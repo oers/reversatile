@@ -380,8 +380,8 @@ public class DroidZebra extends FragmentActivity
 						if(android.os.Build.VERSION.SDK_INT >= 11) {
 							new ActionBarHelper().show();
 						}
-						DroidZebra.this.mBoardView = (BoardView)DroidZebra.this.findViewById(R.id.board);
-						DroidZebra.this.mStatusView  = (StatusView)DroidZebra.this.findViewById(R.id.status_panel);
+						DroidZebra.this.mBoardView = DroidZebra.this.findViewById(R.id.board);
+						DroidZebra.this.mStatusView = DroidZebra.this.findViewById(R.id.status_panel);
 						DroidZebra.this.mBoardView.setDroidZebra(DroidZebra.this);
 						DroidZebra.this.mBoardView.requestFocus();
 						DroidZebra.this.initBoard();
@@ -703,8 +703,8 @@ public class DroidZebra extends FragmentActivity
 		mZebraThread.sendReplayMoves(moves);
 	}
 
-    private static LinkedList<Move> makeMoveList(String s) {
-        LinkedList<Move> moves = new LinkedList<Move>();
+	static LinkedList<Move> makeMoveList(String s) {
+		LinkedList<Move> moves = new LinkedList<Move>();
 		Pattern p = Pattern.compile("([ABCDEFGH]{1}[12345678]{1})+");
 		Matcher matcher = p.matcher(s.toUpperCase());
 		if (!matcher.matches()) {
@@ -890,7 +890,7 @@ public class DroidZebra extends FragmentActivity
 			View v = inflater.inflate(R.layout.gameover, container, false);
 
 			Button button;
-			button = (Button)v.findViewById(R.id.gameover_choice_new_game);
+			button = v.findViewById(R.id.gameover_choice_new_game);
 			button.setOnClickListener(
 					new View.OnClickListener() {
 						public void onClick(View v) {
@@ -899,7 +899,7 @@ public class DroidZebra extends FragmentActivity
 						}
 					});
 
-			button = (Button)v.findViewById(R.id.gameover_choice_switch);
+			button = v.findViewById(R.id.gameover_choice_switch);
 			button.setOnClickListener(
 					new View.OnClickListener() {
 						public void onClick(View v) {
@@ -908,7 +908,7 @@ public class DroidZebra extends FragmentActivity
 						}
 					});
 
-			button = (Button)v.findViewById(R.id.gameover_choice_cancel);
+			button = v.findViewById(R.id.gameover_choice_cancel);
 			button.setOnClickListener(
 					new View.OnClickListener() {
 						public void onClick(View v) {
@@ -916,7 +916,7 @@ public class DroidZebra extends FragmentActivity
 						}
 					});
 
-			button = (Button)v.findViewById(R.id.gameover_choice_options);
+			button = v.findViewById(R.id.gameover_choice_options);
 			button.setOnClickListener(
 					new View.OnClickListener() {
 						public void onClick(View v) {
@@ -928,7 +928,7 @@ public class DroidZebra extends FragmentActivity
 						}
 					});
 
-			button = (Button)v.findViewById(R.id.gameover_choice_email);
+			button = v.findViewById(R.id.gameover_choice_email);
 			button.setOnClickListener(
 					new View.OnClickListener() {
 						public void onClick(View v) {
