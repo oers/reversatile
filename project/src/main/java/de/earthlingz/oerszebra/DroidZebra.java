@@ -17,7 +17,6 @@
 
 package de.earthlingz.oerszebra;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -31,6 +30,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -71,24 +71,8 @@ public class DroidZebra extends FragmentActivity
 {
 	public static final String SHARED_PREFS_NAME="droidzebrasettings";
 
-	private static final int
-			FUNCTION_HUMAN_VS_HUMAN = 0,
-			FUNCTION_ZEBRA_WHITE = 1,
-			FUNCTION_ZEBRA_BLACK = 2,
-			FUNCTION_ZEBRA_VS_ZEBRA = 3;
-
-	private static final int
-			RANDOMNESS_NONE = 0,
-			RANDOMNESS_SMALL = 1,
-			RANDOMNESS_MEDIUM = 2,
-			RANDOMNESS_LARGE = 3,
-			RANDOMNESS_HUGE = 4;
-
-	final public static int boardSize = 8;
-	public static final int DEFAULT_SETTING_FUNCTION = FUNCTION_HUMAN_VS_HUMAN;
 	public static final String DEFAULT_SETTING_STRENGTH = "8|16|18";
 	public static final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES  = false;
-	public static final int DEFAULT_SETTING_RANDOMNESS = RANDOMNESS_LARGE;
 	public static final String DEFAULT_SETTING_FORCE_OPENING = "None";
 	public static final boolean DEFAULT_SETTING_HUMAN_OPENINGS = false;
 	public static final boolean DEFAULT_SETTING_PRACTICE_MODE = true;
@@ -112,9 +96,22 @@ public class DroidZebra extends FragmentActivity
 	SETTINGS_KEY_DISPLAY_LAST_MOVE = "settings_ui_display_last_move",
 	SETTINGS_KEY_SENDMAIL = "settings_sendmail",
 			SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS = "settings_ui_display_enable_animations";
+	private static final int
+			FUNCTION_HUMAN_VS_HUMAN = 0,
+			FUNCTION_ZEBRA_WHITE = 1,
+			FUNCTION_ZEBRA_BLACK = 2,
+			FUNCTION_ZEBRA_VS_ZEBRA = 3;
+	public static final int DEFAULT_SETTING_FUNCTION = FUNCTION_HUMAN_VS_HUMAN;
+	private static final int
+			RANDOMNESS_NONE = 0,
+			RANDOMNESS_SMALL = 1,
+			RANDOMNESS_MEDIUM = 2,
+			RANDOMNESS_LARGE = 3,
+			RANDOMNESS_HUGE = 4;
+	public static final int DEFAULT_SETTING_RANDOMNESS = RANDOMNESS_LARGE;
+
 
 	private final CandidateMoves mCandidateMoves = new CandidateMoves();
-    private ClipboardManager clipboard;
     public int mSettingFunction = DEFAULT_SETTING_FUNCTION;
 	public boolean mSettingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
 	public int mSettingZebraRandomness = DEFAULT_SETTING_RANDOMNESS;
@@ -127,19 +124,22 @@ public class DroidZebra extends FragmentActivity
 	public boolean mSettingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE;
 	public boolean mSettingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
 	public int mSettingAnimationDelay = 1000;
+
+	private ClipboardManager clipboard;
 	private ZebraEngine mZebraThread;
-	private BoardState mBoard[][] = new BoardState[boardSize][boardSize];
-	private Move mLastMove = null;
-	private int mWhiteScore = 0;
-	private int mBlackScore = 0;
-	private String mOpeningName;
-	private BoardView mBoardView;
-	private StatusView mStatusView;
+
+
 	private boolean mBusyDialogUp = false;
 	private boolean mHintIsUp = false;
 	private boolean mIsInitCompleted = false;
 	private boolean mActivityActive = false;
+
+	private BoardView mBoardView;
+	private StatusView mStatusView;
 	private SharedPreferences mSettings;
+
+	private BoardState state = new BoardState();
+
 	private int mSettingZebraDepth = 1;
 	private int mSettingZebraDepthExact = 1;
 	private int mSettingZebraDepthWLD = 1;
@@ -150,6 +150,24 @@ public class DroidZebra extends FragmentActivity
 		initBoard();
 
     }
+
+	static LinkedList<Move> makeMoveList(String s) {
+		LinkedList<Move> moves = new LinkedList<Move>();
+		Pattern p = Pattern.compile("([ABCDEFGH]{1}[12345678]{1})+");
+		Matcher matcher = p.matcher(s.toUpperCase());
+		if (!matcher.matches()) {
+			return new LinkedList<Move>();
+		}
+		String group = matcher.group();
+		System.out.println("Match: " + group);
+		for (int i = 0; i < group.length(); i += 2) {
+			int first = group.charAt(i) - 65;
+			int second = Integer.valueOf("" + group.charAt(i + 1)) - 1;
+			moves.add(new Move(first, second));
+			System.out.println(first + "/" + second);
+		}
+		return moves;
+	}
 
 	public boolean isThinking() {
 		return mZebraThread.isThinking();
@@ -182,27 +200,18 @@ public class DroidZebra extends FragmentActivity
 		.execute();
 	}
 
-	public BoardState[][] getBoard() {
-		return mBoard;
+	public FieldState[][] getBoard() {
+		return state.getmBoard();
 	}
 
-	public void setBoard(byte[] board) {
-		for (int i = 0; i < boardSize; i++)
-			for (int j = 0; j < boardSize; j++) {
-				mBoard[i][j].set(board[i * boardSize + j]);
-			}
-	}
+
 
 	public ZebraEngine getEngine() {
 		return mZebraThread;
 	}
 
 	public void initBoard() {
-		mLastMove = null;
-		mWhiteScore = mBlackScore = 0;
-		for(int i=0; i<boardSize; i++)
-			for(int j=0; j<boardSize; j++)
-				mBoard[i][j] = new BoardState(ZebraEngine.PLAYER_EMPTY);
+		state.reset();
 		if (mStatusView != null)
 			mStatusView.clear();
 	}
@@ -216,16 +225,18 @@ public class DroidZebra extends FragmentActivity
 		mBoardView.invalidate();
 	}
 
+	@Deprecated
 	public Move getLastMove() {
-		return mLastMove;
+		return state.getmLastMove();
 	}
 
+	@Deprecated
 	public void setLastMove(Move move) {
-		mLastMove = move;
+		state.setmLastMove(move);
 	}
 
 	public boolean isValidMove(Move move) {
-		if( mCandidateMoves==null ) 
+		if (mCandidateMoves == null)
 			return false;
 		for(CandidateMove m:mCandidateMoves.getMoves()) {
 			if(m.mMove.getX()==move.getX() && m.mMove.getY()==move.getY() ) return true;
@@ -247,7 +258,7 @@ public class DroidZebra extends FragmentActivity
 					@Override public void run() {
 						DroidZebra.this.initBoard();
 						DroidZebra.this.loadSettings();
-						DroidZebra.this.mZebraThread.setEngineState(ZebraEngine.ES_PLAY);                
+						DroidZebra.this.mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
 					}
 				}
 		);
@@ -261,10 +272,10 @@ public class DroidZebra extends FragmentActivity
 	    return super.onCreateOptionsMenu(menu);
 	}
 
-
 	public boolean initialized() {
 		return mIsInitCompleted;
 	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if( !mIsInitCompleted ) return false;
@@ -335,13 +346,11 @@ public class DroidZebra extends FragmentActivity
 	{
 		super.onCreate(savedInstanceState);
 
-
-        clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+		((Appliation) getApplication()).getNetComponent().inject(this);
+		clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
 		setContentView(R.layout.spash_layout);
-		if (android.os.Build.VERSION.SDK_INT >= 11) {
-			new ActionBarHelper().hide();
-		}
+		new ActionBarHelper(this).hide();
 
 
 		// start your engines
@@ -377,9 +386,7 @@ public class DroidZebra extends FragmentActivity
 				new Runnable() {
 					@Override public void run() {
 						DroidZebra.this.setContentView(R.layout.board_layout);
-						if (android.os.Build.VERSION.SDK_INT >= 11) {
-							new ActionBarHelper().show();
-						}
+						new ActionBarHelper(DroidZebra.this).show();
 						DroidZebra.this.mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
 						DroidZebra.this.mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
 						DroidZebra.this.mBoardView.setDroidZebra(DroidZebra.this);
@@ -529,8 +536,8 @@ public class DroidZebra extends FragmentActivity
 		//GetNowTime
 		Calendar calendar = Calendar.getInstance();
 		Date nowTime = calendar.getTime();
-		StringBuffer sbBlackPlayer = new StringBuffer();
-		StringBuffer sbWhitePlayer = new StringBuffer();
+		StringBuilder sbBlackPlayer = new StringBuilder();
+		StringBuilder sbWhitePlayer = new StringBuilder();
 		GameState gs = mZebraThread.getGameState();
 		SharedPreferences settings = getSharedPreferences(SHARED_PREFS_NAME, 0);
 		byte[] moves = null;
@@ -589,7 +596,7 @@ public class DroidZebra extends FragmentActivity
 				sbWhitePlayer.append(mSettingZebraDepthWLD );
 			default:
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(getResources().getString(R.string.mail_generated));
 		sb.append("\r\n");
 		sb.append(getResources().getString(R.string.mail_date));
@@ -598,14 +605,14 @@ public class DroidZebra extends FragmentActivity
 		sb.append("\r\n\r\n");
 		sb.append(getResources().getString(R.string.mail_move));
 		sb.append(" ");
-		StringBuffer sbMoves = new StringBuffer();
+		StringBuilder sbMoves = new StringBuilder();
 		if(moves != null){
 
 			for(int i=0; i < moves.length; i++){
 				if(moves[i]!=0x00){
 					Move move = new Move(moves[i]);
 					sbMoves.append(move.getText());
-					if(mLastMove.getText().equals(move.getText())){
+					if (state.getmLastMove().getText().equals(move.getText())) {
 						break;
 					}
 				}
@@ -615,9 +622,9 @@ public class DroidZebra extends FragmentActivity
 		sb.append("\r\n\r\n");
 		sb.append(sbBlackPlayer.toString());
 		sb.append("  (B)  ");
-		sb.append(mBlackScore);
+		sb.append(state.getmBlackScore());
 		sb.append(":");
-		sb.append(mWhiteScore);
+		sb.append(state.getmWhiteScore());
 		sb.append("  (W)  ");
 		sb.append(sbWhitePlayer.toString());
 
@@ -638,7 +645,7 @@ public class DroidZebra extends FragmentActivity
 			SharedPreferences settings = getSharedPreferences(SHARED_PREFS_NAME, 0);
 			SharedPreferences.Editor editor = settings.edit();
 			editor.putString(SETTINGS_KEY_FUNCTION, String.format("%d", newFunction));
-			editor.commit();
+			editor.apply();
 		}
 
 		loadSettings();
@@ -701,24 +708,6 @@ public class DroidZebra extends FragmentActivity
 	private void setUpBoard(String s) {
 		final LinkedList<Move> moves = makeMoveList(s);
 		mZebraThread.sendReplayMoves(moves);
-	}
-
-	static LinkedList<Move> makeMoveList(String s) {
-		LinkedList<Move> moves = new LinkedList<Move>();
-		Pattern p = Pattern.compile("([ABCDEFGH]{1}[12345678]{1})+");
-		Matcher matcher = p.matcher(s.toUpperCase());
-		if (!matcher.matches()) {
-			return new LinkedList<Move>();
-		}
-		String group = matcher.group();
-		System.out.println("Match: " + group);
-		for (int i = 0; i < group.length(); i += 2) {
-			int first = group.charAt(i) - 65;
-			int second = Integer.valueOf("" + group.charAt(i + 1)) - 1;
-			moves.add(new Move(first, second));
-			System.out.println(first + "/" + second);
-		}
-		return moves;
 	}
 
 	public void showBusyDialog() {
@@ -798,33 +787,6 @@ public class DroidZebra extends FragmentActivity
 		}
 	}
 
-	public static class BoardState {
-		public final static byte ST_FLIPPED = 0x01;
-		public byte mState;
-		public byte mFlags;
-
-		public BoardState(byte state) {
-			mState = state;
-			mFlags = 0;
-		}
-
-		public void set(byte newState) {
-			if (newState != ZebraEngine.PLAYER_EMPTY && mState != ZebraEngine.PLAYER_EMPTY && mState != newState)
-				mFlags |= ST_FLIPPED;
-			else
-				mFlags &= ~ST_FLIPPED;
-			mState = newState;
-		}
-
-		public byte getState() {
-			return mState;
-		}
-
-		public boolean isFlipped() {
-			return (mFlags & ST_FLIPPED) > 0;
-		}
-	}
-
 
 	//-------------------------------------------------------------------------
 	// Pass Dialog
@@ -867,8 +829,8 @@ public class DroidZebra extends FragmentActivity
 
 		public void refreshContent(View dialog) {
 			int winner;
-			int blackScore = getDroidZebra().mBlackScore;
-			int whiteScore = getDroidZebra().mWhiteScore;
+			int blackScore = getDroidZebra().state.getmBlackScore();
+			int whiteScore = getDroidZebra().state.getmWhiteScore();
 			if (whiteScore > blackScore)
 				winner =R.string.gameover_text_white_wins;
 			else if (whiteScore < blackScore)
@@ -961,19 +923,20 @@ public class DroidZebra extends FragmentActivity
 			return (DroidZebra)getActivity();
 		}
 
+		@NonNull
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
-	    	return new AlertDialog.Builder(getActivity())
-			.setTitle(R.string.dialog_quit_title)
-			.setPositiveButton( R.string.dialog_quit_button_quit, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							getDroidZebra().finish();
-						}
-					}
-				)
-			.setNegativeButton( R.string.dialog_quit_button_cancel, null )
-			.create();
-	    }
+			return new AlertDialog.Builder(getActivity())
+					.setTitle(R.string.dialog_quit_title)
+					.setPositiveButton( R.string.dialog_quit_button_quit, new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int id) {
+									getDroidZebra().finish();
+								}
+							}
+					)
+					.setNegativeButton( R.string.dialog_quit_button_cancel, null )
+					.create();
+		}
 	}
 
     //-------------------------------------------------------------------------
@@ -992,8 +955,9 @@ public class DroidZebra extends FragmentActivity
             return (DroidZebra)getActivity();
         }
 
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
+		@NonNull
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(R.string.menu_enter_moves);
 
@@ -1055,36 +1019,37 @@ public class DroidZebra extends FragmentActivity
 			return (DroidZebra)getActivity();
 		}
 
+		@NonNull
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			ProgressDialog pd = new ProgressDialog(getActivity()) {
 				@Override
 				public boolean onKeyDown(int keyCode, KeyEvent event) {
-					 if( getDroidZebra().mZebraThread.isThinking() ) {
-						 getDroidZebra().mZebraThread.stopMove();
-					 }
-					 getDroidZebra().mBusyDialogUp = false;
-					 cancel();
-					 return super.onKeyDown(keyCode, event);
+					if( getDroidZebra().mZebraThread.isThinking() ) {
+						getDroidZebra().mZebraThread.stopMove();
+					}
+					getDroidZebra().mBusyDialogUp = false;
+					cancel();
+					return super.onKeyDown(keyCode, event);
 				}
 
 				@Override
 				public boolean onTouchEvent(MotionEvent event) {
-					 if(event.getAction()==MotionEvent.ACTION_DOWN) {
-						 if( getDroidZebra().mZebraThread.isThinking() ) {
-							 getDroidZebra().mZebraThread.stopMove();
-						 }
-						 getDroidZebra().mBusyDialogUp = false;
-						 cancel();
-						 return true;
-					 }
+					if(event.getAction()==MotionEvent.ACTION_DOWN) {
+						if( getDroidZebra().mZebraThread.isThinking() ) {
+							getDroidZebra().mZebraThread.stopMove();
+						}
+						getDroidZebra().mBusyDialogUp = false;
+						cancel();
+						return true;
+					}
 					return super.onTouchEvent(event);
-				 }
+				}
 			};
 			pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 			pd.setMessage(getResources().getString(R.string.dialog_busy_message));
 			return pd;
-	    }
+		}
 	}
 	
 	/* requires api level 5 
@@ -1114,15 +1079,15 @@ public class DroidZebra extends FragmentActivity
 					String score;
 					int sideToMove = m.getData().getInt("side_to_move");
 
-					setBoard(m.getData().getByteArray("board"));
+					state.setBoard(m.getData().getByteArray("board"));
 
-					mBlackScore = m.getData().getBundle("black").getInt("disc_count");
-					mWhiteScore = m.getData().getBundle("white").getInt("disc_count");
+					state.setmBlackScore(m.getData().getBundle("black").getInt("disc_count"));
+					state.setmWhiteScore(m.getData().getBundle("white").getInt("disc_count"));
 
 					if (sideToMove == ZebraEngine.PLAYER_BLACK) {
-						score = String.format("•%d", mBlackScore);
+						score = String.format("•%d", state.getmBlackScore());
 					} else {
-						score = String.format("%d", mBlackScore);
+						score = String.format("%d", state.getmWhiteScore());
 					}
 					mStatusView.setTextForID(
 							StatusView.ID_SCORE_BLACK,
@@ -1130,9 +1095,9 @@ public class DroidZebra extends FragmentActivity
 					);
 
 					if (sideToMove == ZebraEngine.PLAYER_WHITE) {
-						score = String.format("%d•", mWhiteScore);
+						score = String.format("%d•", state.getmWhiteScore());
 					} else {
-						score = String.format("%d", mWhiteScore);
+						score = String.format("%d", state.getmBlackScore());
 					}
 					mStatusView.setTextForID(
 							StatusView.ID_SCORE_WHITE,
@@ -1194,7 +1159,7 @@ public class DroidZebra extends FragmentActivity
 				break;
 
 				case ZebraEngine.MSG_OPENING_NAME: {
-					mOpeningName = m.getData().getString("opening");
+					String mOpeningName = m.getData().getString("opening");
 					if (mStatusView != null) {
 						mStatusView.setTextForID(
 								StatusView.ID_STATUS_OPENING,
@@ -1273,18 +1238,6 @@ public class DroidZebra extends FragmentActivity
 			}
 		}
 	}
-
-	@SuppressLint("NewApi")
-	class ActionBarHelper {
-		void show() {
-			getActionBar().show();
-		}
-
-		void hide() {
-			getActionBar().hide();
-		}
-	}
-
 
 
 }
