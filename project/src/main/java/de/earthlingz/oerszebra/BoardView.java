@@ -423,19 +423,15 @@ public class BoardView extends View {
 				keyCode == KeyEvent.KEYCODE_DPAD_CENTER
 				|| keyCode == KeyEvent.KEYCODE_SPACE );
 
-        updateSelection(newMX, newMY, bMakeMove);
+        updateSelection(newMX, newMY, bMakeMove, true);
 
 		return false;
 	}
 
-    @Override
-    public boolean performClick() {
-        return super.performClick();
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-		if(mIsAnimationRunning) return false;
+        if(mIsAnimationRunning) return false;
 		
 		int action = event.getAction();
 		int bx = (int)Math.floor((event.getX() - mBoardRect.left)/mSizeCell);
@@ -444,13 +440,13 @@ public class BoardView extends View {
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_MOVE:
 			mShowSelectionHelpers = true;
-            updateSelection(bx, by, false);
+            updateSelection(bx, by, false, true);
             break;
-		case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_UP:
 			mShowSelectionHelpers = false;
-            updateSelection(bx, by, true);
+            updateSelection(bx, by, true, true);
             break;
-		} 
+        }
 		return true;
 	}
 
@@ -465,10 +461,11 @@ public class BoardView extends View {
 		
 		switch(event.getAction()) {
 		case MotionEvent.ACTION_DOWN: {
-            updateSelection(mMoveSelection.getX(), mMoveSelection.getY(), true);
-        } break;
-		
-		case MotionEvent.ACTION_MOVE: { 
+            updateSelection(mMoveSelection.getX(), mMoveSelection.getY(), true, true);
+        }
+        break;
+
+            case MotionEvent.ACTION_MOVE: {
 			int newMX = mMoveSelection.getX();
 			int newMY = mMoveSelection.getY();
 			if( Math.abs(tx)>Math.abs(ty) ) {
@@ -482,29 +479,30 @@ public class BoardView extends View {
 		        else 
 		        	newMY--;
 			}
-            updateSelection(newMX, newMY, false);
-        } break;
-		
-		default:
+            updateSelection(newMX, newMY, false, true);
+        }
+        break;
+
+            default:
 			return false;
 		}
 
 		return true;
 	}
 
-    private void updateSelection(int bX, int bY, boolean bMakeMove) {
+    private void updateSelection(int bX, int bY, boolean bMakeMove, boolean bShowSelection) {
         boolean bInvalidate = false;
-		
-		if(bX<0 || bX>=DroidZebra.boardSize) 
+
+        if(bX<0 || bX>=DroidZebra.boardSize)
 			bX = mMoveSelection.getX();
 
 		if(bY<0 || bY>=DroidZebra.boardSize) 
 			bY = mMoveSelection.getY();
 
-        if (mShowSelection != true) {
-            mShowSelection = true;
+        if (mShowSelection != bShowSelection) {
+            mShowSelection = bShowSelection;
             bInvalidate = true;
-		}
+        }
 
 		if( bX!=mMoveSelection.getX() || bY!=mMoveSelection.getY()) {
 			mMoveSelection = new Move(bX, bY);
