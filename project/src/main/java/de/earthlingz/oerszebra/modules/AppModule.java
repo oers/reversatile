@@ -1,4 +1,4 @@
-package de.earthlingz.oerszebra.components;
+package de.earthlingz.oerszebra.modules;
 
 import android.app.Application;
 
@@ -6,6 +6,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import de.earthlingz.oerszebra.BoardState;
 
 @Module
 public class AppModule {
@@ -20,5 +21,11 @@ public class AppModule {
     @Singleton
     Application providesApplication() {
         return mApplication;
+    }
+
+    @Provides
+    @Singleton
+    BoardState providesBoardState() {
+        return new BoardState();
     }
 }

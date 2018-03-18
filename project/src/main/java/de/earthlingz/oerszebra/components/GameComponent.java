@@ -1,15 +1,15 @@
 package de.earthlingz.oerszebra.components;
 
-import android.support.v4.app.FragmentActivity;
-
 import javax.inject.Singleton;
 
 import dagger.Component;
+import de.earthlingz.oerszebra.DroidZebra;
+import de.earthlingz.oerszebra.modules.AppModule;
 
 @Singleton
 @Component(modules = {AppModule.class})
-public interface NetComponent {
+public interface GameComponent {
     // void inject(MainActivity activity);
-    void inject(FragmentActivity fragment);
+    void inject(DroidZebra fragment);
     // void inject(MyService service);
 }

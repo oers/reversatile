@@ -64,6 +64,8 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.inject.Inject;
+
 //import android.util.Log;
 
 public class DroidZebra extends FragmentActivity
@@ -138,7 +140,7 @@ public class DroidZebra extends FragmentActivity
 	private StatusView mStatusView;
 	private SharedPreferences mSettings;
 
-	private BoardState state = new BoardState();
+	private BoardState state;
 
 	private int mSettingZebraDepth = 1;
 	private int mSettingZebraDepthExact = 1;
@@ -146,10 +148,8 @@ public class DroidZebra extends FragmentActivity
 	private DroidZebraHandler mDroidZebraHandler = null;
 
 	public DroidZebra() {
-
-		initBoard();
-
-    }
+		super();
+	}
 
 	static LinkedList<Move> makeMoveList(String s) {
 		LinkedList<Move> moves = new LinkedList<Move>();
@@ -183,6 +183,11 @@ public class DroidZebra extends FragmentActivity
 
 	public void zeJsonTest(JSONObject json) {
 		mZebraThread.zeJsonTest(json);
+	}
+
+	@Inject
+	void setBoardState(BoardState state) {
+		this.state = state;
 	}
 
 	private void newCompletionPort(final int zebraEngineStatus, final Runnable completion) {
@@ -346,7 +351,9 @@ public class DroidZebra extends FragmentActivity
 	{
 		super.onCreate(savedInstanceState);
 
-		((Appliation) getApplication()).getNetComponent().inject(this);
+		((Reversatile) getApplication()).getGameComponent().inject(this);
+		initBoard();
+
 		clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
 		setContentView(R.layout.spash_layout);
