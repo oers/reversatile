@@ -526,6 +526,8 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 		}
 
 		Intent intent = new Intent();
+		Intent chooser = Intent.createChooser(intent, "");
+
 		intent.setAction(Intent.ACTION_SEND);
 		intent.setType("message/rfc822");
 		intent.putExtra(
@@ -610,7 +612,10 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 
 		intent.putExtra(Intent.EXTRA_TEXT, sb.toString());
 		// Intent
-		this.startActivity(intent);
+		// Verify the original intent will resolve to at least one activity
+		if (intent.resolveActivity(getPackageManager()) != null) {
+			startActivity(chooser);
+		}
 	}
 
 	private void switchSides() {
