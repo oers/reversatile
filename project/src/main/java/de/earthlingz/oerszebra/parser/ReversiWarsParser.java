@@ -12,10 +12,12 @@ import java.util.regex.Pattern;
 
 public class ReversiWarsParser implements Parser {
 
+    private final static Pattern p = Pattern.compile("([ABCDEFGH][12345678])+");
+
     @Override
     public LinkedList<Move> makeMoveList(String s) {
         LinkedList<Move> moves = new LinkedList<Move>();
-        Pattern p = Pattern.compile("([ABCDEFGH]{1}[12345678]{1})+");
+
         Matcher matcher = p.matcher(s.toUpperCase());
         if (!matcher.matches()) {
             return new LinkedList<Move>();
@@ -29,5 +31,11 @@ public class ReversiWarsParser implements Parser {
             System.out.println(first + "/" + second);
         }
         return moves;
+    }
+
+    @Override
+    public boolean canParse(String s) {
+        Matcher matcher = p.matcher(s.toUpperCase());
+        return matcher.matches();
     }
 }

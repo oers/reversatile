@@ -8,6 +8,8 @@ import java.util.LinkedList;
  * Created by stefan on 18.03.2018.
  */
 
-interface Parser {
+public interface Parser {
     LinkedList<Move> makeMoveList(String s);
+
+    boolean canParse(String s);
 }

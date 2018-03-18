@@ -8,6 +8,8 @@ import dagger.Module;
 import dagger.Provides;
 import de.earthlingz.oerszebra.BoardState;
 import de.earthlingz.oerszebra.parser.Gameparser;
+import de.earthlingz.oerszebra.parser.ReversiWarsParser;
+import de.earthlingz.oerszebra.parser.ThorParser;
 
 @Module
 public class AppModule {
@@ -33,6 +35,7 @@ public class AppModule {
     @Provides
     @Singleton
     Gameparser providesGameparser() {
-        return new Gameparser();
+
+        return new Gameparser(new ReversiWarsParser(), new ThorParser());
     }
 }

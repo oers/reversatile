@@ -9,7 +9,28 @@ import java.util.LinkedList;
  */
 
 public class Gameparser {
+
+    private final Parser[] parser;
+
+    public Gameparser(Parser... parser) {
+        this.parser = parser;
+    }
+
     public LinkedList<Move> makeMoveList(String moves) {
-        return new ReversiWarsParser().makeMoveList(moves);
+        for (Parser parse : parser) {
+            if (parse.canParse(moves)) {
+                return parse.makeMoveList(moves);
+            }
+        }
+        return new LinkedList<>();
+    }
+
+    public boolean canParse(String moves) {
+        for (Parser parse : parser) {
+            if (parse.canParse(moves)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
