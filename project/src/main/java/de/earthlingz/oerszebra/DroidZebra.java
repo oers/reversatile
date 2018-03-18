@@ -61,10 +61,10 @@ import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
+
+import de.earthlingz.oerszebra.parser.Gameparser;
 
 //import android.util.Log;
 
@@ -145,28 +145,13 @@ public class DroidZebra extends FragmentActivity
 	private int mSettingZebraDepth = 1;
 	private int mSettingZebraDepthExact = 1;
 	private int mSettingZebraDepthWLD = 1;
+	private Gameparser parser;
 
 	public DroidZebra() {
 		super();
 	}
 
-	static LinkedList<Move> makeMoveList(String s) {
-		LinkedList<Move> moves = new LinkedList<Move>();
-		Pattern p = Pattern.compile("([ABCDEFGH]{1}[12345678]{1})+");
-		Matcher matcher = p.matcher(s.toUpperCase());
-		if (!matcher.matches()) {
-			return new LinkedList<Move>();
-		}
-		String group = matcher.group();
-		System.out.println("Match: " + group);
-		for (int i = 0; i < group.length(); i += 2) {
-			int first = group.charAt(i) - 65;
-			int second = Integer.valueOf("" + group.charAt(i + 1)) - 1;
-			moves.add(new Move(first, second));
-			System.out.println(first + "/" + second);
-		}
-		return moves;
-	}
+
 
 	public boolean isThinking() {
 		return mZebraThread.isThinking();
@@ -187,6 +172,11 @@ public class DroidZebra extends FragmentActivity
 	@Inject
 	void setBoardState(BoardState state) {
 		this.state = state;
+	}
+
+	@Inject
+	void setGameParser(Gameparser parser) {
+		this.parser = parser;
 	}
 
 	private void newCompletionPort(final int zebraEngineStatus, final Runnable completion) {
@@ -363,8 +353,8 @@ public class DroidZebra extends FragmentActivity
 
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
-                mZebraThread.setInitialGameState(makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
-            }
+				mZebraThread.setInitialGameState(parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
+			}
             else  {
                 Log.e("intent", "unknown intent");
             }
@@ -700,7 +690,7 @@ public class DroidZebra extends FragmentActivity
 	}
 
 	private void setUpBoard(String s) {
-		final LinkedList<Move> moves = makeMoveList(s);
+		final LinkedList<Move> moves = parser.makeMoveList(s);
 		mZebraThread.sendReplayMoves(moves);
 	}
 
@@ -977,8 +967,8 @@ public class DroidZebra extends FragmentActivity
                     }
                 }
 
-                if (possibleMatch != null && !DroidZebra.makeMoveList(possibleMatch).isEmpty()) {
-                    input.setText(possibleMatch);
+				if (possibleMatch != null && !getDroidZebra().getParser().makeMoveList(possibleMatch).isEmpty()) {
+					input.setText(possibleMatch);
                 }
             }
 
@@ -1005,7 +995,11 @@ public class DroidZebra extends FragmentActivity
         }
     }
 
-    //-------------------------------------------------------------------------
+	private Gameparser getParser() {
+		return parser;
+	}
+
+	//-------------------------------------------------------------------------
 	// Pass Dialog
 	public static class DialogBusy extends DialogFragment {
 

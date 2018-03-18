@@ -7,6 +7,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import de.earthlingz.oerszebra.BoardState;
+import de.earthlingz.oerszebra.parser.Gameparser;
 
 @Module
 public class AppModule {
@@ -27,5 +28,11 @@ public class AppModule {
     @Singleton
     BoardState providesBoardState() {
         return new BoardState();
+    }
+
+    @Provides
+    @Singleton
+    Gameparser providesGameparser() {
+        return new Gameparser();
     }
 }
