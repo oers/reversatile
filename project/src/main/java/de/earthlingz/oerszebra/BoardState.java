@@ -1,6 +1,8 @@
 package de.earthlingz.oerszebra;
 
+import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.CandidateMoves;
+import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
 /**
@@ -11,7 +13,7 @@ public class BoardState {
     final public static int boardSize = 8;
 
     private FieldState mBoard[][] = new FieldState[boardSize][boardSize];
-    private ZebraEngine.Move mLastMove = null;
+    private Move mLastMove = null;
     private int mWhiteScore = 0;
     private int mBlackScore = 0;
     private final CandidateMoves mCandidateMoves = new CandidateMoves();
@@ -28,11 +30,11 @@ public class BoardState {
         this.mBoard = mBoard;
     }
 
-    public ZebraEngine.Move getmLastMove() {
+    public Move getmLastMove() {
         return mLastMove;
     }
 
-    public void setmLastMove(ZebraEngine.Move mLastMove) {
+    public void setmLastMove(Move mLastMove) {
         this.mLastMove = mLastMove;
     }
 
@@ -52,18 +54,18 @@ public class BoardState {
         this.mBlackScore = mBlackScore;
     }
 
-    public ZebraEngine.CandidateMove[] getMoves() {
+    public CandidateMove[] getMoves() {
         return mCandidateMoves.getMoves();
     }
 
-    public void setMoves(ZebraEngine.CandidateMove[] moves) {
+    public void setMoves(CandidateMove[] moves) {
         mCandidateMoves.setMoves(moves);
     }
 
-    public boolean isValidMove(ZebraEngine.Move move) {
+    public boolean isValidMove(Move move) {
         if (mCandidateMoves == null)
             return false;
-        for (ZebraEngine.CandidateMove m : mCandidateMoves.getMoves()) {
+        for (CandidateMove m : mCandidateMoves.getMoves()) {
             if (m.mMove.getX() == move.getX() && m.mMove.getY() == move.getY()) return true;
         }
         return false;

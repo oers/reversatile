@@ -1,6 +1,6 @@
 package de.earthlingz.oerszebra;
 
-import com.shurik.droidzebra.ZebraEngine;
+import com.shurik.droidzebra.Move;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -15,7 +15,7 @@ public class DroidZebraJunitTest {
 
     @Test
     public void playOk() {
-        LinkedList<ZebraEngine.Move> moves = DroidZebra.makeMoveList("[Event \"?\"]\n" +
+        LinkedList<Move> moves = DroidZebra.makeMoveList("[Event \"?\"]\n" +
                 "[Site \"PlayOK\"]\n" +
                 "[Date \"2017.12.28\"]\n" +
                 "[Round \"-\"]\n" +

@@ -48,12 +48,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.EngineError;
 import com.shurik.droidzebra.GameState;
+import com.shurik.droidzebra.InvalidMove;
+import com.shurik.droidzebra.Move;
+import com.shurik.droidzebra.PlayerInfo;
 import com.shurik.droidzebra.ZebraEngine;
-import com.shurik.droidzebra.ZebraEngine.CandidateMove;
-import com.shurik.droidzebra.ZebraEngine.Move;
-import com.shurik.droidzebra.ZebraEngine.PlayerInfo;
 
 import org.json.JSONObject;
 
@@ -144,7 +145,6 @@ public class DroidZebra extends FragmentActivity
 	private int mSettingZebraDepth = 1;
 	private int mSettingZebraDepthExact = 1;
 	private int mSettingZebraDepthWLD = 1;
-	private DroidZebraHandler mDroidZebraHandler = null;
 
 	public DroidZebra() {
 		super();
@@ -176,7 +176,7 @@ public class DroidZebra extends FragmentActivity
 		return mZebraThread.isHumanToMove();
 	}
 
-	public void makeMove(Move mMoveSelection) throws ZebraEngine.InvalidMove, EngineError {
+	public void makeMove(Move mMoveSelection) throws InvalidMove, EngineError {
 		mZebraThread.makeMove(mMoveSelection);
 	}
 
@@ -349,10 +349,7 @@ public class DroidZebra extends FragmentActivity
 		setContentView(R.layout.spash_layout);
 		new ActionBarHelper(this).hide();
 
-
-		// start your engines
-		mDroidZebraHandler = new DroidZebraHandler();
-		mZebraThread = new ZebraEngine(this, mDroidZebraHandler);
+		mZebraThread = new ZebraEngine(this, new DroidZebraHandler());
 
 		// preferences
 		mSettings = getSharedPreferences(SHARED_PREFS_NAME, 0);
@@ -672,7 +669,7 @@ public class DroidZebra extends FragmentActivity
 			} catch (InterruptedException e) {
 			}
 		}
-		mDroidZebraHandler = null;
+		mZebraThread.clean();
 		super.onDestroy();
 	}
 

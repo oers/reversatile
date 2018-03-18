@@ -36,11 +36,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.EngineError;
+import com.shurik.droidzebra.InvalidMove;
+import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
-import com.shurik.droidzebra.ZebraEngine.CandidateMove;
-import com.shurik.droidzebra.ZebraEngine.InvalidMove;
-import com.shurik.droidzebra.ZebraEngine.Move;
 //import android.util.Log;
 
 public class BoardView extends View {
