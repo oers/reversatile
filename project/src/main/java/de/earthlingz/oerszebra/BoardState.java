@@ -1,5 +1,6 @@
 package de.earthlingz.oerszebra;
 
+import com.shurik.droidzebra.CandidateMoves;
 import com.shurik.droidzebra.ZebraEngine;
 
 /**
@@ -13,6 +14,7 @@ public class BoardState {
     private ZebraEngine.Move mLastMove = null;
     private int mWhiteScore = 0;
     private int mBlackScore = 0;
+    private final CandidateMoves mCandidateMoves = new CandidateMoves();
 
     public BoardState() {
         super();
@@ -48,6 +50,23 @@ public class BoardState {
 
     public void setmBlackScore(int mBlackScore) {
         this.mBlackScore = mBlackScore;
+    }
+
+    public ZebraEngine.CandidateMove[] getMoves() {
+        return mCandidateMoves.getMoves();
+    }
+
+    public void setMoves(ZebraEngine.CandidateMove[] moves) {
+        mCandidateMoves.setMoves(moves);
+    }
+
+    public boolean isValidMove(ZebraEngine.Move move) {
+        if (mCandidateMoves == null)
+            return false;
+        for (ZebraEngine.CandidateMove m : mCandidateMoves.getMoves()) {
+            if (m.mMove.getX() == move.getX() && m.mMove.getY() == move.getY()) return true;
+        }
+        return false;
     }
 
     public void setBoard(byte[] board) {

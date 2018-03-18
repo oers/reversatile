@@ -48,7 +48,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.shurik.droidzebra.CandidateMoves;
 import com.shurik.droidzebra.EngineError;
 import com.shurik.droidzebra.GameState;
 import com.shurik.droidzebra.ZebraEngine;
@@ -113,7 +112,7 @@ public class DroidZebra extends FragmentActivity
 	public static final int DEFAULT_SETTING_RANDOMNESS = RANDOMNESS_LARGE;
 
 
-	private final CandidateMoves mCandidateMoves = new CandidateMoves();
+
     public int mSettingFunction = DEFAULT_SETTING_FUNCTION;
 	public boolean mSettingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
 	public int mSettingZebraRandomness = DEFAULT_SETTING_RANDOMNESS;
@@ -222,11 +221,11 @@ public class DroidZebra extends FragmentActivity
 	}
 
 	public CandidateMove[] getCandidateMoves() {
-		return mCandidateMoves.getMoves();
+		return state.getMoves();
 	}
 
 	public void setCandidateMoves(CandidateMove[] cmoves) {
-		mCandidateMoves.setMoves(cmoves);
+		state.setMoves(cmoves);
 		mBoardView.invalidate();
 	}
 
@@ -238,15 +237,6 @@ public class DroidZebra extends FragmentActivity
 	@Deprecated
 	public void setLastMove(Move move) {
 		state.setmLastMove(move);
-	}
-
-	public boolean isValidMove(Move move) {
-		if (mCandidateMoves == null)
-			return false;
-		for(CandidateMove m:mCandidateMoves.getMoves()) {
-			if(m.mMove.getX()==move.getX() && m.mMove.getY()==move.getY() ) return true;
-		}
-		return false;
 	}
 
 	public boolean evalsDisplayEnabled() {
@@ -794,6 +784,10 @@ public class DroidZebra extends FragmentActivity
 		}
 	}
 
+	public BoardState getState() {
+		return state;
+	}
+
 
 	//-------------------------------------------------------------------------
 	// Pass Dialog
@@ -1226,7 +1220,7 @@ public class DroidZebra extends FragmentActivity
 				case ZebraEngine.MSG_CANDIDATE_EVALS: {
 					CandidateMove[] evals = (CandidateMove[]) m.obj;
 					for (CandidateMove eval : evals) {
-						CandidateMove[] moves = mCandidateMoves.getMoves();
+						CandidateMove[] moves = state.getMoves();
 						for (int i = 0; i < moves.length; i++) {
 							if (moves[i].mMove.mMove == eval.mMove.mMove) {
 								moves[i] = eval;

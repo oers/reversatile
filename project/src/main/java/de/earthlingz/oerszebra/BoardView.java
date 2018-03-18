@@ -233,7 +233,7 @@ public class BoardView extends View {
 		// draw helpers for move selector
 		if( mMoveSelection != null ) {
 			if( mShowSelectionHelpers ) {
-				if( mDroidZebra.isValidMove(mMoveSelection) )
+				if (mDroidZebra.getState().isValidMove(mMoveSelection))
 					mPaint.setColor(mColorHelpersValid);
 				else
 					mPaint.setColor(mColorHelpersInvalid);
@@ -253,7 +253,7 @@ public class BoardView extends View {
 	        			mPaint
 	        		);
 			} else if( mShowSelection ) {
-				if( mDroidZebra.isValidMove(mMoveSelection) )
+				if (mDroidZebra.getState().isValidMove(mMoveSelection))
 					mPaint.setColor(mColorSelectionValid);
 				else
 					mPaint.setColor(mColorSelectionInvalid);
@@ -514,8 +514,8 @@ public class BoardView extends View {
 		if( bMakeMove ) {
 			bInvalidate = true;
 			mShowSelectionHelpers = false;
-			
-			if( getDroidZebra().isValidMove(mMoveSelection) ) {
+
+			if (getDroidZebra().getState().isValidMove(mMoveSelection)) {
 				// if zebra is still thinking - no move is possible yet - throw a busy dialog
 				if( mDroidZebra.isThinking() && !mDroidZebra.isHumanToMove()) {
 					mDroidZebra.showBusyDialog();
