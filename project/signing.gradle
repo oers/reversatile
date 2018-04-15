@@ -17,4 +17,9 @@ if (project.hasProperty("reversatile_key_alias")
             }
         }
     }
+} else {
+    System.out.println("alias: " + project.hasProperty("reversatile_key_alias"))
+    System.out.println("pwd: " + project.hasProperty("reversatile_key_password"))
+    System.out.println("key_pwd: " + project.hasProperty("reversatile_keystore_password"))
+    System.out.println("jks: " +  file('../keystore/zebra.jks').exists())
 }
