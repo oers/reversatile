@@ -409,7 +409,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 			|| mSettingZebraDepthWLD != settingZebraDepthWLD
 			|| mSettingAutoMakeForcedMoves != settingAutoMakeForcedMoves
 			|| mSettingZebraRandomness != settingRandomness
-			|| mSettingZebraForceOpening != settingZebraForceOpening
+			|| !mSettingZebraForceOpening.equals(settingZebraForceOpening)
 			|| mSettingZebraHumanOpenings != settingZebraHumanOpenings
 			|| mSettingZebraPracticeMode != settingZebraPracticeMode
 			|| mSettingZebraUseBook != settingZebraUseBook
