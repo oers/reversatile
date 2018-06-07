@@ -8,7 +8,7 @@
     <string name="default_display_last_move">true</string>
     <string name="default_display_principal_variation">true</string>
     <string name="default_enable_animations">true</string>
-    <string name="default_search_depth">1|1|1</string>
+    <string name="default_search_depth">8|16|0</string>
     <string name="default_practice_mode">false</string>
     <string name="default_human_openings">false</string>
     <string name="default_forced_opening">None</string>
