@@ -70,7 +70,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 	public static final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES  = false;
 	public static final String DEFAULT_SETTING_FORCE_OPENING = "None";
 	public static final boolean DEFAULT_SETTING_HUMAN_OPENINGS = false;
-	public static final boolean DEFAULT_SETTING_PRACTICE_MODE = false;
+	public static final boolean DEFAULT_SETTING_PRACTICE_MODE = true;
 	public static final boolean DEFAULT_SETTING_USE_BOOK = true;
 	public static final boolean DEFAULT_SETTING_DISPLAY_PV = true;
 	public static final boolean DEFAULT_SETTING_DISPLAY_MOVES = true;
@@ -96,7 +96,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 			FUNCTION_ZEBRA_WHITE = 1,
 			FUNCTION_ZEBRA_BLACK = 2,
 			FUNCTION_ZEBRA_VS_ZEBRA = 3;
-	public static final int DEFAULT_SETTING_FUNCTION = FUNCTION_ZEBRA_WHITE;
+	public static final int DEFAULT_SETTING_FUNCTION = FUNCTION_HUMAN_VS_HUMAN;
 	private static final int
 			RANDOMNESS_NONE = 0,
 			RANDOMNESS_SMALL = 1,
