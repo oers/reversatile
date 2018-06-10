@@ -76,7 +76,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 	public static final boolean DEFAULT_SETTING_DISPLAY_MOVES = true;
 	public static final boolean DEFAULT_SETTING_DISPLAY_LAST_MOVE = true;
 	public static final String DEFAULT_SETTING_SENDMAIL = "";
-	public static final boolean DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS = true;
+	public static final boolean DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS = false;
 	public static final String
 	SETTINGS_KEY_FUNCTION = "settings_engine_function",
 	SETTINGS_KEY_STRENGTH = "settings_engine_strength",
