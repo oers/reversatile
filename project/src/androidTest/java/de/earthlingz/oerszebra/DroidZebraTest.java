@@ -1,10 +1,14 @@
 package de.earthlingz.oerszebra;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 
 import com.shurik.droidzebra.ZebraEngine;
+
+import java.lang.ref.WeakReference;
 
 /**
  * This is a simple framework for a test of an Application.  See
@@ -88,6 +92,33 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         assertSame(0, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_EMPTY));
         assertSame(32, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_WHITE));
         assertSame(32, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_BLACK));
+    }
+
+    public void testIssue24() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "D3D4D5D6");
+
+        this.getActivity().onNewIntent(intent);
+        Thread.sleep(1000);
+        //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
+        Log.i("Board: ", asString(this.getActivity().getBoard()));
+
+        assertSame(60, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_EMPTY));
+        assertSame(2, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_WHITE));
+        assertSame(2, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_BLACK));
+
+        int countWait = 0;
+        while (getActivity().getAlert() == null && countWait < 100) {
+            Thread.sleep(100);
+            countWait++;
+        }
+        WeakReference<AlertDialog> alert = getActivity().getAlert();
+        AlertDialog diag = alert.get();
+
+        getActivity().runOnUiThread(() -> diag.getButton(DialogInterface.BUTTON_POSITIVE).performClick());
+
     }
 
     private int countSquares(FieldState[][] board, byte playerEmpty) {

@@ -181,11 +181,7 @@ JNIFn(droidzebra,ZebraEngine,zeGlobalInit)(
 JNIEXPORT void
 JNIFn(droidzebra,ZebraEngine,zeGlobalTerminate)( JNIEnv* env, jobject thiz )
 {
-	DROIDZEBRA_JNI_SETUP;
-
 	global_terminate();
-
-	DROIDZEBRA_JNI_CLEAN;
 }
 
 JNIEXPORT void

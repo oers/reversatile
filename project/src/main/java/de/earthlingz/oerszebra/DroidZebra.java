@@ -55,9 +55,11 @@ import com.shurik.droidzebra.ZebraEngine;
 
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
+
 import de.earthlingz.oerszebra.parser.Gameparser;
 
 //import android.util.Log;
@@ -139,6 +141,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 	private int mSettingZebraDepthExact = 1;
 	private int mSettingZebraDepthWLD = 1;
 	private Gameparser parser;
+	private WeakReference<AlertDialog> alert = null;
 
 	public DroidZebra() {
 		super();
@@ -474,7 +477,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 				break;
 			}
 		} catch (EngineError e) {
-			FatalError(e.getError());
+			showAlertDialog(e.getError());
 		}
 
 		mStatusView.setTextForID(
@@ -707,17 +710,19 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 			loadSettings();
 	}
 
-	public void FatalError(String msg) {
+	public void showAlertDialog(String msg) {
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 		alertDialog.setTitle("Zebra Error");
 		alertDialog.setMessage(msg);
-		alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						DroidZebra.this.finish();
-					}
-				}
-		);
-		alertDialog.show();
+		alertDialog.setPositiveButton("OK", (dialog, id) -> {
+			DroidZebra.this.initBoard();
+			alert = null;
+		});
+		alert = new WeakReference<>(alertDialog.show());
+	}
+
+	public WeakReference<AlertDialog> getAlert() {
+		return alert;
 	}
 
 	@Override
@@ -968,7 +973,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 		try {
 			mZebraThread.undoMove();
 		} catch (EngineError e) {
-			FatalError(e.msg);
+			showAlertDialog(e.msg);
 		}
 	} */
 
@@ -978,7 +983,8 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 			// block messages if waiting for something
 			switch (m.what) {
 				case ZebraEngine.MSG_ERROR: {
-					FatalError(m.getData().getString("error"));
+					showAlertDialog(m.getData().getString("error"));
+					mZebraThread.setInitialGameState(new LinkedList<>());
 				}
 				break;
 				case ZebraEngine.MSG_MOVE_START: {
