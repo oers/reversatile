@@ -1,6 +1,6 @@
 package de.earthlingz.oerszebra;
 
-public class GameSettingsCostants {
+public class GameSettingsConstants {
 
     public static final int
             FUNCTION_HUMAN_VS_HUMAN = 0,

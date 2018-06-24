@@ -6,7 +6,7 @@ import com.shurik.droidzebra.ZebraEngine;
 
 import java.util.Locale;
 
-import static de.earthlingz.oerszebra.GameSettingsCostants.*;
+import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 
 public class GlobalSettingsLoader {
     public static final String SHARED_PREFS_NAME="droidzebrasettings";

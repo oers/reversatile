@@ -58,10 +58,10 @@ import java.util.Locale;
 
 import de.earthlingz.oerszebra.parser.Gameparser;
 
-import static de.earthlingz.oerszebra.GameSettingsCostants.FUNCTION_HUMAN_VS_HUMAN;
-import static de.earthlingz.oerszebra.GameSettingsCostants.FUNCTION_ZEBRA_BLACK;
-import static de.earthlingz.oerszebra.GameSettingsCostants.FUNCTION_ZEBRA_VS_ZEBRA;
-import static de.earthlingz.oerszebra.GameSettingsCostants.FUNCTION_ZEBRA_WHITE;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_BLACK;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_WHITE;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.DEFAULT_SETTING_SENDMAIL;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_HUGE;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_LARGE;
