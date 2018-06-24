@@ -308,7 +308,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 	}
 
 	private void loadSettings() {
-		boolean bZebraSettingChanged = this.settingsLoader.loadSettings(mZebraThread);
+		boolean bZebraSettingChanged = this.settingsLoader.loadSettings();
 		try {
 			mZebraThread.setAutoMakeMoves (settingsLoader.mSettingAutoMakeForcedMoves);
 			mZebraThread.setForcedOpening (settingsLoader.mSettingZebraForceOpening);
