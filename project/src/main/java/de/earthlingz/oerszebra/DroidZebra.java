@@ -63,11 +63,6 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_BLACK
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_WHITE;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.DEFAULT_SETTING_SENDMAIL;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_HUGE;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_LARGE;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_MEDIUM;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_NONE;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.RANDOMNESS_SMALL;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_FUNCTION;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_SENDMAIL;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
@@ -334,29 +329,8 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
 			}
 			mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA,  settingsProvider.getSettingZebraDepth() + 1,  settingsProvider.getSettingZebraDepthExact() + 1,  settingsProvider.getSettingZebraDepthWLD() + 1, ZebraEngine.INFINIT_TIME, 0));
 
-			switch (settingsProvider.getSettingRandomness()) {
-				case RANDOMNESS_SMALL:
-					mZebraThread.setSlack(1);
-					mZebraThread.setPerturbation(1);
-					break;
-				case RANDOMNESS_MEDIUM:
-					mZebraThread.setSlack(4);
-					mZebraThread.setPerturbation(2);
-					break;
-				case RANDOMNESS_LARGE:
-					mZebraThread.setSlack(6);
-					mZebraThread.setPerturbation(6);
-					break;
-				case RANDOMNESS_HUGE:
-					mZebraThread.setSlack(10);
-					mZebraThread.setPerturbation(16);
-					break;
-				case RANDOMNESS_NONE:
-				default:
-					mZebraThread.setSlack(0);
-					mZebraThread.setPerturbation(0);
-					break;
-			}
+			mZebraThread.setSlack(settingsProvider.getSettingSlack());
+			mZebraThread.setPerturbation(settingsProvider.getSettingPerturbation());
 		} catch (EngineError e) {
 			showAlertDialog(e.getError());
 		}

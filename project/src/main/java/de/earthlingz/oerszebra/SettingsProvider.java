@@ -34,6 +34,10 @@ interface SettingsProvider {
 
     int getSettingZebraDepthWLD();
 
+    int getSettingSlack();
+
+    int getSettingPerturbation();
+
     interface OnChangeListener {
         void onChange();
     }

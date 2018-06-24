@@ -41,7 +41,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
             SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS = "settings_ui_display_enable_animations";
 
 
-    public static final int
+    private static final int
             RANDOMNESS_NONE = 0,
             RANDOMNESS_SMALL = 1,
             RANDOMNESS_MEDIUM = 2,
@@ -60,6 +60,11 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private boolean settingDisplayMoves;
     private boolean settingDisplayLastMove;
     private boolean settingDisplayEnableAnimations;
+
+    private int settingSlack;
+    private int settingPerturbation;
+
+
     private int settingAnimationDelay = 1000;
 
 
@@ -147,6 +152,31 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         settingDisplayLastMove = settings.getBoolean(SETTINGS_KEY_DISPLAY_LAST_MOVE, DEFAULT_SETTING_DISPLAY_LAST_MOVE);
 
         settingDisplayEnableAnimations = settings.getBoolean(SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS, DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS);
+
+
+        switch (settingRandomness) {
+            case RANDOMNESS_SMALL:
+                settingSlack = 1;
+                settingPerturbation = 1;
+                break;
+            case RANDOMNESS_MEDIUM:
+                settingSlack = 4;
+                settingPerturbation = 2;
+                break;
+            case RANDOMNESS_LARGE:
+                settingSlack = 6;
+                settingPerturbation = 6;
+                break;
+            case RANDOMNESS_HUGE:
+                settingSlack = 10;
+                settingPerturbation = 16;
+                break;
+            case RANDOMNESS_NONE:
+            default:
+                settingSlack = 0;
+                settingPerturbation = 0;
+                break;
+        }
 
 
         return bZebraSettingChanged;
@@ -237,6 +267,16 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     @Override
     public int getSettingZebraDepthWLD() {
         return settingZebraDepthWLD;
+    }
+
+    @Override
+    public int getSettingSlack() {
+        return settingSlack;
+    }
+
+    @Override
+    public int getSettingPerturbation() {
+        return settingPerturbation;
     }
 
 }
