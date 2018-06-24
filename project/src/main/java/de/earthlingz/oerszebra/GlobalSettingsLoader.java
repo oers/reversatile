@@ -2,9 +2,6 @@ package de.earthlingz.oerszebra;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
-import com.shurik.droidzebra.EngineError;
-import com.shurik.droidzebra.PlayerInfo;
 import com.shurik.droidzebra.ZebraEngine;
 
 import java.util.Locale;
