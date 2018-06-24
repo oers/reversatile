@@ -74,7 +74,7 @@ public class GlobalSettingsLoader {
         this.context = context;
     }
 
-    public boolean loadSettings(ZebraEngine mZebraThread) {	int settingsFunction, settingZebraDepth, settingZebraDepthExact, settingZebraDepthWLD;
+    public boolean loadSettings() {	int settingsFunction, settingZebraDepth, settingZebraDepthExact, settingZebraDepthWLD;
         int settingRandomness;
         boolean settingAutoMakeForcedMoves;
         String settingZebraForceOpening;
@@ -86,15 +86,9 @@ public class GlobalSettingsLoader {
 
         settingsFunction = Integer.parseInt(settings.getString(SETTINGS_KEY_FUNCTION, String.format(Locale.getDefault(), "%d", DEFAULT_SETTING_FUNCTION)));
         String[] strength = settings.getString(SETTINGS_KEY_STRENGTH, DEFAULT_SETTING_STRENGTH).split("\\|");
-        // Log.d("DroidZebra", String.format("settings %s:%s|%s|%s", SETTINGS_KEY_STRENGTH, strength[0], strength[1], strength[2]));
-
         settingZebraDepth = Integer.parseInt(strength[0]);
         settingZebraDepthExact = Integer.parseInt(strength[1]);
         settingZebraDepthWLD = Integer.parseInt(strength[2]);
-        //Log.d( "DroidZebra",
-        //		String.format("Function: %d; depth: %d; exact: %d; wld %d",
-        //				mSettingFunction, mSettingZebraDepth, mSettingZebraDepthExact, mSettingZebraDepthWLD)
-        //);
 
         settingAutoMakeForcedMoves = settings.getBoolean(SETTINGS_KEY_AUTO_MAKE_FORCED_MOVES, DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES);
         settingRandomness = Integer.parseInt(settings.getString(SETTINGS_KEY_RANDOMNESS, String.format("%d", DEFAULT_SETTING_RANDOMNESS)));
