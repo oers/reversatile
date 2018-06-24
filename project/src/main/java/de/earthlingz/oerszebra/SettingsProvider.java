@@ -1,9 +1,6 @@
 package de.earthlingz.oerszebra;
 
-import android.content.SharedPreferences;
-
 interface SettingsProvider {
-    void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key);
 
     void setOnChangeListener(OnChangeListener onChangeListener);
 
@@ -37,7 +34,7 @@ interface SettingsProvider {
 
     int getSettingZebraDepthWLD();
 
-    public interface OnChangeListener {
+    interface OnChangeListener {
         void onChange();
     }
 }
