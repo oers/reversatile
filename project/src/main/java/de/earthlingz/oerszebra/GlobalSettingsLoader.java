@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import java.util.Locale;
 
 
-public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenceChangeListener, SettingsProvider {
     public static final String SHARED_PREFS_NAME = "droidzebrasettings";
 
     private final String DEFAULT_SETTING_STRENGTH;
@@ -159,71 +159,84 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         }
     }
 
+    @Override
     public void setOnChangeListener(OnChangeListener onChangeListener) {
         this.onChangeListener = onChangeListener;
     }
 
+    @Override
     public int getSettingFunction() {
         return settingFunction;
     }
 
+    @Override
     public boolean isSettingAutoMakeForcedMoves() {
         return settingAutoMakeForcedMoves;
     }
 
+    @Override
     public int getSettingRandomness() {
         return settingRandomness;
     }
 
+    @Override
     public String getSettingForceOpening() {
         return settingForceOpening;
     }
 
+    @Override
     public boolean isSettingHumanOpenings() {
         return settingHumanOpenings;
     }
 
+    @Override
     public boolean isSettingPracticeMode() {
         return settingPracticeMode;
     }
 
+    @Override
     public boolean isSettingUseBook() {
         return settingUseBook;
     }
 
+    @Override
     public boolean isSettingDisplayPv() {
         return settingDisplayPv;
     }
 
+    @Override
     public boolean isSettingDisplayMoves() {
         return settingDisplayMoves;
     }
 
+    @Override
     public boolean isSettingDisplayLastMove() {
         return settingDisplayLastMove;
     }
 
+    @Override
     public boolean isSettingDisplayEnableAnimations() {
         return settingDisplayEnableAnimations;
     }
 
+    @Override
     public int getSettingAnimationDelay() {
         return settingAnimationDelay;
     }
 
+    @Override
     public int getSettingZebraDepth() {
         return settingZebraDepth;
     }
 
+    @Override
     public int getSettingZebraDepthExact() {
         return settingZebraDepthExact;
     }
 
+    @Override
     public int getSettingZebraDepthWLD() {
         return settingZebraDepthWLD;
     }
 
-    public interface OnChangeListener {
-        void onChange();
-    }
 }

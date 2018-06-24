@@ -74,7 +74,7 @@ import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 
 //import android.util.Log;
 
-public class DroidZebra extends FragmentActivity implements GameController, GlobalSettingsLoader.OnChangeListener {
+public class DroidZebra extends FragmentActivity implements GameController, SettingsProvider.OnChangeListener {
 	private ClipboardManager clipboard;
 	private ZebraEngine mZebraThread;
 
@@ -92,7 +92,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 	private Gameparser parser;
     private WeakReference<AlertDialog> alert = null;
 
-    public GlobalSettingsLoader settingsLoader;
+    public SettingsProvider settingsProvider;
 
 	public DroidZebra() {
 		super();
@@ -152,7 +152,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 	}
 
 	public boolean evalsDisplayEnabled() {
-		return  settingsLoader.isSettingPracticeMode() || mHintIsUp;
+		return  settingsProvider.isSettingPracticeMode() || mHintIsUp;
 	}
 
 	public void newGame() {
@@ -261,8 +261,8 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
         mZebraThread = new ZebraEngine(new AndroidContext(this));
         mZebraThread.setHandler(new DroidZebraHandler(state, this, mZebraThread));
 
-        this.settingsLoader = new GlobalSettingsLoader(this);
-        this.settingsLoader.setOnChangeListener(this);
+        this.settingsProvider = new GlobalSettingsLoader(this);
+        this.settingsProvider.setOnChangeListener(this);
 
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -307,34 +307,34 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 	private void loadSettings() {
         if (mZebraThread == null) return;
 		try {
-			mZebraThread.setAutoMakeMoves (settingsLoader.isSettingAutoMakeForcedMoves());
-			mZebraThread.setForcedOpening (settingsLoader.getSettingForceOpening());
-			mZebraThread.setHumanOpenings (settingsLoader.isSettingHumanOpenings());
-			mZebraThread.setPracticeMode (settingsLoader.isSettingPracticeMode());
-			mZebraThread.setUseBook (settingsLoader.isSettingUseBook());
+			mZebraThread.setAutoMakeMoves (settingsProvider.isSettingAutoMakeForcedMoves());
+			mZebraThread.setForcedOpening (settingsProvider.getSettingForceOpening());
+			mZebraThread.setHumanOpenings (settingsProvider.isSettingHumanOpenings());
+			mZebraThread.setPracticeMode (settingsProvider.isSettingPracticeMode());
+			mZebraThread.setUseBook (settingsProvider.isSettingUseBook());
 
-			switch(settingsLoader.getSettingFunction()) {
+			switch(settingsProvider.getSettingFunction()) {
 				case FUNCTION_HUMAN_VS_HUMAN:
 					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
 					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
 					break;
 				case FUNCTION_ZEBRA_BLACK:
-					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, settingsLoader.getSettingZebraDepth(), settingsLoader.getSettingZebraDepthExact(), settingsLoader.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
+					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, settingsProvider.getSettingZebraDepth(), settingsProvider.getSettingZebraDepthExact(), settingsProvider.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
 					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
 					break;
 				case FUNCTION_ZEBRA_VS_ZEBRA:
-					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, settingsLoader.getSettingZebraDepth(), settingsLoader.getSettingZebraDepthExact(), settingsLoader.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
-					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, settingsLoader.getSettingZebraDepth(), settingsLoader.getSettingZebraDepthExact(), settingsLoader.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
+					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, settingsProvider.getSettingZebraDepth(), settingsProvider.getSettingZebraDepthExact(), settingsProvider.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
+					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, settingsProvider.getSettingZebraDepth(), settingsProvider.getSettingZebraDepthExact(), settingsProvider.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
 					break;
 				case FUNCTION_ZEBRA_WHITE:
 				default:
 					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
-					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, settingsLoader.getSettingZebraDepth(), settingsLoader.getSettingZebraDepthExact(), settingsLoader.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
+					mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, settingsProvider.getSettingZebraDepth(), settingsProvider.getSettingZebraDepthExact(), settingsProvider.getSettingZebraDepthWLD(), ZebraEngine.INFINIT_TIME, 0));
 					break;
 			}
-			mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA,  settingsLoader.getSettingZebraDepth() + 1,  settingsLoader.getSettingZebraDepthExact() + 1,  settingsLoader.getSettingZebraDepthWLD() + 1, ZebraEngine.INFINIT_TIME, 0));
+			mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA,  settingsProvider.getSettingZebraDepth() + 1,  settingsProvider.getSettingZebraDepthExact() + 1,  settingsProvider.getSettingZebraDepthWLD() + 1, ZebraEngine.INFINIT_TIME, 0));
 
-			switch (settingsLoader.getSettingRandomness()) {
+			switch (settingsProvider.getSettingRandomness()) {
 				case RANDOMNESS_SMALL:
 					mZebraThread.setSlack(1);
 					mZebraThread.setPerturbation(1);
@@ -363,16 +363,16 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 
 		mStatusView.setTextForID(
 				StatusView.ID_SCORE_SKILL,
-				String.format(getString(R.string.display_depth), settingsLoader.getSettingZebraDepth(), settingsLoader.getSettingZebraDepthExact(), settingsLoader.getSettingZebraDepthWLD())
+				String.format(getString(R.string.display_depth), settingsProvider.getSettingZebraDepth(), settingsProvider.getSettingZebraDepthExact(), settingsProvider.getSettingZebraDepthWLD())
 		);
 
 
-		if( !settingsLoader.isSettingDisplayPv()) {
+		if( !settingsProvider.isSettingDisplayPv()) {
 			mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
 			mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
 		}
 
-		mZebraThread.setMoveDelay (settingsLoader.isSettingDisplayEnableAnimations() ?  settingsLoader.getSettingAnimationDelay() + 1000 : 0);
+		mZebraThread.setMoveDelay (settingsProvider.isSettingDisplayEnableAnimations() ?  settingsProvider.getSettingAnimationDelay() + 1000 : 0);
 		mZebraThread.sendSettingsChanged();
 
 	}
@@ -402,18 +402,18 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 		intent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
 
 		//get BlackPlayer and WhitePlayer
-		switch(settingsLoader.getSettingFunction()) {
+		switch(settingsProvider.getSettingFunction()) {
 			case FUNCTION_HUMAN_VS_HUMAN:
 				sbBlackPlayer.append("Player");
 				sbWhitePlayer.append("Player");
 				break;
 			case FUNCTION_ZEBRA_BLACK:
 				sbBlackPlayer.append("DroidZebra-");
-				sbBlackPlayer.append (settingsLoader.getSettingZebraDepth());
+				sbBlackPlayer.append (settingsProvider.getSettingZebraDepth());
 				sbBlackPlayer.append("/");
-				sbBlackPlayer.append (settingsLoader.getSettingZebraDepthExact());
+				sbBlackPlayer.append (settingsProvider.getSettingZebraDepthExact());
 				sbBlackPlayer.append("/");
-				sbBlackPlayer.append (settingsLoader.getSettingZebraDepthWLD());
+				sbBlackPlayer.append (settingsProvider.getSettingZebraDepthWLD());
 
 				sbWhitePlayer.append("Player");
 				break;
@@ -421,26 +421,26 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 				sbBlackPlayer.append("Player");
 
 				sbWhitePlayer.append("DroidZebra-");
-				sbWhitePlayer.append (settingsLoader.getSettingZebraDepth());
+				sbWhitePlayer.append (settingsProvider.getSettingZebraDepth());
 				sbWhitePlayer.append("/");
-				sbWhitePlayer.append (settingsLoader.getSettingZebraDepthExact());
+				sbWhitePlayer.append (settingsProvider.getSettingZebraDepthExact());
 				sbWhitePlayer.append("/");
-				sbWhitePlayer.append (settingsLoader.getSettingZebraDepthWLD());
+				sbWhitePlayer.append (settingsProvider.getSettingZebraDepthWLD());
 				break;
 			case FUNCTION_ZEBRA_VS_ZEBRA:
 				sbBlackPlayer.append("DroidZebra-");
-				sbBlackPlayer.append (settingsLoader.getSettingZebraDepth());
+				sbBlackPlayer.append (settingsProvider.getSettingZebraDepth());
 				sbBlackPlayer.append("/");
-				sbBlackPlayer.append (settingsLoader.getSettingZebraDepthExact());
+				sbBlackPlayer.append (settingsProvider.getSettingZebraDepthExact());
 				sbBlackPlayer.append("/");
-				sbBlackPlayer.append (settingsLoader.getSettingZebraDepthWLD());
+				sbBlackPlayer.append (settingsProvider.getSettingZebraDepthWLD());
 
 				sbWhitePlayer.append("DroidZebra-");
-				sbWhitePlayer.append (settingsLoader.getSettingZebraDepth());
+				sbWhitePlayer.append (settingsProvider.getSettingZebraDepth());
 				sbWhitePlayer.append("/");
-				sbWhitePlayer.append (settingsLoader.getSettingZebraDepthExact());
+				sbWhitePlayer.append (settingsProvider.getSettingZebraDepthExact());
 				sbWhitePlayer.append("/");
-				sbWhitePlayer.append (settingsLoader.getSettingZebraDepthWLD());
+				sbWhitePlayer.append (settingsProvider.getSettingZebraDepthWLD());
 			default:
 		}
 		StringBuilder sb = new StringBuilder();
@@ -486,9 +486,9 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 	private void switchSides() {
 		int newFunction = -1;
 
-		if(  settingsLoader.getSettingFunction() == FUNCTION_ZEBRA_WHITE )
+		if(  settingsProvider.getSettingFunction() == FUNCTION_ZEBRA_WHITE )
 			newFunction = FUNCTION_ZEBRA_BLACK;
-		else if(  settingsLoader.getSettingFunction() == FUNCTION_ZEBRA_BLACK )
+		else if(  settingsProvider.getSettingFunction() == FUNCTION_ZEBRA_BLACK )
 			newFunction = FUNCTION_ZEBRA_WHITE;
 
 		if(newFunction>0) {
@@ -506,7 +506,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 	}
 
 	private void showHint() {
-		if(  !settingsLoader.isSettingPracticeMode()) {
+		if(  !settingsProvider.isSettingPracticeMode()) {
 			mHintIsUp = true;
 			mZebraThread.setPracticeMode(true);
 			mZebraThread.sendSettingsChanged();
@@ -543,7 +543,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 
     @Override
     public boolean getSettingDisplayPV() {
-        return settingsLoader.isSettingDisplayPv();
+        return settingsProvider.isSettingDisplayPv();
     }
 
     public void showGameOverDialog() {
@@ -597,7 +597,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Glob
 
     @Override
     public boolean isPraticeMode() {
-        return settingsLoader.isSettingPracticeMode();
+        return settingsProvider.isSettingPracticeMode();
     }
 
     public void showAlertDialog(String msg) {
