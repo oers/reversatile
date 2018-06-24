@@ -192,7 +192,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 
 	public void setCandidateMoves(CandidateMove[] cmoves) {
 		state.setMoves(cmoves);
-		mBoardView.invalidate();
+		runOnUiThread(() -> mBoardView.invalidate());
 	}
 
 	public boolean evalsDisplayEnabled() {
@@ -341,6 +341,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 					DroidZebra.this.mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
 					DroidZebra.this.mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
 					DroidZebra.this.mBoardView.setDroidZebra(DroidZebra.this);
+					DroidZebra.this.mStatusView.setDroidZebra(DroidZebra.this);
 					DroidZebra.this.mBoardView.requestFocus();
 					DroidZebra.this.initBoard();
 					DroidZebra.this.loadSettings();
@@ -716,7 +717,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 		alertDialog.setTitle("Zebra Error");
 		alertDialog.setMessage(msg);
         alertDialog.setPositiveButton("OK", (dialog, id) -> alert = null);
-        alert = new WeakReference<>(alertDialog.show());
+		runOnUiThread(() -> alert = new WeakReference<>(alertDialog.show()));
     }
 
     @Override
