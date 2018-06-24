@@ -74,8 +74,7 @@ import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 
 //import android.util.Log;
 
-public class DroidZebra extends FragmentActivity implements GameController, SharedPreferences.OnSharedPreferenceChangeListener
-{
+public class DroidZebra extends FragmentActivity implements GameController, GlobalSettingsLoader.OnChangeListener {
 	private ClipboardManager clipboard;
 	private ZebraEngine mZebraThread;
 
@@ -263,9 +262,10 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
         mZebraThread.setHandler(new DroidZebraHandler(state, this, mZebraThread));
 
         this.settingsLoader = new GlobalSettingsLoader(this);
+        this.settingsLoader.setOnChangeListener(this);
 		// preferences
-		SharedPreferences mSettings = getSharedPreferences(SHARED_PREFS_NAME, 0);
-		mSettings.registerOnSharedPreferenceChangeListener(this);
+//		SharedPreferences mSettings = getSharedPreferences(SHARED_PREFS_NAME, 0);
+//		mSettings.registerOnSharedPreferenceChangeListener(this);
 
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -308,7 +308,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 	}
 
 	private void loadSettings() {
-		boolean bZebraSettingChanged = this.settingsLoader.loadSettings();
+        if (mZebraThread == null) return;
 		try {
 			mZebraThread.setAutoMakeMoves (settingsLoader.mSettingAutoMakeForcedMoves);
 			mZebraThread.setForcedOpening (settingsLoader.mSettingZebraForceOpening);
@@ -376,10 +376,8 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 		}
 
 		mZebraThread.setMoveDelay (settingsLoader.mSettingDisplayEnableAnimations?  settingsLoader.mSettingAnimationDelay + 1000 : 0);
+		mZebraThread.sendSettingsChanged();
 
-		if( bZebraSettingChanged ) {
-			mZebraThread.sendSettingsChanged();
-		}
 	}
 
 	private void sendMail(){
@@ -605,11 +603,6 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
         return  settingsLoader.mSettingZebraPracticeMode;
     }
 
-    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-		if (mZebraThread != null)
-			loadSettings();
-	}
-
     public void showAlertDialog(String msg) {
         DroidZebra.this.newGame();
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -671,6 +664,11 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 
 	public BoardState getState() {
 		return state;
+	}
+
+	@Override
+	public void onChange() {
+	    loadSettings();
 	}
 
 

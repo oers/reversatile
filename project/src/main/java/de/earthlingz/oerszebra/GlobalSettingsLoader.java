@@ -72,6 +72,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     public GlobalSettingsLoader(Context context) {
 
         this.context = context;
+        loadSettings();
         context.getSharedPreferences(SHARED_PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
     }
 
