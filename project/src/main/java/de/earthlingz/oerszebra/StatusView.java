@@ -32,12 +32,6 @@ import java.util.TreeMap;
 
 public class StatusView extends View {
 
-	private DroidZebra droidZebra;
-
-	public void setDroidZebra(DroidZebra droidZebra) {
-		this.droidZebra = droidZebra;
-	}
-
 	abstract private class DrawElement {
 		public int mID;
 		DrawElement(int id) {
@@ -308,7 +302,7 @@ public class StatusView extends View {
 			de.setText(text);
 			if( getWidth()>0 && getHeight()>0 ) {
 				de.prepareDraw(getWidth()-1, getHeight()-1, mPaint);
-				droidZebra.runOnUiThread(this::invalidate);
+				post(this::invalidate);
 			}
 		}
 	}

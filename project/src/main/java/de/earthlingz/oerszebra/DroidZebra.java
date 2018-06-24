@@ -341,7 +341,6 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 					DroidZebra.this.mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
 					DroidZebra.this.mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
 					DroidZebra.this.mBoardView.setDroidZebra(DroidZebra.this);
-					DroidZebra.this.mStatusView.setDroidZebra(DroidZebra.this);
 					DroidZebra.this.mBoardView.requestFocus();
 					DroidZebra.this.initBoard();
 					DroidZebra.this.loadSettings();
@@ -638,7 +637,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Shar
 
 	void showDialog(DialogFragment dialog, String tag) {
 		if( mActivityActive ) {
-			dialog.show(getSupportFragmentManager(), tag);
+			runOnUiThread(() -> dialog.show(getSupportFragmentManager(), tag));
 		}
 	}
 

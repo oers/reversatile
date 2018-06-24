@@ -528,7 +528,7 @@ public class BoardView extends View {
 		}
 		
 	    if( bInvalidate ) {
-			getDroidZebra().runOnUiThread(this::invalidate);
+			post(this::invalidate);
 		}
 	}
 
@@ -540,7 +540,7 @@ public class BoardView extends View {
 			mAnimationProgress = 0;
 			mAnimationTimer.start();
 		} else {
-			getDroidZebra().runOnUiThread(this::invalidate);
+			post(this::invalidate);
 		}
 	}
 
