@@ -48,23 +48,23 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     public static final int DEFAULT_SETTING_FUNCTION = FUNCTION_HUMAN_VS_HUMAN;
 
 
-    public int mSettingFunction = DEFAULT_SETTING_FUNCTION;
-    public boolean mSettingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
-    public int mSettingZebraRandomness = DEFAULT_SETTING_RANDOMNESS;
-    public String mSettingZebraForceOpening = DEFAULT_SETTING_FORCE_OPENING;
-    public boolean mSettingZebraHumanOpenings = DEFAULT_SETTING_HUMAN_OPENINGS;
-    public boolean mSettingZebraPracticeMode = DEFAULT_SETTING_PRACTICE_MODE;
-    public boolean mSettingZebraUseBook = DEFAULT_SETTING_USE_BOOK;
-    public boolean mSettingDisplayPV = DEFAULT_SETTING_DISPLAY_PV;
-    public boolean mSettingDisplayMoves = DEFAULT_SETTING_DISPLAY_MOVES;
-    public boolean mSettingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE;
-    public boolean mSettingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
-    public int mSettingAnimationDelay = 1000;
+    public int settingFunction = DEFAULT_SETTING_FUNCTION;
+    public boolean settingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
+    public int settingRandomness = DEFAULT_SETTING_RANDOMNESS;
+    public String settingForceOpening = DEFAULT_SETTING_FORCE_OPENING;
+    public boolean settingHumanOpenings = DEFAULT_SETTING_HUMAN_OPENINGS;
+    public boolean settingPracticeMode = DEFAULT_SETTING_PRACTICE_MODE;
+    public boolean settingUseBook = DEFAULT_SETTING_USE_BOOK;
+    public boolean settingDisplayPv = DEFAULT_SETTING_DISPLAY_PV;
+    public boolean settingDisplayMoves = DEFAULT_SETTING_DISPLAY_MOVES;
+    public boolean settingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE;
+    public boolean settingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
+    public int settingAnimationDelay = 1000;
 
 
-    public int mSettingZebraDepth = 1;
-    public int mSettingZebraDepthExact = 1;
-    public int mSettingZebraDepthWLD = 1;
+    public int settingZebraDepth = 1;
+    public int settingZebraDepthExact = 1;
+    public int settingZebraDepthWLD = 1;
 
     private Context context;
     private OnChangeListener onChangeListener;
@@ -76,7 +76,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         context.getSharedPreferences(SHARED_PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
     }
 
-    public boolean loadSettings() {
+    private boolean loadSettings() {
         int settingsFunction, settingZebraDepth, settingZebraDepthExact, settingZebraDepthWLD;
         int settingRandomness;
         boolean settingAutoMakeForcedMoves;
@@ -102,35 +102,35 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
 
 
         boolean bZebraSettingChanged = (
-                mSettingFunction != settingsFunction
-                        || mSettingZebraDepth != settingZebraDepth
-                        || mSettingZebraDepthExact != settingZebraDepthExact
-                        || mSettingZebraDepthWLD != settingZebraDepthWLD
-                        || mSettingAutoMakeForcedMoves != settingAutoMakeForcedMoves
-                        || mSettingZebraRandomness != settingRandomness
-                        || !mSettingZebraForceOpening.equals(settingZebraForceOpening)
-                        || mSettingZebraHumanOpenings != settingZebraHumanOpenings
-                        || mSettingZebraPracticeMode != settingZebraPracticeMode
-                        || mSettingZebraUseBook != settingZebraUseBook
+                settingFunction != settingsFunction
+                        || this.settingZebraDepth != settingZebraDepth
+                        || this.settingZebraDepthExact != settingZebraDepthExact
+                        || this.settingZebraDepthWLD != settingZebraDepthWLD
+                        || this.settingAutoMakeForcedMoves != settingAutoMakeForcedMoves
+                        || this.settingRandomness != settingRandomness
+                        || !settingForceOpening.equals(settingZebraForceOpening)
+                        || settingHumanOpenings != settingZebraHumanOpenings
+                        || settingPracticeMode != settingZebraPracticeMode
+                        || settingUseBook != settingZebraUseBook
         );
 
-        mSettingFunction = settingsFunction;
-        mSettingZebraDepth = settingZebraDepth;
-        mSettingZebraDepthExact = settingZebraDepthExact;
-        mSettingZebraDepthWLD = settingZebraDepthWLD;
-        mSettingAutoMakeForcedMoves = settingAutoMakeForcedMoves;
-        mSettingZebraRandomness = settingRandomness;
-        mSettingZebraForceOpening = settingZebraForceOpening;
-        mSettingZebraHumanOpenings = settingZebraHumanOpenings;
-        mSettingZebraPracticeMode = settingZebraPracticeMode;
-        mSettingZebraUseBook = settingZebraUseBook;
+        settingFunction = settingsFunction;
+        this.settingZebraDepth = settingZebraDepth;
+        this.settingZebraDepthExact = settingZebraDepthExact;
+        this.settingZebraDepthWLD = settingZebraDepthWLD;
+        this.settingAutoMakeForcedMoves = settingAutoMakeForcedMoves;
+        this.settingRandomness = settingRandomness;
+        settingForceOpening = settingZebraForceOpening;
+        settingHumanOpenings = settingZebraHumanOpenings;
+        settingPracticeMode = settingZebraPracticeMode;
+        settingUseBook = settingZebraUseBook;
 
-        mSettingDisplayPV = settings.getBoolean(SETTINGS_KEY_DISPLAY_PV, DEFAULT_SETTING_DISPLAY_PV);
+        settingDisplayPv = settings.getBoolean(SETTINGS_KEY_DISPLAY_PV, DEFAULT_SETTING_DISPLAY_PV);
 
-        mSettingDisplayMoves = settings.getBoolean(SETTINGS_KEY_DISPLAY_MOVES, DEFAULT_SETTING_DISPLAY_MOVES);
-        mSettingDisplayLastMove = settings.getBoolean(SETTINGS_KEY_DISPLAY_LAST_MOVE, DEFAULT_SETTING_DISPLAY_LAST_MOVE);
+        settingDisplayMoves = settings.getBoolean(SETTINGS_KEY_DISPLAY_MOVES, DEFAULT_SETTING_DISPLAY_MOVES);
+        settingDisplayLastMove = settings.getBoolean(SETTINGS_KEY_DISPLAY_LAST_MOVE, DEFAULT_SETTING_DISPLAY_LAST_MOVE);
 
-        mSettingDisplayEnableAnimations = settings.getBoolean(SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS, DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS);
+        settingDisplayEnableAnimations = settings.getBoolean(SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS, DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS);
 
 
         return bZebraSettingChanged;

@@ -123,12 +123,12 @@ public class BoardView extends View {
 
 		int animationDelay = 100;
 		if( !isInEditMode() )
-			animationDelay = getDroidZebra().settingsLoader.mSettingAnimationDelay;
+			animationDelay = getDroidZebra().settingsLoader.settingAnimationDelay;
 	    mAnimationProgress = 0;
 		mAnimationTimer = new CountDownTimer(animationDelay, animationDelay/10) {
 
 	        public void onTick(long millisUntilFinished) {
-	        	mAnimationProgress = 1.0-(double)millisUntilFinished/getDroidZebra().settingsLoader.mSettingAnimationDelay;
+	        	mAnimationProgress = 1.0-(double)millisUntilFinished/getDroidZebra().settingsLoader.settingAnimationDelay;
 	        	invalidate();
 	        }
 
@@ -316,7 +316,7 @@ public class BoardView extends View {
 		}
 
 		// draw evals if in practive mode
-		if( (getDroidZebra().settingsLoader.mSettingDisplayMoves || getDroidZebra().evalsDisplayEnabled() )
+		if( (getDroidZebra().settingsLoader.settingDisplayMoves || getDroidZebra().evalsDisplayEnabled() )
 			&& getDroidZebra().getCandidateMoves()!=null ) {
 			mPaint.setStrokeWidth(lineWidth*2);
 			float lineLength = mSizeCell/4;
@@ -347,7 +347,7 @@ public class BoardView extends View {
 		}
 
 		// draw last move marker
-        if (getDroidZebra().settingsLoader.mSettingDisplayLastMove && getDroidZebra().getState().getmLastMove() != null) {
+        if (getDroidZebra().settingsLoader.settingDisplayLastMove && getDroidZebra().getState().getmLastMove() != null) {
             Move lm = getDroidZebra().getState().getmLastMove();
 			RectF cellRT = getCellRect(lm.getX(), lm.getY());
 			mPaint.setColor(Color.BLUE);
@@ -533,7 +533,7 @@ public class BoardView extends View {
 	}
 
 	public void onBoardStateChanged() {
-		if( getDroidZebra().settingsLoader.mSettingDisplayEnableAnimations ) {
+		if( getDroidZebra().settingsLoader.settingDisplayEnableAnimations) {
 			if( mIsAnimationRunning )
 				mAnimationTimer.cancel();
 			mIsAnimationRunning = true;
