@@ -5,22 +5,26 @@ import android.content.SharedPreferences;
 
 import java.util.Locale;
 
-import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 
 public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String SHARED_PREFS_NAME = "droidzebrasettings";
 
-    private static final String DEFAULT_SETTING_STRENGTH = "8|16|0";
-    private static final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES = false;
-    private static final String DEFAULT_SETTING_FORCE_OPENING = "None";
-    private static final boolean DEFAULT_SETTING_HUMAN_OPENINGS = false;
-    private static final boolean DEFAULT_SETTING_PRACTICE_MODE = true;
-    private static final boolean DEFAULT_SETTING_USE_BOOK = true;
-    private static final boolean DEFAULT_SETTING_DISPLAY_PV = true;
-    private static final boolean DEFAULT_SETTING_DISPLAY_MOVES = true;
-    private static final boolean DEFAULT_SETTING_DISPLAY_LAST_MOVE = true;
+    private final String DEFAULT_SETTING_STRENGTH;
+    private final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
+    private final String DEFAULT_SETTING_FORCE_OPENING;
+    private final boolean DEFAULT_SETTING_HUMAN_OPENINGS;
+    private final boolean DEFAULT_SETTING_PRACTICE_MODE;
+    private final boolean DEFAULT_SETTING_USE_BOOK;
+    private final boolean DEFAULT_SETTING_DISPLAY_PV;
+    private final boolean DEFAULT_SETTING_DISPLAY_MOVES;
+    private final boolean DEFAULT_SETTING_DISPLAY_LAST_MOVE;
+    private final boolean DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
+
+    private final int DEFAULT_SETTING_RANDOMNESS;
+    private final int DEFAULT_SETTING_FUNCTION;
     public static final String DEFAULT_SETTING_SENDMAIL = "";
-    private static final boolean DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS = false;
+
+
     public static final String
             SETTINGS_KEY_FUNCTION = "settings_engine_function",
             SETTINGS_KEY_STRENGTH = "settings_engine_strength",
@@ -44,27 +48,24 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
             RANDOMNESS_LARGE = 3,
             RANDOMNESS_HUGE = 4;
 
-    public static final int DEFAULT_SETTING_RANDOMNESS = RANDOMNESS_LARGE;
-    public static final int DEFAULT_SETTING_FUNCTION = FUNCTION_HUMAN_VS_HUMAN;
+
+    private int settingFunction;
+    private boolean settingAutoMakeForcedMoves;
+    private int settingRandomness;
+    private String settingForceOpening;
+    private boolean settingHumanOpenings;
+    private boolean settingPracticeMode;
+    private boolean settingUseBook;
+    private boolean settingDisplayPv;
+    private boolean settingDisplayMoves;
+    private boolean settingDisplayLastMove;
+    private boolean settingDisplayEnableAnimations;
+    private int settingAnimationDelay = 1000;
 
 
-    public int settingFunction = DEFAULT_SETTING_FUNCTION;
-    public boolean settingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
-    public int settingRandomness = DEFAULT_SETTING_RANDOMNESS;
-    public String settingForceOpening = DEFAULT_SETTING_FORCE_OPENING;
-    public boolean settingHumanOpenings = DEFAULT_SETTING_HUMAN_OPENINGS;
-    public boolean settingPracticeMode = DEFAULT_SETTING_PRACTICE_MODE;
-    public boolean settingUseBook = DEFAULT_SETTING_USE_BOOK;
-    public boolean settingDisplayPv = DEFAULT_SETTING_DISPLAY_PV;
-    public boolean settingDisplayMoves = DEFAULT_SETTING_DISPLAY_MOVES;
-    public boolean settingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE;
-    public boolean settingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
-    public int settingAnimationDelay = 1000;
-
-
-    public int settingZebraDepth = 1;
-    public int settingZebraDepthExact = 1;
-    public int settingZebraDepthWLD = 1;
+    private int settingZebraDepth = 1;
+    private int settingZebraDepthExact = 1;
+    private int settingZebraDepthWLD = 1;
 
     private Context context;
     private OnChangeListener onChangeListener;
@@ -72,8 +73,23 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     public GlobalSettingsLoader(Context context) {
 
         this.context = context;
+
+        DEFAULT_SETTING_STRENGTH = context.getString(R.string.default_search_depth);
+        settingFunction = DEFAULT_SETTING_FUNCTION = Integer.parseInt(context.getString(R.string.default_engine_function));
+        settingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES = Boolean.parseBoolean(context.getString(R.string.default_auto_make_moves));
+        settingRandomness = DEFAULT_SETTING_RANDOMNESS = Integer.parseInt(context.getString(R.string.default_randomness));
+        settingForceOpening = DEFAULT_SETTING_FORCE_OPENING = context.getString(R.string.default_forced_opening);
+        settingHumanOpenings = DEFAULT_SETTING_HUMAN_OPENINGS = Boolean.parseBoolean(context.getString(R.string.default_human_openings));
+        settingPracticeMode = DEFAULT_SETTING_PRACTICE_MODE = Boolean.parseBoolean(context.getString(R.string.default_practice_mode));
+        settingUseBook = DEFAULT_SETTING_USE_BOOK = Boolean.parseBoolean(context.getString(R.string.default_use_book));
+        settingDisplayPv = DEFAULT_SETTING_DISPLAY_PV = Boolean.parseBoolean(context.getString(R.string.default_display_principal_variation));
+        settingDisplayMoves = DEFAULT_SETTING_DISPLAY_MOVES = Boolean.parseBoolean(context.getString(R.string.default_display_moves));
+        settingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE = Boolean.parseBoolean(context.getString(R.string.default_display_last_move));
+        settingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS = Boolean.parseBoolean(context.getString(R.string.default_enable_animations));
+
         loadSettings();
         context.getSharedPreferences(SHARED_PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
+
     }
 
     private boolean loadSettings() {
@@ -102,16 +118,16 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
 
 
         boolean bZebraSettingChanged = (
-                settingFunction != settingsFunction
-                        || this.settingZebraDepth != settingZebraDepth
-                        || this.settingZebraDepthExact != settingZebraDepthExact
-                        || this.settingZebraDepthWLD != settingZebraDepthWLD
-                        || this.settingAutoMakeForcedMoves != settingAutoMakeForcedMoves
-                        || this.settingRandomness != settingRandomness
-                        || !settingForceOpening.equals(settingZebraForceOpening)
-                        || settingHumanOpenings != settingZebraHumanOpenings
-                        || settingPracticeMode != settingZebraPracticeMode
-                        || settingUseBook != settingZebraUseBook
+                getSettingFunction() != settingsFunction
+                        || this.getSettingZebraDepth() != settingZebraDepth
+                        || this.getSettingZebraDepthExact() != settingZebraDepthExact
+                        || this.getSettingZebraDepthWLD() != settingZebraDepthWLD
+                        || this.isSettingAutoMakeForcedMoves() != settingAutoMakeForcedMoves
+                        || this.getSettingRandomness() != settingRandomness
+                        || !getSettingForceOpening().equals(settingZebraForceOpening)
+                        || isSettingHumanOpenings() != settingZebraHumanOpenings
+                        || isSettingPracticeMode() != settingZebraPracticeMode
+                        || isSettingUseBook() != settingZebraUseBook
         );
 
         settingFunction = settingsFunction;
@@ -145,6 +161,66 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
 
     public void setOnChangeListener(OnChangeListener onChangeListener) {
         this.onChangeListener = onChangeListener;
+    }
+
+    public int getSettingFunction() {
+        return settingFunction;
+    }
+
+    public boolean isSettingAutoMakeForcedMoves() {
+        return settingAutoMakeForcedMoves;
+    }
+
+    public int getSettingRandomness() {
+        return settingRandomness;
+    }
+
+    public String getSettingForceOpening() {
+        return settingForceOpening;
+    }
+
+    public boolean isSettingHumanOpenings() {
+        return settingHumanOpenings;
+    }
+
+    public boolean isSettingPracticeMode() {
+        return settingPracticeMode;
+    }
+
+    public boolean isSettingUseBook() {
+        return settingUseBook;
+    }
+
+    public boolean isSettingDisplayPv() {
+        return settingDisplayPv;
+    }
+
+    public boolean isSettingDisplayMoves() {
+        return settingDisplayMoves;
+    }
+
+    public boolean isSettingDisplayLastMove() {
+        return settingDisplayLastMove;
+    }
+
+    public boolean isSettingDisplayEnableAnimations() {
+        return settingDisplayEnableAnimations;
+    }
+
+    public int getSettingAnimationDelay() {
+        return settingAnimationDelay;
+    }
+
+    public int getSettingZebraDepth() {
+        return settingZebraDepth;
+    }
+
+    public int getSettingZebraDepthExact() {
+        return settingZebraDepthExact;
+    }
+
+    public int getSettingZebraDepthWLD() {
+        return settingZebraDepthWLD;
     }
 
     public interface OnChangeListener {
