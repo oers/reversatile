@@ -2,17 +2,16 @@ package de.earthlingz.oerszebra;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.shurik.droidzebra.ZebraEngine;
 
 import java.util.Locale;
 
 import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 
-public class GlobalSettingsLoader {
-    public static final String SHARED_PREFS_NAME="droidzebrasettings";
+public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static final String SHARED_PREFS_NAME = "droidzebrasettings";
 
     private static final String DEFAULT_SETTING_STRENGTH = "8|16|0";
-    private static final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES  = false;
+    private static final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES = false;
     private static final String DEFAULT_SETTING_FORCE_OPENING = "None";
     private static final boolean DEFAULT_SETTING_HUMAN_OPENINGS = false;
     private static final boolean DEFAULT_SETTING_PRACTICE_MODE = true;
@@ -68,13 +67,16 @@ public class GlobalSettingsLoader {
     public int mSettingZebraDepthWLD = 1;
 
     private Context context;
+    private OnChangeListener onChangeListener;
 
-    public GlobalSettingsLoader(Context context ) {
+    public GlobalSettingsLoader(Context context) {
 
         this.context = context;
+        context.getSharedPreferences(SHARED_PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
     }
 
-    public boolean loadSettings() {	int settingsFunction, settingZebraDepth, settingZebraDepthExact, settingZebraDepthWLD;
+    public boolean loadSettings() {
+        int settingsFunction, settingZebraDepth, settingZebraDepthExact, settingZebraDepthWLD;
         int settingRandomness;
         boolean settingAutoMakeForcedMoves;
         String settingZebraForceOpening;
@@ -131,5 +133,20 @@ public class GlobalSettingsLoader {
 
 
         return bZebraSettingChanged;
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (loadSettings() && onChangeListener != null) {
+            onChangeListener.onChange();
+        }
+    }
+
+    public void setOnChangeListener(OnChangeListener onChangeListener) {
+        this.onChangeListener = onChangeListener;
+    }
+
+    public interface OnChangeListener {
+        void onChange();
     }
 }
