@@ -110,14 +110,12 @@ public class BoardView extends View {
 		mBoardRect = new RectF();
 		mTempRect = new RectF();
 
-		int animationDelay = 100;
-		if (!isInEditMode())
-			animationDelay = getDroidZebra().settingsProvider.getSettingAnimationDelay();
+
 		mAnimationProgress = 0;
-		mAnimationTimer = new CountDownTimer(animationDelay, animationDelay / 10) {
+		mAnimationTimer = new CountDownTimer(getSettingAnimationDelay(), getSettingAnimationDelay() / 10) {
 
 			public void onTick(long millisUntilFinished) {
-				mAnimationProgress = 1.0 - (double) millisUntilFinished / getDroidZebra().settingsProvider.getSettingAnimationDelay();
+				mAnimationProgress = 1.0 - (double) millisUntilFinished / getSettingAnimationDelay();
 				invalidate();
 			}
 
@@ -126,6 +124,10 @@ public class BoardView extends View {
 				invalidate();
 			}
 		};
+	}
+
+	private int getSettingAnimationDelay() {
+		return getDroidZebra().settingsProvider.getSettingAnimationDelay();
 	}
 
 	public void setDroidZebra(DroidZebra activity) {
