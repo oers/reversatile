@@ -265,7 +265,7 @@ public class BoardView extends View {
 			return;
 
         // draw next move marker
-        if (getDroidZebra().settingsProvider.isSettingDisplayLastMove() && getDroidZebra().getState().getNextMove() != null) {
+        if (shouldDisplayLastMove() && getDroidZebra().getState().getNextMove() != null) {
             Move nextMove = getDroidZebra().getState().getNextMove();
             mMoveSelection = nextMove;
             RectF cellRT = getCellRect(nextMove.getX(), nextMove.getY());
@@ -317,7 +317,7 @@ public class BoardView extends View {
 		}
 
 		// draw evals if in practive mode
-		if ((getDroidZebra().settingsProvider.isSettingDisplayMoves() || getDroidZebra().evalsDisplayEnabled())
+		if ((shouldDisplayMoves() || getDroidZebra().evalsDisplayEnabled())
 				&& getDroidZebra().getCandidateMoves() != null) {
 			mPaint.setStrokeWidth(lineWidth * 2);
 			float lineLength = mSizeCell / 4;
@@ -348,7 +348,7 @@ public class BoardView extends View {
 		}
 
 		// draw last move marker
-        if (getDroidZebra().settingsProvider.isSettingDisplayLastMove() && getDroidZebra().getState().getLastMove() != null) {
+        if (shouldDisplayLastMove() && getDroidZebra().getState().getLastMove() != null) {
             Move lm = getDroidZebra().getState().getLastMove();
 			RectF cellRT = getCellRect(lm.getX(), lm.getY());
 			mPaint.setColor(Color.BLUE);
@@ -356,7 +356,15 @@ public class BoardView extends View {
 		}
 	}
 
-	@Override
+    private boolean shouldDisplayLastMove() {
+        return getDroidZebra().settingsProvider.isSettingDisplayLastMove();
+    }
+
+    private boolean shouldDisplayMoves() {
+        return getDroidZebra().settingsProvider.isSettingDisplayMoves();
+    }
+
+    @Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -548,7 +556,7 @@ public class BoardView extends View {
 
 	public void onBoardStateChanged() {
         mMoveSelection = null;
-		if (getDroidZebra().settingsProvider.isSettingDisplayEnableAnimations()) {
+		if (shouldDisplayAnimations()) {
 			if (mIsAnimationRunning.get())
 				mAnimationTimer.cancel();
 			mIsAnimationRunning.set(true);
@@ -559,4 +567,8 @@ public class BoardView extends View {
 			invalidate();
 		}
 	}
+
+    private boolean shouldDisplayAnimations() {
+        return getDroidZebra().settingsProvider.isSettingDisplayEnableAnimations();
+    }
 }
