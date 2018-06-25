@@ -330,7 +330,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
 			mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
 		}
 
-		mZebraThread.setMoveDelay (settingsProvider.isSettingDisplayEnableAnimations() ?  settingsProvider.getSettingAnimationDelay() + 1000 : 0);
+		mZebraThread.setMoveDelay (settingsProvider.isSettingDisplayEnableAnimations() ?  settingsProvider.getSettingAnimationDuration() + 1000 : 0);
 		mZebraThread.sendSettingsChanged();
 
 	}
