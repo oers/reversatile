@@ -71,6 +71,8 @@ public class BoardView extends View {
 	private CountDownTimer mAnimationTimer = null;
 	private AtomicBoolean mIsAnimationRunning = new AtomicBoolean(false);
 	private double mAnimationProgress = 0;
+	private boolean displayAnimations = false;
+
 	public BoardView(Context context) {
 		super(context);
 		initBoardView();
@@ -569,6 +571,10 @@ public class BoardView extends View {
 	}
 
     private boolean shouldDisplayAnimations() {
-        return getDroidZebra().settingsProvider.isSettingDisplayEnableAnimations();
+        return this.displayAnimations;
     }
+
+	public void setDisplayAnimations(boolean displayAnimations) {
+		this.displayAnimations = displayAnimations;
+	}
 }
