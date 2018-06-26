@@ -48,7 +48,7 @@ import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
 //import android.util.Log;
 
-public class DroidZebra extends FragmentActivity implements GameController, SettingsProvider.OnChangeListener {
+public class DroidZebra extends FragmentActivity implements GameController, OnChangeListener, BoardView.OnMakeMoveListener {
     private ClipboardManager clipboard;
     private ZebraEngine mZebraThread;
 
@@ -74,15 +74,15 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
     }
 
 
-    public boolean isThinking() {
+    private boolean isThinking() {
         return mZebraThread.isThinking();
     }
 
-    public boolean isHumanToMove() {
+    private boolean isHumanToMove() {
         return mZebraThread.isHumanToMove();
     }
 
-    public void makeMove(Move mMoveSelection) throws InvalidMove {
+    private void makeMove(Move mMoveSelection) throws InvalidMove {
         mZebraThread.makeMove(mMoveSelection);
     }
 
@@ -272,6 +272,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
                     DroidZebra.this.mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
                     DroidZebra.this.mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
                     DroidZebra.this.mBoardView.setDroidZebra(DroidZebra.this);
+                    DroidZebra.this.mBoardView.setOnMakeMoveListener(DroidZebra.this);
                     DroidZebra.this.mBoardView.requestFocus();
                     DroidZebra.this.initBoard();
                     DroidZebra.this.loadSettings();
@@ -530,7 +531,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
         mZebraThread.sendReplayMoves(moves);
     }
 
-    public void showBusyDialog() {
+    private void showBusyDialog() {
         if (!mBusyDialogUp && mZebraThread.isThinking()) {
             DialogFragment newFragment = DialogBusy.newInstance();
             mBusyDialogUp = true;
@@ -631,6 +632,22 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
     @Override
     public void onChange() {
         loadSettings();
+    }
+
+    @Override
+    public void onMakeMove(Move move) {
+        if (getState().isValidMove(move)) {
+            // if zebra is still thinking - no move is possible yet - throw a busy dialog
+            if (isThinking() && !isHumanToMove()) {
+                showBusyDialog();
+            } else {
+                try {
+                    makeMove(move);
+                } catch (InvalidMove e) {
+                    Log.e("BoardView", e.getMessage(), e);
+                }
+            }
+        }
     }
 
 

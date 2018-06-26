@@ -560,19 +560,6 @@ public class BoardView extends View {
                 this.onMakeMoveListener.onMakeMove(mMoveSelection);
             }
 
-            if (getGameState().isValidMove(mMoveSelection)) {
-
-                // if zebra is still thinking - no move is possible yet - throw a busy dialog
-                if (mDroidZebra.isThinking() && !mDroidZebra.isHumanToMove()) {
-                    mDroidZebra.showBusyDialog();
-                } else {
-                    try {
-                        mDroidZebra.makeMove(mMoveSelection);
-                    } catch (InvalidMove e) {
-                        Log.e("BoardView", e.getMessage(), e);
-                    }
-                }
-            }
         }
 
         if (bInvalidate) {
