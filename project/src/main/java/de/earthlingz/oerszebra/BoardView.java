@@ -301,13 +301,13 @@ public class BoardView extends View {
         float oval_adjustment = (float) Math.abs(circle_r * Math.cos(Math.PI * mAnimationProgress));
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (mDroidZebra.getBoard()[i][j].getState() == ZebraEngine.PLAYER_EMPTY)
+                if (getGameState().getBoard()[i][j].getState() == ZebraEngine.PLAYER_EMPTY)
                     continue;
-                if (mDroidZebra.getBoard()[i][j].getState() == ZebraEngine.PLAYER_BLACK)
+                if (getGameState().getBoard()[i][j].getState() == ZebraEngine.PLAYER_BLACK)
                     circle_color = Color.BLACK;
                 else
                     circle_color = Color.WHITE;
-                if (mIsAnimationRunning.get() && mDroidZebra.getBoard()[i][j].isFlipped()) {
+                if (mIsAnimationRunning.get() && getGameState().getBoard()[i][j].isFlipped()) {
                     oval_x = mBoardRect.left + i * mSizeCell + mSizeCell / 2;
                     oval_y = mBoardRect.top + j * mSizeCell + mSizeCell / 2;
                     mTempRect.set(
