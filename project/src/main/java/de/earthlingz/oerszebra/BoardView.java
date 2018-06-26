@@ -555,9 +555,10 @@ public class BoardView extends View {
         if (bMakeMove) {
             bInvalidate = true;
             mShowSelectionHelpers = false;
+            cancelAnimation();
 
             if (getGameState().isValidMove(mMoveSelection)) {
-                cancelAnimation();
+
                 // if zebra is still thinking - no move is possible yet - throw a busy dialog
                 if (mDroidZebra.isThinking() && !mDroidZebra.isHumanToMove()) {
                     mDroidZebra.showBusyDialog();
