@@ -100,7 +100,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
     }
 
     public FieldState[][] getBoard() {
-        return state.getBoard();
+        return getState().getBoard();
     }
 
 
