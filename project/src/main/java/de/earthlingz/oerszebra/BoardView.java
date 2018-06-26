@@ -74,6 +74,17 @@ public class BoardView extends View {
 	private boolean displayAnimations = false;
 	private int animationDuration = 0;
 
+	public void setDisplayLastMove(boolean displayLastMove) {
+		this.displayLastMove = displayLastMove;
+	}
+
+	public void setDisplayMoves(boolean displayMoves) {
+		this.displayMoves = displayMoves;
+	}
+
+	private boolean displayLastMove = false;
+	private boolean displayMoves = false;
+
 	public BoardView(Context context) {
 		super(context);
 		initBoardView();
@@ -364,11 +375,11 @@ public class BoardView extends View {
 	}
 
     private boolean shouldDisplayLastMove() {
-        return getDroidZebra().settingsProvider.isSettingDisplayLastMove();
+        return displayLastMove;
     }
 
     private boolean shouldDisplayMoves() {
-        return getDroidZebra().settingsProvider.isSettingDisplayMoves();
+        return displayMoves;
     }
 
     @Override

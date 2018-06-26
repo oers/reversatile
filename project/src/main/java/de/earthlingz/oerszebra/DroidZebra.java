@@ -287,6 +287,8 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
 		if(mBoardView != null){
 			mBoardView.setDisplayAnimations(settingsProvider.isSettingDisplayEnableAnimations());
 			mBoardView.setAnimationDuration(settingsProvider.getSettingAnimationDuration());
+			mBoardView.setDisplayLastMove(settingsProvider.isSettingDisplayLastMove());
+			mBoardView.setDisplayMoves(settingsProvider.isSettingDisplayMoves());
 		}
 
         if (mZebraThread == null) return;
