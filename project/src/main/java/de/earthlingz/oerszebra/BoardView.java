@@ -338,10 +338,10 @@ public class BoardView extends View {
 
         // draw evals if in practive mode
         if ((shouldDisplayMoves() || shouldDisplayEvals())
-                && mDroidZebra.getCandidateMoves() != null) {
+                && getGameState().getMoves() != null) {
             mPaint.setStrokeWidth(lineWidth * 2);
             float lineLength = mSizeCell / 4;
-            for (CandidateMove m : mDroidZebra.getCandidateMoves()) {
+            for (CandidateMove m : getGameState().getMoves()) {
                 RectF cr = getCellRect(m.mMove.getX(), m.mMove.getY());
                 if (m.mHasEval && shouldDisplayEvals()) {
                     if (m.mBest)
