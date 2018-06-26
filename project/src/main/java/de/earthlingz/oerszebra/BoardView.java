@@ -73,6 +73,7 @@ public class BoardView extends View {
     private double mAnimationProgress = 0;
     private boolean displayAnimations = false;
     private int animationDuration = 1000;
+    private OnMakeMoveListener onMakeMoveListener = null;
 
     public void setDisplayEvals(boolean displayEvals) {
         this.displayEvals = displayEvals;
@@ -609,5 +610,14 @@ public class BoardView extends View {
         this.animationDuration = animationDuration;
         cancelAnimation();
         initCountDowntimer();
+    }
+
+    public void onMakeMoveListener(OnMakeMoveListener listener) {
+        this.onMakeMoveListener = listener;
+
+    }
+
+    public interface OnMakeMoveListener {
+        void onMakeMove(Move move);
     }
 }
