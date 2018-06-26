@@ -612,7 +612,7 @@ public class BoardView extends View {
         initCountDowntimer();
     }
 
-    public void onMakeMoveListener(OnMakeMoveListener listener) {
+    public void setOnMakeMoveListener(OnMakeMoveListener listener) {
         this.onMakeMoveListener = listener;
 
     }
