@@ -557,7 +557,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
 
     @Override
     public void setHintUp(boolean value) {
-        mHintIsUp = true;
+        mHintIsUp = value;
     }
 
     @Override
