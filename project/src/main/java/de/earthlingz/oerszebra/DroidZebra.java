@@ -644,7 +644,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 try {
                     makeMove(move);
                 } catch (InvalidMove e) {
-                    Log.e("BoardView", e.getMessage(), e);
+                    Log.e("Invalid Move", e.getMessage(), e);
                 }
             }
         }
