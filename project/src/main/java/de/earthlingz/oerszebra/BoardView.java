@@ -72,6 +72,7 @@ public class BoardView extends View {
 	private AtomicBoolean mIsAnimationRunning = new AtomicBoolean(false);
 	private double mAnimationProgress = 0;
 	private boolean displayAnimations = false;
+	private int animationDuration = 0;
 
 	public BoardView(Context context) {
 		super(context);
@@ -113,11 +114,15 @@ public class BoardView extends View {
 		mTempRect = new RectF();
 
 
+		initCountDowntimer();
+	}
+
+	private void initCountDowntimer() {
 		mAnimationProgress = 0;
-		mAnimationTimer = new CountDownTimer(getSettingAnimationDuration(), getSettingAnimationDuration() / 10) {
+		mAnimationTimer = new CountDownTimer(getAnimationDuration(), getAnimationDuration() / 10) {
 
 			public void onTick(long millisUntilFinished) {
-				mAnimationProgress = 1.0 - (double) millisUntilFinished / getSettingAnimationDuration();
+				mAnimationProgress = 1.0 - (double) millisUntilFinished / getAnimationDuration();
 				invalidate();
 			}
 
@@ -128,8 +133,8 @@ public class BoardView extends View {
 		};
 	}
 
-	private int getSettingAnimationDuration() {
-		return getDroidZebra().settingsProvider.getSettingAnimationDuration();
+	private int getAnimationDuration() {
+		return animationDuration;
 	}
 
 	public void setDroidZebra(DroidZebra activity) {
@@ -576,5 +581,11 @@ public class BoardView extends View {
 
 	public void setDisplayAnimations(boolean displayAnimations) {
 		this.displayAnimations = displayAnimations;
+	}
+
+	public void setAnimationDuration(int animationDuration) {
+		this.animationDuration = animationDuration;
+		cancelAnimation();
+		initCountDowntimer();
 	}
 }
