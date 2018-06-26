@@ -22,7 +22,6 @@ import android.graphics.*;
 import android.graphics.Paint.FontMetrics;
 import android.os.CountDownTimer;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,7 +31,6 @@ import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-//import android.util.Log;
 
 public class BoardView extends View {
 
@@ -47,8 +45,6 @@ public class BoardView extends View {
     private int mColorNumbers;
     private int mColorEvals;
     private int mColorEvalsBest;
-
-    private DroidZebra mDroidZebra = null;
 
     private float mSizeX = 0;
     private float mSizeY = 0;
@@ -74,6 +70,12 @@ public class BoardView extends View {
     private boolean displayAnimations = false;
     private int animationDuration = 1000;
     private OnMakeMoveListener onMakeMoveListener = null;
+
+    public void setBoardState(BoardState boardState) {
+        this.boardState = boardState;
+    }
+
+    private BoardState boardState;
 
     public void setDisplayEvals(boolean displayEvals) {
         this.displayEvals = displayEvals;
@@ -103,9 +105,6 @@ public class BoardView extends View {
     }
 
     private void initBoardView() {
-        if (DroidZebra.class.isInstance(getContext()))
-            setDroidZebra((DroidZebra) getContext());
-
         Resources r = getResources();
         setFocusable(true); // make sure we get key events
 
@@ -153,10 +152,6 @@ public class BoardView extends View {
 
     private int getAnimationDuration() {
         return animationDuration;
-    }
-
-    public void setDroidZebra(DroidZebra activity) {
-        mDroidZebra = activity;
     }
 
     public RectF getCellRect(int bx, int by) {
@@ -281,10 +276,6 @@ public class BoardView extends View {
             }
         }
 
-        // if we are not playing we are done (designer only)
-        if (mDroidZebra == null)
-            return;
-
         // draw next move marker
         if (shouldDisplayLastMove() && getGameState().getNextMove() != null) {
             Move nextMove = getGameState().getNextMove();
@@ -378,11 +369,11 @@ public class BoardView extends View {
     }
 
     private BoardState getGameState() {
-        return mDroidZebra.getState();
+        return this.boardState;
     }
 
+
     private boolean shouldDisplayEvals() {
-//		return mDroidZebra.evalsDisplayEnabled();
         return displayEvals;
     }
 
