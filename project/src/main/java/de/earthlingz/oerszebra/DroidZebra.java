@@ -561,7 +561,7 @@ public class DroidZebra extends FragmentActivity implements GameController, Sett
     }
 
     @Override
-    public boolean isPraticeMode() {
+    public boolean isPracticeMode() {
         return settingsProvider.isSettingPracticeMode();
     }
 
