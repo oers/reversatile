@@ -245,7 +245,7 @@ public class BoardView extends View {
         // draw helpers for move selector
         if (mMoveSelection != null) {
             if (mShowSelectionHelpers) {
-                if (mDroidZebra.getState().isValidMove(mMoveSelection))
+                if (getGameState().isValidMove(mMoveSelection))
                     mPaint.setColor(mColorHelpersValid);
                 else
                     mPaint.setColor(mColorHelpersInvalid);
@@ -265,7 +265,7 @@ public class BoardView extends View {
                         mPaint
                 );
             } else if (mShowSelection) {
-                if (mDroidZebra.getState().isValidMove(mMoveSelection))
+                if (getGameState().isValidMove(mMoveSelection))
                     mPaint.setColor(mColorSelectionValid);
                 else
                     mPaint.setColor(mColorSelectionInvalid);
@@ -285,8 +285,8 @@ public class BoardView extends View {
             return;
 
         // draw next move marker
-        if (shouldDisplayLastMove() && mDroidZebra.getState().getNextMove() != null) {
-            Move nextMove = mDroidZebra.getState().getNextMove();
+        if (shouldDisplayLastMove() && getGameState().getNextMove() != null) {
+            Move nextMove = getGameState().getNextMove();
             mMoveSelection = nextMove;
             RectF cellRT = getCellRect(nextMove.getX(), nextMove.getY());
             mPaint.setColor(mColorSelectionValid);
@@ -368,12 +368,16 @@ public class BoardView extends View {
         }
 
         // draw last move marker
-        if (shouldDisplayLastMove() && mDroidZebra.getState().getLastMove() != null) {
-            Move lm = mDroidZebra.getState().getLastMove();
+        if (shouldDisplayLastMove() && getGameState().getLastMove() != null) {
+            Move lm = getGameState().getLastMove();
             RectF cellRT = getCellRect(lm.getX(), lm.getY());
             mPaint.setColor(Color.BLUE);
             canvas.drawCircle(cellRT.left + mSizeCell / 10, cellRT.bottom - mSizeCell / 10, mSizeCell / 10, mPaint);
         }
+    }
+
+    private BoardState getGameState() {
+        return mDroidZebra.getState();
     }
 
     private boolean shouldDisplayEvals() {
@@ -551,7 +555,7 @@ public class BoardView extends View {
             bInvalidate = true;
             mShowSelectionHelpers = false;
 
-            if (mDroidZebra.getState().isValidMove(mMoveSelection)) {
+            if (getGameState().isValidMove(mMoveSelection)) {
                 cancelAnimation();
                 // if zebra is still thinking - no move is possible yet - throw a busy dialog
                 if (mDroidZebra.isThinking() && !mDroidZebra.isHumanToMove()) {
