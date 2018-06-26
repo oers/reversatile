@@ -556,6 +556,9 @@ public class BoardView extends View {
             bInvalidate = true;
             mShowSelectionHelpers = false;
             cancelAnimation();
+            if(this.onMakeMoveListener != null){
+                this.onMakeMoveListener.onMakeMove(mMoveSelection);
+            }
 
             if (getGameState().isValidMove(mMoveSelection)) {
 
