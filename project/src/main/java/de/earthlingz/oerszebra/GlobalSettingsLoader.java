@@ -74,6 +74,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
 
     private Context context;
     private OnChangeListener onChangeListener;
+    private int computerMoveDelay = 1000;
 
     public GlobalSettingsLoader(Context context) {
 
@@ -285,5 +286,11 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     public int getSettingPerturbation() {
         return settingPerturbation;
     }
+
+    @Override
+    public int getComputerMoveDelay() {
+        return computerMoveDelay;
+    }
+
 
 }

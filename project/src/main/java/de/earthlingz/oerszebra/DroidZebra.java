@@ -338,8 +338,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
         }
 
-        mZebraThread.setMoveDelay(settingsProvider.isSettingDisplayEnableAnimations()
-                && (settingFunction == FUNCTION_ZEBRA_BLACK || settingFunction == FUNCTION_ZEBRA_WHITE) ? 1000 : 0);
+        mZebraThread.setComputerMoveDelay((settingFunction != FUNCTION_HUMAN_VS_HUMAN) ? settingsProvider.getComputerMoveDelay() : 0);
         mZebraThread.sendSettingsChanged();
 
     }
