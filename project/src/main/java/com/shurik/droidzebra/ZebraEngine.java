@@ -48,7 +48,7 @@ public class ZebraEngine extends Thread {
     // default parameters
     static public final int INFINIT_TIME = 10000000;
 
-    static private int SELFPLAY_MOVE_DELAY = 500; // ms
+    static private int SELFPLAY_MOVE_DELAY = 1000; // ms
     private int mMoveDelay = 0;
     private long mMoveStartTime = 0; //ms
     private int mMovesWithoutInput = 0;

@@ -292,6 +292,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         }
 
         if (mZebraThread == null) return;
+        int settingFunction = settingsProvider.getSettingFunction();
         try {
             mZebraThread.setAutoMakeMoves(settingsProvider.isSettingAutoMakeForcedMoves());
             mZebraThread.setForcedOpening(settingsProvider.getSettingForceOpening());
@@ -299,7 +300,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             mZebraThread.setPracticeMode(settingsProvider.isSettingPracticeMode());
             mZebraThread.setUseBook(settingsProvider.isSettingUseBook());
 
-            switch (settingsProvider.getSettingFunction()) {
+            switch (settingFunction) {
                 case FUNCTION_HUMAN_VS_HUMAN:
                     mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
                     mZebraThread.setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
@@ -337,7 +338,8 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
         }
 
-        mZebraThread.setMoveDelay(settingsProvider.isSettingDisplayEnableAnimations() ? settingsProvider.getSettingAnimationDuration() + 1000 : 0);
+        mZebraThread.setMoveDelay(settingsProvider.isSettingDisplayEnableAnimations()
+                && (settingFunction == FUNCTION_ZEBRA_BLACK || settingFunction == FUNCTION_ZEBRA_WHITE) ? 1000 : 0);
         mZebraThread.sendSettingsChanged();
 
     }
