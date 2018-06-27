@@ -771,7 +771,7 @@ public class ZebraEngine extends Thread {
                                 (jsceval.getInt("best") != 0)
                         );
                     }
-                    getGameState().setCandidateMoves(cmoves);
+                    getGameState().addCandidateMoveEvals(cmoves);
                     mHandler.sendBoard(getGameState());
                 }
                 break;
