@@ -353,7 +353,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         intent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name));
 
         //get BlackPlayer and WhitePlayer
-        switch (settingsProvider.getSettingFunction()) {
+        switch (settingsProvider.getSettingFunction()) { //TODO this might cause a problem, because settings provider is not a source of truth here. It should be taken from ZebraEngine
             case FUNCTION_HUMAN_VS_HUMAN:
                 sbBlackPlayer.append("Player");
                 sbWhitePlayer.append("Player");
