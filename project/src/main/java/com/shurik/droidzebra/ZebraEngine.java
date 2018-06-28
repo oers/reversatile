@@ -252,7 +252,7 @@ public class ZebraEngine extends Thread {
             throw new InvalidMove();
 
         // if thinking on human time - stop
-        if (mPlayerInfo[mSideToMove].skill == 0
+        if (isHumanToMove()
                 && getEngineState() == ZebraEngine.ES_PLAYINPROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
@@ -276,7 +276,7 @@ public class ZebraEngine extends Thread {
 
     public void undoMove() {
         // if thinking on human time - stop
-        if (mPlayerInfo[mSideToMove].skill == 0
+        if (isHumanToMove()
                 && getEngineState() == ZebraEngine.ES_PLAYINPROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
@@ -299,7 +299,7 @@ public class ZebraEngine extends Thread {
 
     public void redoMove() {
         // if thinking on human time - stop
-        if (mPlayerInfo[mSideToMove].skill == 0
+        if (isHumanToMove()
                 && getEngineState() == ZebraEngine.ES_PLAYINPROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
