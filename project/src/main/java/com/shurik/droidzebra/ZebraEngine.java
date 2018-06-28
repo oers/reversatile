@@ -716,6 +716,7 @@ public class ZebraEngine extends Thread {
                                 mPlayerInfo[PLAYER_ZEBRA].playerTime,
                                 mPlayerInfo[PLAYER_ZEBRA].playerTimeIncrement
                         );
+                        mPlayerInfoChanged = false;
                     }
                     mHandler.sendMoveStart();
                 }
