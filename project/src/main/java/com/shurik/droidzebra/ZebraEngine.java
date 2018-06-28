@@ -411,7 +411,7 @@ public class ZebraEngine extends Thread {
             zeSetUseBook(0);
     }
 
-    public void setPlayerInfo(PlayerInfo playerInfo) throws EngineError {
+    private void setPlayerInfo(PlayerInfo playerInfo) throws EngineError {
         if (playerInfo.playerColor != PLAYER_BLACK && playerInfo.playerColor != PLAYER_WHITE && playerInfo.playerColor != PLAYER_ZEBRA)
             throw new EngineError(String.format("Invalid player type %d", playerInfo.playerColor));
 
