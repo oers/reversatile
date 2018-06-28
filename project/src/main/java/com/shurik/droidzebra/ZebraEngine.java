@@ -27,6 +27,8 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+
+import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 //import android.util.Log;
 
 // DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler 
@@ -344,6 +346,31 @@ public class ZebraEngine extends Thread {
     }
 
     // settings helpers
+
+
+    public void setSettingFunction(int settingFunction, int depth, int depthExact, int depthWLD) throws EngineError {
+        switch (settingFunction) {
+            case FUNCTION_HUMAN_VS_HUMAN:
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                break;
+            case FUNCTION_ZEBRA_BLACK:
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                break;
+            case FUNCTION_ZEBRA_VS_ZEBRA:
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                break;
+            case FUNCTION_ZEBRA_WHITE:
+            default:
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                break;
+        }
+        setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA, depth + 1, depthExact + 1, depthWLD + 1, ZebraEngine.INFINIT_TIME, 0));
+    }
+
     public void setAutoMakeMoves(boolean _settingAutoMakeForcedMoves) {
         if (_settingAutoMakeForcedMoves)
             zeSetAutoMakeMoves(1);
