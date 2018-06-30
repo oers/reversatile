@@ -502,24 +502,24 @@ public class ZebraEngine extends Thread {
                 getBlackPlayerInfo().skill,
                 getBlackPlayerInfo().exactSolvingSkill,
                 getBlackPlayerInfo().wldSolvingSkill,
-                getBlackPlayerInfo().playerTime,
-                getBlackPlayerInfo().playerTimeIncrement
+                INFINIT_TIME,
+                0
         );
         zeSetPlayerInfo(
                 PLAYER_WHITE,
                 getWhitePlayerInfo().skill,
                 getWhitePlayerInfo().exactSolvingSkill,
                 getWhitePlayerInfo().wldSolvingSkill,
-                getWhitePlayerInfo().playerTime,
-                getWhitePlayerInfo().playerTimeIncrement
+                INFINIT_TIME,
+                0
         );
         zeSetPlayerInfo(
                 PLAYER_ZEBRA,
                 getZebraPlayerInfo().skill,
                 getZebraPlayerInfo().exactSolvingSkill,
                 getZebraPlayerInfo().wldSolvingSkill,
-                getZebraPlayerInfo().playerTime,
-                getZebraPlayerInfo().playerTimeIncrement
+                INFINIT_TIME,
+                0
         );
     }
 
