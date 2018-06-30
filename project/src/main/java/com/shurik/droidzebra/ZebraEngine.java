@@ -412,12 +412,28 @@ public class ZebraEngine extends Thread {
     }
 
     private void setPlayerInfo(PlayerInfo playerInfo) throws EngineError {
-        if (playerInfo.playerColor != PLAYER_BLACK && playerInfo.playerColor != PLAYER_WHITE && playerInfo.playerColor != PLAYER_ZEBRA)
+        if (playerInfo.playerColor == PLAYER_BLACK) {
+            setBlackPlayerInfo(playerInfo);
+        } else if (playerInfo.playerColor == PLAYER_WHITE) {
+            setWhitePlayerInfo(playerInfo);
+        } else if (playerInfo.playerColor == PLAYER_ZEBRA) {
+            setZebraPlayerInfo(playerInfo);
+        } else {
             throw new EngineError(String.format("Invalid player type %d", playerInfo.playerColor));
-
-        mPlayerInfo[playerInfo.playerColor] = playerInfo;
-
+        }
         mPlayerInfoChanged = true;
+    }
+
+    private void setZebraPlayerInfo(PlayerInfo playerInfo) {
+        mPlayerInfo[PLAYER_ZEBRA] = playerInfo;
+    }
+
+    private void setWhitePlayerInfo(PlayerInfo playerInfo) {
+        mPlayerInfo[PLAYER_WHITE] = playerInfo;
+    }
+
+    private void setBlackPlayerInfo(PlayerInfo playerInfo) {
+        mPlayerInfo[PLAYER_BLACK] = playerInfo;
     }
 
     public void setComputerMoveDelay(int delay) {
@@ -495,28 +511,40 @@ public class ZebraEngine extends Thread {
     private void setPlayerInfos() {
         zeSetPlayerInfo(
                 PLAYER_BLACK,
-                mPlayerInfo[PLAYER_BLACK].skill,
-                mPlayerInfo[PLAYER_BLACK].exactSolvingSkill,
-                mPlayerInfo[PLAYER_BLACK].wldSolvingSkill,
-                mPlayerInfo[PLAYER_BLACK].playerTime,
-                mPlayerInfo[PLAYER_BLACK].playerTimeIncrement
+                getBlackPlayerInfo().skill,
+                getBlackPlayerInfo().exactSolvingSkill,
+                getBlackPlayerInfo().wldSolvingSkill,
+                getBlackPlayerInfo().playerTime,
+                getBlackPlayerInfo().playerTimeIncrement
         );
         zeSetPlayerInfo(
                 PLAYER_WHITE,
-                mPlayerInfo[PLAYER_WHITE].skill,
-                mPlayerInfo[PLAYER_WHITE].exactSolvingSkill,
-                mPlayerInfo[PLAYER_WHITE].wldSolvingSkill,
-                mPlayerInfo[PLAYER_WHITE].playerTime,
-                mPlayerInfo[PLAYER_WHITE].playerTimeIncrement
+                getWhitePlayerInfo().skill,
+                getWhitePlayerInfo().exactSolvingSkill,
+                getWhitePlayerInfo().wldSolvingSkill,
+                getWhitePlayerInfo().playerTime,
+                getWhitePlayerInfo().playerTimeIncrement
         );
         zeSetPlayerInfo(
                 PLAYER_ZEBRA,
-                mPlayerInfo[PLAYER_ZEBRA].skill,
-                mPlayerInfo[PLAYER_ZEBRA].exactSolvingSkill,
-                mPlayerInfo[PLAYER_ZEBRA].wldSolvingSkill,
-                mPlayerInfo[PLAYER_ZEBRA].playerTime,
-                mPlayerInfo[PLAYER_ZEBRA].playerTimeIncrement
+                getZebraPlayerInfo().skill,
+                getZebraPlayerInfo().exactSolvingSkill,
+                getZebraPlayerInfo().wldSolvingSkill,
+                getZebraPlayerInfo().playerTime,
+                getZebraPlayerInfo().playerTimeIncrement
         );
+    }
+
+    private PlayerInfo getZebraPlayerInfo() {
+        return mPlayerInfo[PLAYER_ZEBRA];
+    }
+
+    private PlayerInfo getWhitePlayerInfo() {
+        return mPlayerInfo[PLAYER_WHITE];
+    }
+
+    private PlayerInfo getBlackPlayerInfo() {
+        return mPlayerInfo[PLAYER_BLACK];
     }
 
     public void analyzeGame(List<Move> moves) {
