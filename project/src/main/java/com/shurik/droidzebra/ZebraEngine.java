@@ -91,7 +91,7 @@ public class ZebraEngine extends Thread {
     private PlayerInfo whitePlayerInfo = new PlayerInfo(0, 0, 0);
 
 
-    public void clean() {
+    public void removeHandler() {
         mHandler = null;
     }
 

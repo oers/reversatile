@@ -446,7 +446,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 Log.wtf("wtf", e);
             }
         }
-        engine.clean();
+        engine.removeHandler();
         super.onDestroy();
     }
 
