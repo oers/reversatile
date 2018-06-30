@@ -49,10 +49,10 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         this.getActivity().onNewIntent(intent);
 
         Thread.sleep(500);
-        Log.i("Board: ", asString(this.getActivity().getBoard()));
-        assertSame(3, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_EMPTY));
-        assertSame(58, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_WHITE));
-        assertSame(3, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_BLACK));
+        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
+        assertSame(3, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_EMPTY));
+        assertSame(58, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_WHITE));
+        assertSame(3, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_BLACK));
         assertSame(this.getActivity().getState().getBlackScore(), 3);
         assertSame(this.getActivity().getState().getWhiteScore(), 61);
     }
@@ -66,11 +66,11 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         this.getActivity().onNewIntent(intent);
         Thread.sleep(500);
         //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
-        Log.i("Board: ", asString(this.getActivity().getBoard()));
+        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
 
-        assertSame(0, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_EMPTY));
-        assertSame(62, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_WHITE));
-        assertSame(2, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_BLACK));
+        assertSame(0, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_EMPTY));
+        assertSame(62, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_WHITE));
+        assertSame(2, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_BLACK));
     }
 
     public void testIssue22() throws InterruptedException {
@@ -82,11 +82,11 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         this.getActivity().onNewIntent(intent);
         Thread.sleep(500);
         //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
-        Log.i("Board: ", asString(this.getActivity().getBoard()));
+        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
 
-        assertSame(0, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_EMPTY));
-        assertSame(32, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_WHITE));
-        assertSame(32, countSquares(this.getActivity().getBoard(), ZebraEngine.PLAYER_BLACK));
+        assertSame(0, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_EMPTY));
+        assertSame(32, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_WHITE));
+        assertSame(32, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_BLACK));
     }
 
 

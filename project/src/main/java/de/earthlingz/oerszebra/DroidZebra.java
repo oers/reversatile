@@ -94,10 +94,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 .execute();
     }
 
-    public FieldState[][] getBoard() {
-        return getState().getBoard();
-    }
-
 
     public ZebraEngine getEngine() {
         return mZebraThread;
