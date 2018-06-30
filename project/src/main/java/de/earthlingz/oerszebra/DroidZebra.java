@@ -115,7 +115,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     }
 
     public void newGame() {
-        if (mZebraThread.getEngineState() != ZebraEngine.ES_READY2PLAY) {
+        if (!(mZebraThread.isReadyToPlay())) {
             mZebraThread.stopGame();
         }
         waitForReadyToPlay(

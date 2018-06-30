@@ -907,4 +907,8 @@ public class ZebraEngine extends Thread {
     public void waitForReadyToPlay() {
         waitForEngineState(ZebraEngine.ES_READY2PLAY);
     }
+
+    public boolean isReadyToPlay() {
+        return getEngineState() == ZebraEngine.ES_READY2PLAY;
+    }
 }
