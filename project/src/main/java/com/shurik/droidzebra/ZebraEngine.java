@@ -138,7 +138,7 @@ public class ZebraEngine extends Thread {
         this.mHandler = mHandler;
     }
 
-    public boolean initFiles() {
+    private boolean initFiles() {
         mFilesDir = null;
 
         // first check if files exist on internal device
@@ -184,7 +184,7 @@ public class ZebraEngine extends Thread {
         }
     }
 
-    public void waitForEngineState(int state, int milliseconds) {
+    private void waitForEngineState(int state, int milliseconds) {
         synchronized (engineStateEventLock) {
             if (mEngineState != state)
                 try {
@@ -196,7 +196,7 @@ public class ZebraEngine extends Thread {
         }
     }
 
-    public void waitForEngineState(int state) {
+    private void waitForEngineState(int state) {
         synchronized (engineStateEventLock) {
             while (mEngineState != state && mRun)
                 try {
@@ -904,4 +904,7 @@ public class ZebraEngine extends Thread {
         System.loadLibrary("droidzebra");
     }
 
+    public void waitForReadyToPlay() {
+        waitForEngineState(ZebraEngine.ES_READY2PLAY);
+    }
 }

@@ -8,7 +8,7 @@ public class CompletionAsyncTask extends AsyncTask<Void, Void, Void> {
     private Runnable completion;
     private ZebraEngine engine;
 
-    public CompletionAsyncTask(final Runnable completion, ZebraEngine engine) {
+    CompletionAsyncTask(final Runnable completion, ZebraEngine engine) {
 
         this.completion = completion;
         this.engine = engine;
@@ -16,7 +16,7 @@ public class CompletionAsyncTask extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... p) {
-        engine.waitForEngineState(ZebraEngine.ES_READY2PLAY);
+        engine.waitForReadyToPlay();
         return null;
     }
 
