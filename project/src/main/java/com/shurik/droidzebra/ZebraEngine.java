@@ -90,6 +90,7 @@ public class ZebraEngine extends Thread {
     private PlayerInfo zebraPlayerInfo = new PlayerInfo(4, 12, 12);
     private PlayerInfo whitePlayerInfo = new PlayerInfo(0, 0, 0);
 
+
     public void clean() {
         mHandler = null;
     }
@@ -102,8 +103,11 @@ public class ZebraEngine extends Thread {
     private JSONObject mPendingEvent = null;
     private int mValidMoves[] = null;
 
-
+    // mPlayerInfoChanged must be always inside synchronized block with playerInfoLock
+    // :/ we must change how this work in the future (or we could make whole class synchronized? is it slow?)
     private boolean mPlayerInfoChanged = false;
+    private final Object playerInfoLock = new Object();
+
     private int mSideToMove = PLAYER_ZEBRA;
 
     // context
@@ -410,18 +414,24 @@ public class ZebraEngine extends Thread {
     }
 
     private void setZebraPlayerInfo(PlayerInfo playerInfo) {
-        zebraPlayerInfo = playerInfo;
-        mPlayerInfoChanged = true;
+        synchronized (playerInfoLock) {
+            zebraPlayerInfo = playerInfo;
+            mPlayerInfoChanged = true;
+        }
     }
 
     private void setWhitePlayerInfo(PlayerInfo playerInfo) {
-        whitePlayerInfo = playerInfo;
-        mPlayerInfoChanged = true;
+        synchronized (playerInfoLock) {
+            whitePlayerInfo = playerInfo;
+            mPlayerInfoChanged = true;
+        }
     }
 
     private void setBlackPlayerInfo(PlayerInfo playerInfo) {
-        blackPlayerInfo = playerInfo;
-        mPlayerInfoChanged = true;
+        synchronized (playerInfoLock) {
+            blackPlayerInfo = playerInfo;
+            mPlayerInfoChanged = true;
+        }
     }
 
     public void setComputerMoveDelay(int delay) {
@@ -738,10 +748,13 @@ public class ZebraEngine extends Thread {
                     mSideToMove = data.getInt("side_to_move");
 
                     // can change player info here
-                    if (mPlayerInfoChanged) {
-                        setPlayerInfos();
-                        mPlayerInfoChanged = false;
+                    synchronized (playerInfoLock) {
+                        if (mPlayerInfoChanged) {
+                            setPlayerInfos();
+                            mPlayerInfoChanged = false;
+                        }
                     }
+
                     mHandler.sendMoveStart();
                 }
                 break;
