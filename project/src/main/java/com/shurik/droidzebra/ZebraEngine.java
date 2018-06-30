@@ -86,6 +86,9 @@ public class ZebraEngine extends Thread {
             UI_EVENT_UNDO = 2,
             UI_EVENT_SETTINGS_CHANGE = 3,
             UI_EVENT_REDO = 4;
+    private PlayerInfo blackPlayerInfo = new PlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINIT_TIME, 0);
+    private PlayerInfo zebraPlayerInfo = new PlayerInfo(PLAYER_ZEBRA, 4, 12, 12, INFINIT_TIME, 0);
+    private PlayerInfo whitePlayerInfo = new PlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINIT_TIME, 0);
 
     public void clean() {
         mHandler = null;
@@ -99,12 +102,7 @@ public class ZebraEngine extends Thread {
     private JSONObject mPendingEvent = null;
     private int mValidMoves[] = null;
 
-    // player info
-    private PlayerInfo[] mPlayerInfo = {
-            new PlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINIT_TIME, 0),
-            new PlayerInfo(PLAYER_ZEBRA, 4, 12, 12, INFINIT_TIME, 0),
-            new PlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINIT_TIME, 0)
-    };
+
     private boolean mPlayerInfoChanged = false;
     private int mSideToMove = PLAYER_ZEBRA;
 
@@ -425,15 +423,15 @@ public class ZebraEngine extends Thread {
     }
 
     private void setZebraPlayerInfo(PlayerInfo playerInfo) {
-        mPlayerInfo[PLAYER_ZEBRA] = playerInfo;
+        zebraPlayerInfo = playerInfo;
     }
 
     private void setWhitePlayerInfo(PlayerInfo playerInfo) {
-        mPlayerInfo[PLAYER_WHITE] = playerInfo;
+        whitePlayerInfo = playerInfo;
     }
 
     private void setBlackPlayerInfo(PlayerInfo playerInfo) {
-        mPlayerInfo[PLAYER_BLACK] = playerInfo;
+        blackPlayerInfo = playerInfo;
     }
 
     public void setComputerMoveDelay(int delay) {
@@ -536,15 +534,15 @@ public class ZebraEngine extends Thread {
     }
 
     private PlayerInfo getZebraPlayerInfo() {
-        return mPlayerInfo[PLAYER_ZEBRA];
+        return zebraPlayerInfo;
     }
 
     private PlayerInfo getWhitePlayerInfo() {
-        return mPlayerInfo[PLAYER_WHITE];
+        return whitePlayerInfo;
     }
 
     private PlayerInfo getBlackPlayerInfo() {
-        return mPlayerInfo[PLAYER_BLACK];
+        return blackPlayerInfo;
     }
 
     public void analyzeGame(List<Move> moves) {
