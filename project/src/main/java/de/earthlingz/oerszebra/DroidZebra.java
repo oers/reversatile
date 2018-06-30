@@ -89,8 +89,8 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         this.parser = parser;
     }
 
-    private void newCompletionPort(final int zebraEngineStatus, final Runnable completion) {
-        new CompletionAsyncTask(zebraEngineStatus, completion, getEngine())
+    private void waitForReadyToPlay(final Runnable completion) {
+        new CompletionAsyncTask(ZebraEngine.ES_READY2PLAY, completion, getEngine())
                 .execute();
     }
 
@@ -118,8 +118,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         if (mZebraThread.getEngineState() != ZebraEngine.ES_READY2PLAY) {
             mZebraThread.stopGame();
         }
-        newCompletionPort(
-                ZebraEngine.ES_READY2PLAY,
+        waitForReadyToPlay(
                 () -> {
                     DroidZebra.this.initBoard();
                     DroidZebra.this.loadSettings();
@@ -251,8 +250,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
         mZebraThread.start();
 
-        newCompletionPort(
-                ZebraEngine.ES_READY2PLAY,
+        waitForReadyToPlay(
                 () -> {
                     DroidZebra.this.setContentView(R.layout.board_layout);
                     new ActionBarHelper(DroidZebra.this).show();
