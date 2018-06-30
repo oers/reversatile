@@ -46,7 +46,6 @@ import java.util.Locale;
 import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
-//import android.util.Log;
 
 public class DroidZebra extends FragmentActivity implements GameController, OnChangeListener, BoardView.OnMakeMoveListener {
     private ClipboardManager clipboard;
@@ -86,10 +85,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         mZebraThread.makeMove(mMoveSelection);
     }
 
-    void setBoardState(@NonNull BoardState state) {
-        this.state = state;
-    }
-
     void setGameParser(Gameparser parser) {
         this.parser = parser;
     }
@@ -112,10 +107,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         getState().reset();
         if (mStatusView != null)
             mStatusView.clear();
-    }
-
-    public CandidateMove[] getCandidateMoves() {
-        return getState().getMoves();
     }
 
     public void setCandidateMoves(CandidateMove[] cmoves) {
