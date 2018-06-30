@@ -122,7 +122,7 @@ public class ZebraEngine extends Thread {
     // synchronization
     static private final Object mJNILock = new Object();
 
-    private final transient Object mEngineStateEvent = new Object();
+    private final transient Object engineStateEventLock = new Object();
 
     private int mEngineState = ES_INITIAL;
 
@@ -185,10 +185,10 @@ public class ZebraEngine extends Thread {
     }
 
     public void waitForEngineState(int state, int milliseconds) {
-        synchronized (mEngineStateEvent) {
+        synchronized (engineStateEventLock) {
             if (mEngineState != state)
                 try {
-                    mEngineStateEvent.wait(milliseconds);
+                    engineStateEventLock.wait(milliseconds);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -197,10 +197,10 @@ public class ZebraEngine extends Thread {
     }
 
     public void waitForEngineState(int state) {
-        synchronized (mEngineStateEvent) {
+        synchronized (engineStateEventLock) {
             while (mEngineState != state && mRun)
                 try {
-                    mEngineStateEvent.wait();
+                    engineStateEventLock.wait();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -208,9 +208,9 @@ public class ZebraEngine extends Thread {
     }
 
     public void setEngineState(int state) {
-        synchronized (mEngineStateEvent) {
+        synchronized (engineStateEventLock) {
             mEngineState = state;
-            mEngineStateEvent.notifyAll();
+            engineStateEventLock.notifyAll();
         }
     }
 
