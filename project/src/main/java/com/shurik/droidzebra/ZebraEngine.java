@@ -73,7 +73,7 @@ public class ZebraEngine extends Thread {
             MSG_DEBUG = 65535;
 
     // engine state
-    public static final int
+    private static final int
             ES_INITIAL = 0,
             ES_READY2PLAY = 1,
             ES_PLAY = 2,
@@ -207,14 +207,18 @@ public class ZebraEngine extends Thread {
         }
     }
 
-    public void setEngineState(int state) {
+    public void setEngineStatePlay() {
+        setEngineState(ZebraEngine.ES_PLAY);
+    }
+
+    private void setEngineState(int state) {
         synchronized (engineStateEventLock) {
             mEngineState = state;
             engineStateEventLock.notifyAll();
         }
     }
 
-    public int getEngineState() {
+    private int getEngineState() {
         return mEngineState;
     }
 

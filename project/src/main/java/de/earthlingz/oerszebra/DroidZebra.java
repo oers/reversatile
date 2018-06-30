@@ -122,7 +122,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 () -> {
                     initBoard();
                     loadSettings();
-                    mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
+                    mZebraThread.setEngineStatePlay();
                 }
         );
     }
@@ -261,7 +261,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                     mBoardView.requestFocus();
                     initBoard();
                     loadSettings();
-                    mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
+                    mZebraThread.setEngineStatePlay();
                     mIsInitCompleted = true;
                 }
         );
@@ -636,8 +636,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             return new AlertDialog.Builder(getActivity())
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.dialog_pass_text)
-                    .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().mZebraThread.setEngineState(ZebraEngine.ES_PLAY)
-                    )
+                    .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().mZebraThread.setEngineStatePlay())
                     .create();
         }
     }
