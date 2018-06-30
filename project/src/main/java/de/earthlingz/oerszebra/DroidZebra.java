@@ -90,7 +90,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     }
 
     private void waitForReadyToPlay(final Runnable completion) {
-        new CompletionAsyncTask(ZebraEngine.ES_READY2PLAY, completion, getEngine())
+        new CompletionAsyncTask(completion, getEngine())
                 .execute();
     }
 
