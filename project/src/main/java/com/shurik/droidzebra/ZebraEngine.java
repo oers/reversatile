@@ -73,7 +73,7 @@ public class ZebraEngine extends Thread {
             MSG_DEBUG = 65535;
 
     // engine state
-    private static final int
+    public static final int
             ES_INITIAL = 0,
             ES_READY2PLAY = 1,
             ES_PLAY = 2,

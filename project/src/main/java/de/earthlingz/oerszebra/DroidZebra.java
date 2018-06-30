@@ -283,20 +283,16 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         int depth = settingsProvider.getSettingZebraDepth();
         int depthExact = settingsProvider.getSettingZebraDepthExact();
         int depthWLD = settingsProvider.getSettingZebraDepthWLD();
-        try {
-            mZebraThread.setAutoMakeMoves(settingsProvider.isSettingAutoMakeForcedMoves());
-            mZebraThread.setForcedOpening(settingsProvider.getSettingForceOpening());
-            mZebraThread.setHumanOpenings(settingsProvider.isSettingHumanOpenings());
-            mZebraThread.setPracticeMode(settingsProvider.isSettingPracticeMode());
-            mZebraThread.setUseBook(settingsProvider.isSettingUseBook());
+        mZebraThread.setAutoMakeMoves(settingsProvider.isSettingAutoMakeForcedMoves());
+        mZebraThread.setForcedOpening(settingsProvider.getSettingForceOpening());
+        mZebraThread.setHumanOpenings(settingsProvider.isSettingHumanOpenings());
+        mZebraThread.setPracticeMode(settingsProvider.isSettingPracticeMode());
+        mZebraThread.setUseBook(settingsProvider.isSettingUseBook());
 
-            mZebraThread.setEngineFunction(settingFunction, depth, depthExact, depthWLD);
+        mZebraThread.setEngineFunction(settingFunction, depth, depthExact, depthWLD);
 
-            mZebraThread.setSlack(settingsProvider.getSettingSlack());
-            mZebraThread.setPerturbation(settingsProvider.getSettingPerturbation());
-        } catch (EngineError e) {
-            showAlertDialog(e.getError());
-        }
+        mZebraThread.setSlack(settingsProvider.getSettingSlack());
+        mZebraThread.setPerturbation(settingsProvider.getSettingPerturbation());
 
         mStatusView.setTextForID(
                 StatusView.ID_SCORE_SKILL,
