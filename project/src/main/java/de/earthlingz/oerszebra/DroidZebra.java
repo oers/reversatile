@@ -120,9 +120,9 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         }
         waitForReadyToPlay(
                 () -> {
-                    DroidZebra.this.initBoard();
-                    DroidZebra.this.loadSettings();
-                    DroidZebra.this.mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
+                    initBoard();
+                    loadSettings();
+                    mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
                 }
         );
     }
@@ -252,17 +252,17 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
         waitForReadyToPlay(
                 () -> {
-                    DroidZebra.this.setContentView(R.layout.board_layout);
+                    setContentView(R.layout.board_layout);
                     new ActionBarHelper(DroidZebra.this).show();
-                    DroidZebra.this.mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
-                    DroidZebra.this.mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
-                    DroidZebra.this.mBoardView.setBoardState(getState());
-                    DroidZebra.this.mBoardView.setOnMakeMoveListener(DroidZebra.this);
-                    DroidZebra.this.mBoardView.requestFocus();
-                    DroidZebra.this.initBoard();
-                    DroidZebra.this.loadSettings();
-                    DroidZebra.this.mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
-                    DroidZebra.this.mIsInitCompleted = true;
+                    mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
+                    mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
+                    mBoardView.setBoardState(getState());
+                    mBoardView.setOnMakeMoveListener(DroidZebra.this);
+                    mBoardView.requestFocus();
+                    initBoard();
+                    loadSettings();
+                    mZebraThread.setEngineState(ZebraEngine.ES_PLAY);
+                    mIsInitCompleted = true;
                 }
         );
     }
