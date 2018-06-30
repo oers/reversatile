@@ -290,7 +290,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             mZebraThread.setPracticeMode(settingsProvider.isSettingPracticeMode());
             mZebraThread.setUseBook(settingsProvider.isSettingUseBook());
 
-            mZebraThread.setSettingFunction(settingFunction, depth, depthExact, depthWLD);
+            mZebraThread.setEngineFunction(settingFunction, depth, depthExact, depthWLD);
 
             mZebraThread.setSlack(settingsProvider.getSettingSlack());
             mZebraThread.setPerturbation(settingsProvider.getSettingPerturbation());
