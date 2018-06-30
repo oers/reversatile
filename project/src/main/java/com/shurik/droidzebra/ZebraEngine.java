@@ -36,19 +36,19 @@ public class ZebraEngine extends Thread {
 
     static public final int BOARD_SIZE = 8;
 
-    static public String PATTERNS_FILE = "coeffs2.bin";
-    static public String BOOK_FILE = "book.bin";
-    static public String BOOK_FILE_COMPRESSED = "book.cmp.z";
+    private static String PATTERNS_FILE = "coeffs2.bin";
+    private static String BOOK_FILE = "book.bin";
+    private static String BOOK_FILE_COMPRESSED = "book.cmp.z";
 
     // board colors
     static public final byte PLAYER_BLACK = 0;
     static public final byte PLAYER_EMPTY = 1; // for board color
     static public final byte PLAYER_WHITE = 2;
 
-    static public final int PLAYER_ZEBRA = 1; // for zebra skill in PlayerInfo
+    private static final int PLAYER_ZEBRA = 1; // for zebra skill in PlayerInfo
 
     // default parameters
-    static public final int INFINIT_TIME = 10000000;
+    private static final int INFINIT_TIME = 10000000;
     private int computerMoveDelay = 0;
     private long mMoveStartTime = 0; //ms
 
@@ -73,14 +73,14 @@ public class ZebraEngine extends Thread {
             MSG_DEBUG = 65535;
 
     // engine state
-    static public final int
+    private static final int
             ES_INITIAL = 0,
             ES_READY2PLAY = 1,
             ES_PLAY = 2,
             ES_PLAYINPROGRESS = 3,
             ES_USER_INPUT_WAIT = 4;
 
-    static public final int
+    private static final int
             UI_EVENT_EXIT = 0,
             UI_EVENT_MOVE = 1,
             UI_EVENT_UNDO = 2,
