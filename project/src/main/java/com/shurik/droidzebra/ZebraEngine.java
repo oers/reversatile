@@ -752,7 +752,7 @@ public class ZebraEngine extends Thread {
                 case MSG_MOVE_END: {
                     // introduce delay between moves made by the computer without user input
                     // so we can actually to see that the game is being played :)
-                    if (computerMoveDelay > 0 && (mPlayerInfo[mSideToMove].skill > 0)) {
+                    if (computerMoveDelay > 0 && !isHumanToMove()) {
                         long moveEnd = android.os.SystemClock.uptimeMillis();
                         if ((moveEnd - mMoveStartTime) < computerMoveDelay) {
                             android.os.SystemClock.sleep(computerMoveDelay - (moveEnd - mMoveStartTime));
