@@ -469,30 +469,7 @@ public class ZebraEngine extends Thread {
             setEngineState(ES_PLAYINPROGRESS);
 
             synchronized (mJNILock) {
-                zeSetPlayerInfo(
-                        PLAYER_BLACK,
-                        mPlayerInfo[PLAYER_BLACK].skill,
-                        mPlayerInfo[PLAYER_BLACK].exactSolvingSkill,
-                        mPlayerInfo[PLAYER_BLACK].wldSolvingSkill,
-                        mPlayerInfo[PLAYER_BLACK].playerTime,
-                        mPlayerInfo[PLAYER_BLACK].playerTimeIncrement
-                );
-                zeSetPlayerInfo(
-                        PLAYER_WHITE,
-                        mPlayerInfo[PLAYER_WHITE].skill,
-                        mPlayerInfo[PLAYER_WHITE].exactSolvingSkill,
-                        mPlayerInfo[PLAYER_WHITE].wldSolvingSkill,
-                        mPlayerInfo[PLAYER_WHITE].playerTime,
-                        mPlayerInfo[PLAYER_WHITE].playerTimeIncrement
-                );
-                zeSetPlayerInfo(
-                        PLAYER_ZEBRA,
-                        mPlayerInfo[PLAYER_ZEBRA].skill,
-                        mPlayerInfo[PLAYER_ZEBRA].exactSolvingSkill,
-                        mPlayerInfo[PLAYER_ZEBRA].wldSolvingSkill,
-                        mPlayerInfo[PLAYER_ZEBRA].playerTime,
-                        mPlayerInfo[PLAYER_ZEBRA].playerTimeIncrement
-                );
+                setPlayerInfos();
 
                 mCurrentGameState = new ZebraBoard();
                 mCurrentGameState.setDisksPlayed(0);
@@ -513,6 +490,33 @@ public class ZebraEngine extends Thread {
         synchronized (mJNILock) {
             zeGlobalTerminate();
         }
+    }
+
+    private void setPlayerInfos() {
+        zeSetPlayerInfo(
+                PLAYER_BLACK,
+                mPlayerInfo[PLAYER_BLACK].skill,
+                mPlayerInfo[PLAYER_BLACK].exactSolvingSkill,
+                mPlayerInfo[PLAYER_BLACK].wldSolvingSkill,
+                mPlayerInfo[PLAYER_BLACK].playerTime,
+                mPlayerInfo[PLAYER_BLACK].playerTimeIncrement
+        );
+        zeSetPlayerInfo(
+                PLAYER_WHITE,
+                mPlayerInfo[PLAYER_WHITE].skill,
+                mPlayerInfo[PLAYER_WHITE].exactSolvingSkill,
+                mPlayerInfo[PLAYER_WHITE].wldSolvingSkill,
+                mPlayerInfo[PLAYER_WHITE].playerTime,
+                mPlayerInfo[PLAYER_WHITE].playerTimeIncrement
+        );
+        zeSetPlayerInfo(
+                PLAYER_ZEBRA,
+                mPlayerInfo[PLAYER_ZEBRA].skill,
+                mPlayerInfo[PLAYER_ZEBRA].exactSolvingSkill,
+                mPlayerInfo[PLAYER_ZEBRA].wldSolvingSkill,
+                mPlayerInfo[PLAYER_ZEBRA].playerTime,
+                mPlayerInfo[PLAYER_ZEBRA].playerTimeIncrement
+        );
     }
 
     public void analyzeGame(List<Move> moves) {
@@ -719,30 +723,7 @@ public class ZebraEngine extends Thread {
 
                     // can change player info here
                     if (mPlayerInfoChanged) {
-                        zeSetPlayerInfo(
-                                PLAYER_BLACK,
-                                mPlayerInfo[PLAYER_BLACK].skill,
-                                mPlayerInfo[PLAYER_BLACK].exactSolvingSkill,
-                                mPlayerInfo[PLAYER_BLACK].wldSolvingSkill,
-                                mPlayerInfo[PLAYER_BLACK].playerTime,
-                                mPlayerInfo[PLAYER_BLACK].playerTimeIncrement
-                        );
-                        zeSetPlayerInfo(
-                                PLAYER_WHITE,
-                                mPlayerInfo[PLAYER_WHITE].skill,
-                                mPlayerInfo[PLAYER_WHITE].exactSolvingSkill,
-                                mPlayerInfo[PLAYER_WHITE].wldSolvingSkill,
-                                mPlayerInfo[PLAYER_WHITE].playerTime,
-                                mPlayerInfo[PLAYER_WHITE].playerTimeIncrement
-                        );
-                        zeSetPlayerInfo(
-                                PLAYER_ZEBRA,
-                                mPlayerInfo[PLAYER_ZEBRA].skill,
-                                mPlayerInfo[PLAYER_ZEBRA].exactSolvingSkill,
-                                mPlayerInfo[PLAYER_ZEBRA].wldSolvingSkill,
-                                mPlayerInfo[PLAYER_ZEBRA].playerTime,
-                                mPlayerInfo[PLAYER_ZEBRA].playerTimeIncrement
-                        );
+                        setPlayerInfos();
                         mPlayerInfoChanged = false;
                     }
                     mHandler.sendMoveStart();
