@@ -1,6 +1,5 @@
 package com.shurik.droidzebra;
 
-import de.earthlingz.oerszebra.BuildConfig;
 
 /**
  * Created by stefan on 18.03.2018.
