@@ -28,7 +28,6 @@ import android.view.View;
 import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.InvalidMove;
 import com.shurik.droidzebra.Move;
-import com.shurik.droidzebra.ZebraEngine;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -293,9 +292,9 @@ public class BoardView extends View {
         float oval_adjustment = (float) Math.abs(circle_r * Math.cos(Math.PI * mAnimationProgress));
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (getGameState().getBoard()[i][j].getState() == ZebraEngine.PLAYER_EMPTY)
+                if (getGameState().getBoard()[i][j].isEmpty())
                     continue;
-                if (getGameState().getBoard()[i][j].getState() == ZebraEngine.PLAYER_BLACK)
+                if (getGameState().getBoard()[i][j].isBlack())
                     circle_color = Color.BLACK;
                 else
                     circle_color = Color.WHITE;
@@ -547,7 +546,7 @@ public class BoardView extends View {
             bInvalidate = true;
             mShowSelectionHelpers = false;
             cancelAnimation();
-            if(this.onMakeMoveListener != null){
+            if (this.onMakeMoveListener != null) {
                 this.onMakeMoveListener.onMakeMove(mMoveSelection);
             }
 

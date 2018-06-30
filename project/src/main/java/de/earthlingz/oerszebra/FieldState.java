@@ -27,6 +27,14 @@ public class FieldState {
         return mState;
     }
 
+    public boolean isEmpty() {
+        return getState() == ZebraEngine.PLAYER_EMPTY;
+    }
+
+    public boolean isBlack() {
+        return getState() == ZebraEngine.PLAYER_BLACK;
+    }
+
     public boolean isFlipped() {
         return (mFlags & ST_FLIPPED) > 0;
     }
