@@ -12,7 +12,7 @@ public class DroidZebraHandler implements ZebraEngineMessageHander, GameMessageR
     private ZebraEngine mZebraThread;
     private GameController controller;
 
-    android.os.Handler handler = new android.os.Handler();
+    private android.os.Handler handler = new android.os.Handler();
 
     DroidZebraHandler(BoardState boardState, GameController controller, ZebraEngine mZebraThread) {
         this.controller = controller;
