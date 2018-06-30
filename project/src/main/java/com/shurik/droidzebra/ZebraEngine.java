@@ -349,24 +349,24 @@ public class ZebraEngine extends Thread {
     public void setSettingFunction(int settingFunction, int depth, int depthExact, int depthWLD) throws EngineError {
         switch (settingFunction) {
             case FUNCTION_HUMAN_VS_HUMAN:
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
                 break;
             case FUNCTION_ZEBRA_BLACK:
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
                 break;
             case FUNCTION_ZEBRA_VS_ZEBRA:
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
                 break;
             case FUNCTION_ZEBRA_WHITE:
             default:
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
-                setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
                 break;
         }
-        setPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA, depth + 1, depthExact + 1, depthWLD + 1, ZebraEngine.INFINIT_TIME, 0));
+        setZebraPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA, depth + 1, depthExact + 1, depthWLD + 1, ZebraEngine.INFINIT_TIME, 0));
     }
 
     public void setAutoMakeMoves(boolean _settingAutoMakeForcedMoves) {
@@ -409,29 +409,19 @@ public class ZebraEngine extends Thread {
             zeSetUseBook(0);
     }
 
-    private void setPlayerInfo(PlayerInfo playerInfo) throws EngineError {
-        if (playerInfo.playerColor == PLAYER_BLACK) {
-            setBlackPlayerInfo(playerInfo);
-        } else if (playerInfo.playerColor == PLAYER_WHITE) {
-            setWhitePlayerInfo(playerInfo);
-        } else if (playerInfo.playerColor == PLAYER_ZEBRA) {
-            setZebraPlayerInfo(playerInfo);
-        } else {
-            throw new EngineError(String.format("Invalid player type %d", playerInfo.playerColor));
-        }
-        mPlayerInfoChanged = true;
-    }
-
     private void setZebraPlayerInfo(PlayerInfo playerInfo) {
         zebraPlayerInfo = playerInfo;
+        mPlayerInfoChanged = true;
     }
 
     private void setWhitePlayerInfo(PlayerInfo playerInfo) {
         whitePlayerInfo = playerInfo;
+        mPlayerInfoChanged = true;
     }
 
     private void setBlackPlayerInfo(PlayerInfo playerInfo) {
         blackPlayerInfo = playerInfo;
+        mPlayerInfoChanged = true;
     }
 
     public void setComputerMoveDelay(int delay) {
