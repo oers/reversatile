@@ -6,10 +6,7 @@ import de.earthlingz.oerszebra.BuildConfig;
  * Created by stefan on 18.03.2018.
  */ // player info
 public class PlayerInfo {
-    PlayerInfo(int _player, int _skill, int _exact_skill, int _wld_skill, int _player_time, int _increment) {
-        if (BuildConfig.DEBUG && !(_player == ZebraEngine.PLAYER_BLACK || _player == ZebraEngine.PLAYER_WHITE || _player == ZebraEngine.PLAYER_ZEBRA)) {
-            throw new AssertionError();
-        }
+    PlayerInfo(int _skill, int _exact_skill, int _wld_skill, int _player_time, int _increment) {
         skill = _skill;
         exactSolvingSkill = _exact_skill;
         wldSolvingSkill = _wld_skill;

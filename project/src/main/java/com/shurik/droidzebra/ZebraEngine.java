@@ -86,9 +86,9 @@ public class ZebraEngine extends Thread {
             UI_EVENT_UNDO = 2,
             UI_EVENT_SETTINGS_CHANGE = 3,
             UI_EVENT_REDO = 4;
-    private PlayerInfo blackPlayerInfo = new PlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINIT_TIME, 0);
-    private PlayerInfo zebraPlayerInfo = new PlayerInfo(PLAYER_ZEBRA, 4, 12, 12, INFINIT_TIME, 0);
-    private PlayerInfo whitePlayerInfo = new PlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINIT_TIME, 0);
+    private PlayerInfo blackPlayerInfo = new PlayerInfo(0, 0, 0, INFINIT_TIME, 0);
+    private PlayerInfo zebraPlayerInfo = new PlayerInfo(4, 12, 12, INFINIT_TIME, 0);
+    private PlayerInfo whitePlayerInfo = new PlayerInfo(0, 0, 0, INFINIT_TIME, 0);
 
     public void clean() {
         mHandler = null;
@@ -349,24 +349,24 @@ public class ZebraEngine extends Thread {
     public void setSettingFunction(int settingFunction, int depth, int depthExact, int depthWLD) throws EngineError {
         switch (settingFunction) {
             case FUNCTION_HUMAN_VS_HUMAN:
-                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
-                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
                 break;
             case FUNCTION_ZEBRA_BLACK:
-                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
-                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
                 break;
             case FUNCTION_ZEBRA_VS_ZEBRA:
-                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
-                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
                 break;
             case FUNCTION_ZEBRA_WHITE:
             default:
-                setBlackPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_BLACK, 0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
-                setWhitePlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_WHITE, depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
+                setBlackPlayerInfo(new PlayerInfo(0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
+                setWhitePlayerInfo(new PlayerInfo(depth, depthExact, depthWLD, ZebraEngine.INFINIT_TIME, 0));
                 break;
         }
-        setZebraPlayerInfo(new PlayerInfo(ZebraEngine.PLAYER_ZEBRA, depth + 1, depthExact + 1, depthWLD + 1, ZebraEngine.INFINIT_TIME, 0));
+        setZebraPlayerInfo(new PlayerInfo(depth + 1, depthExact + 1, depthWLD + 1, ZebraEngine.INFINIT_TIME, 0));
     }
 
     public void setAutoMakeMoves(boolean _settingAutoMakeForcedMoves) {
