@@ -222,6 +222,8 @@ public class ZebraEngine extends Thread {
         return mEngineState;
     }
 
+    //TODO This method requires JNI call, which is expensive
+    //so maybe we should make it private and get this info differently
     public boolean gameInProgress() {
         return zeGameInProgress();
     }
