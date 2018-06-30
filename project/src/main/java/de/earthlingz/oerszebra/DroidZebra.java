@@ -73,18 +73,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     }
 
 
-    private boolean isThinking() {
-        return engine.isThinking();
-    }
-
-    private boolean isHumanToMove() {
-        return engine.isHumanToMove();
-    }
-
-    private void makeMove(Move mMoveSelection) throws InvalidMove {
-        engine.makeMove(mMoveSelection);
-    }
-
     void setGameParser(Gameparser parser) {
         this.parser = parser;
     }
@@ -605,11 +593,11 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     public void onMakeMove(Move move) {
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
-            if (isThinking() && !isHumanToMove()) {
+            if (engine.isThinking() && !engine.isHumanToMove()) {
                 showBusyDialog();
             } else {
                 try {
-                    makeMove(move);
+                    engine.makeMove(move);
                 } catch (InvalidMove e) {
                     Log.e("Invalid Move", e.getMessage(), e);
                 }
