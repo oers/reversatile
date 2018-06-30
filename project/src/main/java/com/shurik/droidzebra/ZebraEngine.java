@@ -346,7 +346,7 @@ public class ZebraEngine extends Thread {
     // settings helpers
 
 
-    public void setEngineFunction(int settingFunction, int depth, int depthExact, int depthWLD) throws EngineError {
+    public void setEngineFunction(int settingFunction, int depth, int depthExact, int depthWLD) {
         switch (settingFunction) {
             case FUNCTION_HUMAN_VS_HUMAN:
                 setBlackPlayerInfo(new PlayerInfo(0, 0, 0, ZebraEngine.INFINIT_TIME, 0));
