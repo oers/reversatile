@@ -835,7 +835,17 @@ public class ZebraEngine extends Thread {
     }
 
     public boolean isHumanToMove() {
-        return mPlayerInfo[mSideToMove].skill == 0;
+        return getSideToMovePlayerInfo().skill == 0;
+    }
+
+    private PlayerInfo getSideToMovePlayerInfo() {
+        if (mSideToMove == PLAYER_BLACK) {
+            return getBlackPlayerInfo();
+        }
+        if (mSideToMove == PLAYER_WHITE) {
+            return getWhitePlayerInfo();
+        }
+        return getZebraPlayerInfo();
     }
 
     private void fatalError(String message) {
