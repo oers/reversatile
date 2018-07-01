@@ -53,7 +53,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
 
     private boolean mBusyDialogUp = false;
-    private boolean mHintIsUp = false;
+    private boolean isHintUp = false;
     private boolean mIsInitCompleted = false;
     private boolean mActivityActive = false;
 
@@ -99,7 +99,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
     }
 
     public boolean evalsDisplayEnabled() {
-        return settingsProvider.isSettingPracticeMode() || mHintIsUp;
+        return settingsProvider.isSettingPracticeMode() || isHintUp;
     }
 
     public void newGame() {
@@ -475,10 +475,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         showDialog(newFragment, "dialog_pass");
     }
 
-    public boolean getSettingDisplayPV() {
-        return settingsProvider.isSettingDisplayPv();
-    }
-
     public void showGameOverDialog() {
         DialogFragment newFragment = DialogGameOver.newInstance();
         showDialog(newFragment, "dialog_gameover");
@@ -518,17 +514,9 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         }
     }
 
-    public boolean isHintUp() {
-        return mHintIsUp;
-    }
-
     public void setHintUp(boolean value) {
-        mHintIsUp = value;
+        isHintUp = value;
         this.mBoardView.setDisplayEvals(evalsDisplayEnabled());
-    }
-
-    public boolean isPracticeMode() {
-        return settingsProvider.isSettingPracticeMode();
     }
 
     public void showAlertDialog(String msg) {
@@ -538,14 +526,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         alertDialog.setMessage(msg);
         alertDialog.setPositiveButton("OK", (dialog, id) -> alert = null);
         runOnUiThread(() -> alert = new WeakReference<>(alertDialog.show()));
-    }
-
-    public StatusView getStatusView() {
-        return mStatusView;
-    }
-
-    public BoardView getBoardView() {
-        return mBoardView;
     }
 
     public WeakReference<AlertDialog> getAlert() {
@@ -654,11 +634,11 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
             } else {
                 move_text = "";
             }
-            this.getStatusView().setTextForID(
+            mStatusView.setTextForID(
                     StatusView.ID_SCORELINE_NUM_1 + i,
                     num_text
             );
-            this.getStatusView().setTextForID(
+            mStatusView.setTextForID(
                     StatusView.ID_SCORELINE_BLACK_1 + i,
                     move_text
             );
@@ -674,26 +654,26 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
             } else {
                 move_text = "";
             }
-            this.getStatusView().setTextForID(
+            mStatusView.setTextForID(
                     StatusView.ID_SCORELINE_WHITE_1 + i,
                     move_text
             );
         }
 
 
-        if (this.getStatusView() != null && zebraBoard.getOpening() != null) {
-            this.getStatusView().setTextForID(
+        if (mStatusView != null && zebraBoard.getOpening() != null) {
+            mStatusView.setTextForID(
                     StatusView.ID_STATUS_OPENING,
                     zebraBoard.getOpening()
             );
         }
         if (boardChanged) {
             Log.v("Handler", "BoardChanged");
-            this.getBoardView().onBoardStateChanged();
+            mBoardView.onBoardStateChanged();
 
         } else {
             Log.v("Handler", "invalidate");
-            this.getBoardView().invalidate();
+            mBoardView.invalidate();
         }
     }
 
@@ -704,7 +684,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         } else {
             scoreText = String.format(Locale.getDefault(), "%d", state.getBlackScore());
         }
-        this.getStatusView().setTextForID(
+        mStatusView.setTextForID(
                 StatusView.ID_SCORE_BLACK,
                 scoreText
         );
@@ -714,7 +694,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         } else {
             scoreText = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
         }
-        this.getStatusView().setTextForID(
+        mStatusView.setTextForID(
                 StatusView.ID_SCORE_WHITE,
                 scoreText
         );
@@ -753,9 +733,9 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
     @Override
     public void onMoveEnd() {
         this.dismissBusyDialog();
-        if (this.isHintUp()) {
+        if (isHintUp) {
             this.setHintUp(false);
-            engine.setPracticeMode(this.isPracticeMode());
+            engine.setPracticeMode(settingsProvider.isSettingPracticeMode());
             engine.sendSettingsChanged();
         }
 
@@ -763,8 +743,8 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     @Override
     public void onEval(String eval) {
-        if (this.getSettingDisplayPV()) {
-            this.getStatusView().setTextForID(
+        if (settingsProvider.isSettingDisplayPv()) {
+            mStatusView.setTextForID(
                     StatusView.ID_STATUS_EVAL,
                     eval
             );
@@ -773,13 +753,13 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     @Override
     public void onPv(byte[] pv) {
-        if (this.getSettingDisplayPV() && pv != null) {
+        if (settingsProvider.isSettingDisplayPv() && pv != null) {
             StringBuilder pvText = new StringBuilder();
             for (byte move : pv) {
                 pvText.append(new Move(move).getText());
                 pvText.append(" ");
             }
-            this.getStatusView().setTextForID(
+            mStatusView.setTextForID(
                     StatusView.ID_STATUS_PV,
                     pvText.toString()
             );
