@@ -7,7 +7,6 @@ public class CandidateMove {
     public Move mMove;
     public boolean mHasEval;
     public String mEvalShort;
-    public String mEvalLong;
     public boolean mBest;
 
     public CandidateMove(Move move) {
@@ -18,7 +17,6 @@ public class CandidateMove {
     public CandidateMove(Move move, String evalShort, String evalLong, boolean best) {
         mMove = move;
         mEvalShort = evalShort;
-        mEvalLong = evalLong;
         mBest = best;
         mHasEval = true;
     }

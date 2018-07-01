@@ -6,7 +6,7 @@ import com.shurik.droidzebra.*;
 import java.util.LinkedList;
 import java.util.Locale;
 
-public class DroidZebraHandler implements ZebraEngineMessageHander, GameMessageReceiver {
+public class DroidZebraHandler implements ZebraEngineMessageHandler, GameMessageReceiver {
 
     private BoardState boardState;
     private ZebraEngine mZebraThread;

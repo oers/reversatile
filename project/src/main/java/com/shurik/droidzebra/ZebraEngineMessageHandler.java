@@ -1,6 +1,6 @@
 package com.shurik.droidzebra;
 
-public interface ZebraEngineMessageHander {
+public interface ZebraEngineMessageHandler {
     void sendError(String error);
 
     void sendDebug(String debug);

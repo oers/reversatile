@@ -48,7 +48,7 @@ public class ZebraEngine extends Thread {
     private static final int PLAYER_ZEBRA = 1; // for zebra skill in PlayerInfo
 
     // default parameters
-    private static final int INFINIT_TIME = 10000000;
+    private static final int INFINITE_TIME = 10000000;
     private int computerMoveDelay = 0;
     private long mMoveStartTime = 0; //ms
 
@@ -77,7 +77,7 @@ public class ZebraEngine extends Thread {
             ES_INITIAL = 0,
             ES_READY2PLAY = 1,
             ES_PLAY = 2,
-            ES_PLAYINPROGRESS = 3,
+            ES_PLAY_IN_PROGRESS = 3,
             ES_USER_INPUT_WAIT = 4;
 
     private static final int
@@ -114,7 +114,7 @@ public class ZebraEngine extends Thread {
     private GameContext mContext;
 
     // message sink
-    private ZebraEngineMessageHander mHandler;
+    private ZebraEngineMessageHandler mHandler;
 
     // files folder
     private File mFilesDir;
@@ -134,7 +134,7 @@ public class ZebraEngine extends Thread {
         mContext = context;
     }
 
-    public void setHandler(ZebraEngineMessageHander mHandler) {
+    public void setHandler(ZebraEngineMessageHandler mHandler) {
         this.mHandler = mHandler;
     }
 
@@ -261,7 +261,7 @@ public class ZebraEngine extends Thread {
 
         // if thinking on human time - stop
         if (isHumanToMove()
-                && getEngineState() == ZebraEngine.ES_PLAYINPROGRESS) {
+                && getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
@@ -285,7 +285,7 @@ public class ZebraEngine extends Thread {
     public void undoMove() {
         // if thinking on human time - stop
         if (isHumanToMove()
-                && getEngineState() == ZebraEngine.ES_PLAYINPROGRESS) {
+                && getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
@@ -308,7 +308,7 @@ public class ZebraEngine extends Thread {
     public void redoMove() {
         // if thinking on human time - stop
         if (isHumanToMove()
-                && getEngineState() == ZebraEngine.ES_PLAYINPROGRESS) {
+                && getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
@@ -475,8 +475,8 @@ public class ZebraEngine extends Thread {
 
         synchronized (mJNILock) {
             zeGlobalInit(mFilesDir.getAbsolutePath());
-            zeSetPlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINIT_TIME, 0);
-            zeSetPlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINIT_TIME, 0);
+            zeSetPlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINITE_TIME, 0);
+            zeSetPlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINITE_TIME, 0);
         }
 
         setEngineState(ES_READY2PLAY);
@@ -486,7 +486,7 @@ public class ZebraEngine extends Thread {
 
             if (!mRun) break; // something may have happened while we were waiting
 
-            setEngineState(ES_PLAYINPROGRESS);
+            setEngineState(ES_PLAY_IN_PROGRESS);
 
             synchronized (mJNILock) {
                 setPlayerInfos();
@@ -518,7 +518,7 @@ public class ZebraEngine extends Thread {
                 getBlackPlayerInfo().skill,
                 getBlackPlayerInfo().exactSolvingSkill,
                 getBlackPlayerInfo().wldSolvingSkill,
-                INFINIT_TIME,
+                INFINITE_TIME,
                 0
         );
         zeSetPlayerInfo(
@@ -526,7 +526,7 @@ public class ZebraEngine extends Thread {
                 getWhitePlayerInfo().skill,
                 getWhitePlayerInfo().exactSolvingSkill,
                 getWhitePlayerInfo().wldSolvingSkill,
-                INFINIT_TIME,
+                INFINITE_TIME,
                 0
         );
         zeSetPlayerInfo(
@@ -534,7 +534,7 @@ public class ZebraEngine extends Thread {
                 getZebraPlayerInfo().skill,
                 getZebraPlayerInfo().exactSolvingSkill,
                 getZebraPlayerInfo().wldSolvingSkill,
-                INFINIT_TIME,
+                INFINITE_TIME,
                 0
         );
     }
@@ -698,7 +698,7 @@ public class ZebraEngine extends Thread {
 
                     retval = mPendingEvent;
 
-                    setEngineState(ES_PLAYINPROGRESS);
+                    setEngineState(ES_PLAY_IN_PROGRESS);
 
                     mValidMoves = null;
                     mPendingEvent = null;
@@ -709,14 +709,14 @@ public class ZebraEngine extends Thread {
                     setEngineState(ES_USER_INPUT_WAIT);
                     mHandler.sendPass();
                     waitForEngineState(ES_PLAY);
-                    setEngineState(ES_PLAYINPROGRESS);
+                    setEngineState(ES_PLAY_IN_PROGRESS);
                 }
                 break;
                 case MSG_ANALYZE_GAME: {
                     setEngineState(ES_USER_INPUT_WAIT);
                     //mHandler.sendMessage(msg);
                     waitForEngineState(ES_PLAY);
-                    setEngineState(ES_PLAYINPROGRESS);
+                    setEngineState(ES_PLAY_IN_PROGRESS);
                 }
                 break;
 
@@ -812,7 +812,7 @@ public class ZebraEngine extends Thread {
                 break;
 
                 default: {
-                    mHandler.sendError(String.format(Locale.getDefault(), "Unkown message ID %d", msgcode));
+                    mHandler.sendError(String.format(Locale.getDefault(), "Unknown message ID %d", msgcode));
                 }
                 break;
             }
@@ -825,7 +825,7 @@ public class ZebraEngine extends Thread {
     }
 
     public boolean isThinking() {
-        return getEngineState() == ZebraEngine.ES_PLAYINPROGRESS;
+        return getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS;
     }
 
     public boolean isValidMove(Move move) {

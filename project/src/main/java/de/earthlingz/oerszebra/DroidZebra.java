@@ -35,7 +35,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import com.google.common.base.Objects;
 import com.shurik.droidzebra.*;
-import de.earthlingz.oerszebra.parser.Gameparser;
+import de.earthlingz.oerszebra.parser.GameParser;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
@@ -62,7 +62,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     private BoardState state = ZebraServices.getBoardState();
 
-    private Gameparser parser;
+    private GameParser parser;
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
@@ -73,7 +73,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     }
 
 
-    void setGameParser(Gameparser parser) {
+    void setGameParser(GameParser parser) {
         this.parser = parser;
     }
 
@@ -737,7 +737,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         }
     }
 
-    public Gameparser getParser() {
+    public GameParser getParser() {
         return parser;
     }
 

@@ -29,10 +29,6 @@ public class BoardState {
         return board;
     }
 
-    public void setBoard(FieldState[][] board) {
-        this.board = board;
-    }
-
     @Nullable
     public Move getLastMove() {
         return lastMove;
