@@ -73,7 +73,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private int settingZebraDepthWLD = 1;
 
     private Context context;
-    private OnChangeListener onChangeListener;
+    private OnSettingsChangedListener onSettingsChangedListener;
     private int computerMoveDelay = 1000;
 
     public GlobalSettingsLoader(Context context) {
@@ -192,14 +192,14 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (loadSettings() && onChangeListener != null) {
-            onChangeListener.onChange();
+        if (loadSettings() && onSettingsChangedListener != null) {
+            onSettingsChangedListener.onSettingsChanged();
         }
     }
 
     @Override
-    public void setOnChangeListener(OnChangeListener onChangeListener) {
-        this.onChangeListener = onChangeListener;
+    public void setOnSettingsChangedListener(OnSettingsChangedListener onSettingsChangedListener) {
+        this.onSettingsChangedListener = onSettingsChangedListener;
     }
 
     @Override

@@ -47,7 +47,7 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
 
-public class DroidZebra extends FragmentActivity implements GameController, OnChangeListener, BoardView.OnMakeMoveListener, GameMessageReceiver {
+public class DroidZebra extends FragmentActivity implements GameController, OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameMessageReceiver {
     private ClipboardManager clipboard;
     private ZebraEngine engine;
 
@@ -214,7 +214,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         engine.setHandler(new DroidZebraHandler(this));
 
         this.settingsProvider = new GlobalSettingsLoader(this);
-        this.settingsProvider.setOnChangeListener(this);
+        this.settingsProvider.setOnSettingsChangedListener(this);
 
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -594,7 +594,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     }
 
     @Override
-    public void onChange() {
+    public void onSettingsChanged() {
         loadSettings();
     }
 
@@ -685,9 +685,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         state.setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
 
 
-        CandidateMove[] candidateMoves = zebraBoard.getCandidateMoves();
-
-        state.setMoves(candidateMoves);
+        state.setMoves(zebraBoard.getCandidateMoves());
 
         if (this.getStatusView() != null && zebraBoard.getOpening() != null) {
             this.getStatusView().setTextForID(

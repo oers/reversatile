@@ -2,7 +2,7 @@ package de.earthlingz.oerszebra;
 
 interface SettingsProvider {
 
-    void setOnChangeListener(OnChangeListener onChangeListener);
+    void setOnSettingsChangedListener(OnSettingsChangedListener onSettingsChangedListener);
 
     int getSettingFunction();
 
@@ -40,7 +40,7 @@ interface SettingsProvider {
 
     int getComputerMoveDelay();
 
-    interface OnChangeListener {
-        void onChange();
+    interface OnSettingsChangedListener {
+        void onSettingsChanged();
     }
 }
