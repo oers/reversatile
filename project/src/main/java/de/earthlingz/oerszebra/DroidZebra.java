@@ -599,18 +599,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         int sideToMove = zebraBoard.getSideToMove();
 
         //triggers animations
-        boolean boardChanged = state.updateBoard(zebraBoard.getBoard());
-
-        state.setBlackScore(zebraBoard.getBlackPlayer().getDiscCount());
-        state.setWhiteScore(zebraBoard.getWhitePlayer().getDiscCount());
-        byte lastMove = (byte) zebraBoard.getLastMove();
-        state.setLastMove(lastMove == Move.PASS ? null : new Move(lastMove));
-
-        byte moveNext = (byte) zebraBoard.getNextMove();
-        state.setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
-
-
-        state.setPossibleMoves(zebraBoard.getCandidateMoves());
+        boolean boardChanged = state.update(zebraBoard);
 
         setStatusViewScores(sideToMove);
 

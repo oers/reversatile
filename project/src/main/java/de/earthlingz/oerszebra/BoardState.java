@@ -2,10 +2,7 @@ package de.earthlingz.oerszebra;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import com.shurik.droidzebra.CandidateMove;
-import com.shurik.droidzebra.CandidateMoves;
-import com.shurik.droidzebra.Move;
-import com.shurik.droidzebra.ZebraEngine;
+import com.shurik.droidzebra.*;
 
 /**
  * Created by stefan on 17.03.2018.
@@ -34,7 +31,7 @@ public class BoardState {
         return lastMove;
     }
 
-    public void setLastMove(Move lastMove) {
+    private void setLastMove(Move lastMove) {
         this.lastMove = lastMove;
     }
 
@@ -42,7 +39,7 @@ public class BoardState {
         return whiteScore;
     }
 
-    public void setWhiteScore(int whiteScore) {
+    private void setWhiteScore(int whiteScore) {
         this.whiteScore = whiteScore;
     }
 
@@ -50,7 +47,7 @@ public class BoardState {
         return blackScore;
     }
 
-    public void setBlackScore(int blackScore) {
+    private void setBlackScore(int blackScore) {
         this.blackScore = blackScore;
     }
 
@@ -58,7 +55,7 @@ public class BoardState {
         return possibleMoves.getMoves();
     }
 
-    public void setPossibleMoves(@NonNull CandidateMove[] moves) {
+    private void setPossibleMoves(@NonNull CandidateMove[] moves) {
         possibleMoves.setMoves(moves);
     }
 
@@ -71,7 +68,7 @@ public class BoardState {
         return false;
     }
 
-    public boolean updateBoard(byte[] board) {
+    private boolean updateBoard(byte[] board) {
         if (board == null) {
             return false;
         }
@@ -108,7 +105,7 @@ public class BoardState {
                 board[i][j] = new FieldState(ZebraEngine.PLAYER_EMPTY);
     }
 
-    public void setNextMove(Move nextMove) {
+    private void setNextMove(Move nextMove) {
         this.nextMove = nextMove;
     }
 
@@ -127,5 +124,22 @@ public class BoardState {
                 setWhiteScore(max - getBlackScore());
             }
         }
+    }
+
+    public boolean update(ZebraBoard zebraBoard) {
+        boolean boardChanged = updateBoard(zebraBoard.getBoard());
+
+        setBlackScore(zebraBoard.getBlackPlayer().getDiscCount());
+        setWhiteScore(zebraBoard.getWhitePlayer().getDiscCount());
+        byte lastMove = (byte) zebraBoard.getLastMove();
+        setLastMove(lastMove == Move.PASS ? null : new Move(lastMove));
+
+        byte moveNext = (byte) zebraBoard.getNextMove();
+        setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
+
+
+        setPossibleMoves(zebraBoard.getCandidateMoves());
+
+        return boardChanged;
     }
 }
