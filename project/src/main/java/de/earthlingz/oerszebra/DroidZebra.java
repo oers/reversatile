@@ -17,6 +17,7 @@
 
 package de.earthlingz.oerszebra;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -207,7 +208,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
         setContentView(R.layout.spash_layout);
-        new ActionBarHelper(this).hide();
+        hideActionBar();
 
         engine = new ZebraEngine(new AndroidContext(this));
         engine.setHandler(new DroidZebraHandler(this));
@@ -240,7 +241,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         waitForReadyToPlay(
                 () -> {
                     setContentView(R.layout.board_layout);
-                    new ActionBarHelper(DroidZebra.this).show();
+                    showActionBar();
                     mBoardView = (BoardView) findViewById(R.id.board);
                     mStatusView = (StatusView) findViewById(R.id.status_panel);
                     mBoardView.setBoardState(getState());
@@ -252,6 +253,20 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                     mIsInitCompleted = true;
                 }
         );
+    }
+
+    private void showActionBar() {
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.show();
+        }
+    }
+
+    private void hideActionBar() {
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
     }
 
     private void loadSettings() {
