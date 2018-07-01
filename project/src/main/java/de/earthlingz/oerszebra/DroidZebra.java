@@ -65,7 +65,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
-    private DroidZebra controller = this;
 
     public DroidZebra() {
         super();
@@ -602,7 +601,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     @Override
     public void onError(String error) {
-        controller.showAlertDialog(error);
+        this.showAlertDialog(error);
         engine.setInitialGameState(new LinkedList<>());
     }
 
@@ -627,7 +626,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         } else {
             score = String.format(Locale.getDefault(), "%d", state.getBlackScore());
         }
-        controller.getStatusView().setTextForID(
+        this.getStatusView().setTextForID(
                 StatusView.ID_SCORE_BLACK,
                 score
         );
@@ -637,7 +636,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         } else {
             score = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
         }
-        controller.getStatusView().setTextForID(
+        this.getStatusView().setTextForID(
                 StatusView.ID_SCORE_WHITE,
                 score
         );
@@ -657,11 +656,11 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             } else {
                 move_text = "";
             }
-            controller.getStatusView().setTextForID(
+            this.getStatusView().setTextForID(
                     StatusView.ID_SCORELINE_NUM_1 + i,
                     num_text
             );
-            controller.getStatusView().setTextForID(
+            this.getStatusView().setTextForID(
                     StatusView.ID_SCORELINE_BLACK_1 + i,
                     move_text
             );
@@ -677,7 +676,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             } else {
                 move_text = "";
             }
-            controller.getStatusView().setTextForID(
+            this.getStatusView().setTextForID(
                     StatusView.ID_SCORELINE_WHITE_1 + i,
                     move_text
             );
@@ -694,25 +693,25 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
         state.setMoves(candidateMoves);
 
-        if (controller.getStatusView() != null && zebraBoard.getOpening() != null) {
-            controller.getStatusView().setTextForID(
+        if (this.getStatusView() != null && zebraBoard.getOpening() != null) {
+            this.getStatusView().setTextForID(
                     StatusView.ID_STATUS_OPENING,
                     zebraBoard.getOpening()
             );
         }
         if (boardChanged) {
             Log.v("Handler", "BoardChanged");
-            controller.getBoardView().onBoardStateChanged();
+            this.getBoardView().onBoardStateChanged();
 
         } else {
             Log.v("Handler", "invalidate");
-            controller.getBoardView().invalidate();
+            this.getBoardView().invalidate();
         }
     }
 
     @Override
     public void onPass() {
-        controller.showPassDialog();
+        this.showPassDialog();
     }
 
     @Override
@@ -722,7 +721,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     @Override
     public void onGameOver() {
-        controller.setCandidateMoves(new CandidateMove[]{});
+        this.setCandidateMoves(new CandidateMove[]{});
         int max = state.getBoard().length * state.getBoard().length;
         if (state.getBlackScore() + state.getWhiteScore() < max) {
             //adjust result
@@ -732,7 +731,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 state.setWhiteScore(max - state.getBlackScore());
             }
         }
-        controller.showGameOverDialog();
+        this.showGameOverDialog();
     }
 
     @Override
@@ -742,10 +741,10 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     @Override
     public void onMoveEnd() {
-        controller.dismissBusyDialog();
-        if (controller.isHintUp()) {
-            controller.setHintUp(false);
-            engine.setPracticeMode(controller.isPracticeMode());
+        this.dismissBusyDialog();
+        if (this.isHintUp()) {
+            this.setHintUp(false);
+            engine.setPracticeMode(this.isPracticeMode());
             engine.sendSettingsChanged();
         }
 
@@ -753,8 +752,8 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     @Override
     public void onEval(String eval) {
-        if (controller.getSettingDisplayPV()) {
-            controller.getStatusView().setTextForID(
+        if (this.getSettingDisplayPV()) {
+            this.getStatusView().setTextForID(
                     StatusView.ID_STATUS_EVAL,
                     eval
             );
@@ -763,13 +762,13 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     @Override
     public void onPv(byte[] pv) {
-        if (controller.getSettingDisplayPV() && pv != null) {
+        if (this.getSettingDisplayPV() && pv != null) {
             StringBuilder pvText = new StringBuilder();
             for (byte move : pv) {
                 pvText.append(new Move(move).getText());
                 pvText.append(" ");
             }
-            controller.getStatusView().setTextForID(
+            this.getStatusView().setTextForID(
                     StatusView.ID_STATUS_PV,
                     pvText.toString()
             );
