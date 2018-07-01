@@ -115,4 +115,17 @@ public class BoardState {
     public Move getNextMove() {
         return nextMove;
     }
+
+    public void processGameOver() {
+        setPossibleMoves(new CandidateMove[]{});
+        int max = getBoard().length * getBoard().length;
+        if (getBlackScore() + getWhiteScore() < max) {
+            //adjust result
+            if (getBlackScore() > getWhiteScore()) {
+                setBlackScore(max - getWhiteScore());
+            } else {
+                setWhiteScore(max - getBlackScore());
+            }
+        }
+    }
 }

@@ -707,16 +707,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     @Override
     public void onGameOver() {
-        getState().setPossibleMoves(new CandidateMove[]{});
-        int max = state.getBoard().length * state.getBoard().length;
-        if (state.getBlackScore() + state.getWhiteScore() < max) {
-            //adjust result
-            if (state.getBlackScore() > state.getWhiteScore()) {
-                state.setBlackScore(max - state.getWhiteScore());
-            } else {
-                state.setWhiteScore(max - state.getBlackScore());
-            }
-        }
+        state.processGameOver();
         runOnUiThread(() -> mBoardView.invalidate());//TODO Id doubt runOnUIThread is necessary here
         this.showGameOverDialog();
     }
