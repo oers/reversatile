@@ -58,7 +58,7 @@ public class BoardState {
         return possibleMoves.getMoves();
     }
 
-    public void setMoves(@NonNull CandidateMove[] moves) {
+    public void setPossibleMoves(@NonNull CandidateMove[] moves) {
         possibleMoves.setMoves(moves);
     }
 

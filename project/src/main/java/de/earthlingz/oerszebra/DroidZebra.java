@@ -94,7 +94,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
     }
 
     public void setCandidateMoves(CandidateMove[] cmoves) {
-        getState().setMoves(cmoves);
+        getState().setPossibleMoves(cmoves);
         runOnUiThread(() -> mBoardView.invalidate());
     }
 
@@ -634,6 +634,14 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
         state.setBlackScore(zebraBoard.getBlackPlayer().getDiscCount());
         state.setWhiteScore(zebraBoard.getWhitePlayer().getDiscCount());
+        byte lastMove = (byte) zebraBoard.getLastMove();
+        state.setLastMove(lastMove == Move.PASS ? null : new Move(lastMove));
+
+        byte moveNext = (byte) zebraBoard.getNextMove();
+        state.setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
+
+
+        state.setPossibleMoves(zebraBoard.getCandidateMoves());
 
         setStatusViewScores(sideToMove);
 
@@ -678,14 +686,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
             );
         }
 
-        byte move = (byte) zebraBoard.getLastMove();
-        state.setLastMove(move == Move.PASS ? null : new Move(move));
-
-        byte moveNext = (byte) zebraBoard.getNextMove();
-        state.setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
-
-
-        state.setMoves(zebraBoard.getCandidateMoves());
 
         if (this.getStatusView() != null && zebraBoard.getOpening() != null) {
             this.getStatusView().setTextForID(
