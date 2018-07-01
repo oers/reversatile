@@ -627,7 +627,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
 
     @Override
     public void onBoard(ZebraBoard zebraBoard) {
-        String score;
         int sideToMove = zebraBoard.getSideToMove();
 
         //triggers animations
@@ -636,25 +635,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         state.setBlackScore(zebraBoard.getBlackPlayer().getDiscCount());
         state.setWhiteScore(zebraBoard.getWhitePlayer().getDiscCount());
 
-        if (sideToMove == ZebraEngine.PLAYER_BLACK) {
-            score = String.format(Locale.getDefault(), "•%d", state.getBlackScore());
-        } else {
-            score = String.format(Locale.getDefault(), "%d", state.getBlackScore());
-        }
-        this.getStatusView().setTextForID(
-                StatusView.ID_SCORE_BLACK,
-                score
-        );
-
-        if (sideToMove == ZebraEngine.PLAYER_WHITE) {
-            score = String.format(Locale.getDefault(), "%d•", state.getWhiteScore());
-        } else {
-            score = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
-        }
-        this.getStatusView().setTextForID(
-                StatusView.ID_SCORE_WHITE,
-                score
-        );
+        setStatusViewScores(sideToMove);
 
         int iStart, iEnd;
         byte[] black_moves = zebraBoard.getBlackPlayer().getMoves();
@@ -722,6 +703,29 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
             Log.v("Handler", "invalidate");
             this.getBoardView().invalidate();
         }
+    }
+
+    private void setStatusViewScores(int sideToMove) {
+        String scoreText;
+        if (sideToMove == ZebraEngine.PLAYER_BLACK) {
+            scoreText = String.format(Locale.getDefault(), "•%d", state.getBlackScore());
+        } else {
+            scoreText = String.format(Locale.getDefault(), "%d", state.getBlackScore());
+        }
+        this.getStatusView().setTextForID(
+                StatusView.ID_SCORE_BLACK,
+                scoreText
+        );
+
+        if (sideToMove == ZebraEngine.PLAYER_WHITE) {
+            scoreText = String.format(Locale.getDefault(), "%d•", state.getWhiteScore());
+        } else {
+            scoreText = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
+        }
+        this.getStatusView().setTextForID(
+                StatusView.ID_SCORE_WHITE,
+                scoreText
+        );
     }
 
     @Override
