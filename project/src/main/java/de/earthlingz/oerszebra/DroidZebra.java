@@ -475,7 +475,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         showDialog(newFragment, "dialog_pass");
     }
 
-    @Override
     public boolean getSettingDisplayPV() {
         return settingsProvider.isSettingDisplayPv();
     }
@@ -519,18 +518,15 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         }
     }
 
-    @Override
     public boolean isHintUp() {
         return mHintIsUp;
     }
 
-    @Override
     public void setHintUp(boolean value) {
         mHintIsUp = value;
         this.mBoardView.setDisplayEvals(evalsDisplayEnabled());
     }
 
-    @Override
     public boolean isPracticeMode() {
         return settingsProvider.isSettingPracticeMode();
     }
@@ -544,12 +540,10 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         runOnUiThread(() -> alert = new WeakReference<>(alertDialog.show()));
     }
 
-    @Override
     public StatusView getStatusView() {
         return mStatusView;
     }
 
-    @Override
     public BoardView getBoardView() {
         return mBoardView;
     }

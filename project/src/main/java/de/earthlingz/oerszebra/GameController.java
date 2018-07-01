@@ -13,25 +13,4 @@ public interface GameController {
 
     void setUpBoard(String s);
 
-    void showAlertDialog(String msg);
-
-    StatusView getStatusView();
-
-    BoardView getBoardView();
-
-    void setCandidateMoves(CandidateMove[] candidateMoves);
-
-    void showGameOverDialog();
-
-    void showPassDialog();
-
-    boolean getSettingDisplayPV();
-
-    void dismissBusyDialog();
-
-    boolean isHintUp();
-
-    void setHintUp(boolean value);
-
-    boolean isPracticeMode();
 }
