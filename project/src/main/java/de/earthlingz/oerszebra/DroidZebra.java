@@ -23,7 +23,6 @@ import android.app.ProgressDialog;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -47,7 +46,7 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
 
-public class DroidZebra extends FragmentActivity implements GameController, OnChangeListener, BoardView.OnMakeMoveListener {
+public class DroidZebra extends FragmentActivity implements GameController, OnChangeListener, BoardView.OnMakeMoveListener, GameMessageReceiver {
     private ClipboardManager clipboard;
     private ZebraEngine engine;
 
@@ -66,6 +65,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
+    private DroidZebra controller = this;
 
     public DroidZebra() {
         super();
@@ -211,7 +211,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
         new ActionBarHelper(this).hide();
 
         engine = new ZebraEngine(new AndroidContext(this));
-        engine.setHandler(new DroidZebraHandler(getState(), this, engine));
+        engine.setHandler(new DroidZebraHandler(this));
 
         this.settingsProvider = new GlobalSettingsLoader(this);
         this.settingsProvider.setOnChangeListener(this);
@@ -598,6 +598,183 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 }
             }
         }
+    }
+
+    @Override
+    public void onError(String error) {
+        controller.showAlertDialog(error);
+        engine.setInitialGameState(new LinkedList<>());
+    }
+
+    @Override
+    public void onDebug(String debug) {
+        Log.v("OersZebra", debug);
+    }
+
+    @Override
+    public void onBoard(ZebraBoard zebraBoard) {
+        String score;
+        int sideToMove = zebraBoard.getSideToMove();
+
+        //triggers animations
+        boolean boardChanged = state.updateBoard(zebraBoard.getBoard());
+
+        state.setBlackScore(zebraBoard.getBlackPlayer().getDiscCount());
+        state.setWhiteScore(zebraBoard.getWhitePlayer().getDiscCount());
+
+        if (sideToMove == ZebraEngine.PLAYER_BLACK) {
+            score = String.format(Locale.getDefault(), "•%d", state.getBlackScore());
+        } else {
+            score = String.format(Locale.getDefault(), "%d", state.getBlackScore());
+        }
+        controller.getStatusView().setTextForID(
+                StatusView.ID_SCORE_BLACK,
+                score
+        );
+
+        if (sideToMove == ZebraEngine.PLAYER_WHITE) {
+            score = String.format(Locale.getDefault(), "%d•", state.getWhiteScore());
+        } else {
+            score = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
+        }
+        controller.getStatusView().setTextForID(
+                StatusView.ID_SCORE_WHITE,
+                score
+        );
+
+        int iStart, iEnd;
+        byte[] black_moves = zebraBoard.getBlackPlayer().getMoves();
+        byte[] white_moves = zebraBoard.getWhitePlayer().getMoves();
+
+        iEnd = black_moves.length;
+        iStart = Math.max(0, iEnd - 4);
+        for (int i = 0; i < 4; i++) {
+            String num_text = String.format(Locale.getDefault(), "%d", i + iStart + 1);
+            String move_text;
+            if (i + iStart < iEnd) {
+                Move move = new Move(black_moves[i + iStart]);
+                move_text = move.getText();
+            } else {
+                move_text = "";
+            }
+            controller.getStatusView().setTextForID(
+                    StatusView.ID_SCORELINE_NUM_1 + i,
+                    num_text
+            );
+            controller.getStatusView().setTextForID(
+                    StatusView.ID_SCORELINE_BLACK_1 + i,
+                    move_text
+            );
+        }
+
+        iEnd = white_moves.length;
+        iStart = Math.max(0, iEnd - 4);
+        for (int i = 0; i < 4; i++) {
+            String move_text;
+            if (i + iStart < iEnd) {
+                Move move = new Move(white_moves[i + iStart]);
+                move_text = move.getText();
+            } else {
+                move_text = "";
+            }
+            controller.getStatusView().setTextForID(
+                    StatusView.ID_SCORELINE_WHITE_1 + i,
+                    move_text
+            );
+        }
+
+        byte move = (byte) zebraBoard.getLastMove();
+        state.setLastMove(move == Move.PASS ? null : new Move(move));
+
+        byte moveNext = (byte) zebraBoard.getNextMove();
+        state.setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
+
+
+        CandidateMove[] candidateMoves = zebraBoard.getCandidateMoves();
+
+        state.setMoves(candidateMoves);
+
+        if (controller.getStatusView() != null && zebraBoard.getOpening() != null) {
+            controller.getStatusView().setTextForID(
+                    StatusView.ID_STATUS_OPENING,
+                    zebraBoard.getOpening()
+            );
+        }
+        if (boardChanged) {
+            Log.v("Handler", "BoardChanged");
+            controller.getBoardView().onBoardStateChanged();
+
+        } else {
+            Log.v("Handler", "invalidate");
+            controller.getBoardView().invalidate();
+        }
+    }
+
+    @Override
+    public void onPass() {
+        controller.showPassDialog();
+    }
+
+    @Override
+    public void onGameStart() {
+        // noop
+    }
+
+    @Override
+    public void onGameOver() {
+        controller.setCandidateMoves(new CandidateMove[]{});
+        int max = state.getBoard().length * state.getBoard().length;
+        if (state.getBlackScore() + state.getWhiteScore() < max) {
+            //adjust result
+            if (state.getBlackScore() > state.getWhiteScore()) {
+                state.setBlackScore(max - state.getWhiteScore());
+            } else {
+                state.setWhiteScore(max - state.getBlackScore());
+            }
+        }
+        controller.showGameOverDialog();
+    }
+
+    @Override
+    public void onMoveStart() {
+
+    }
+
+    @Override
+    public void onMoveEnd() {
+        controller.dismissBusyDialog();
+        if (controller.isHintUp()) {
+            controller.setHintUp(false);
+            engine.setPracticeMode(controller.isPracticeMode());
+            engine.sendSettingsChanged();
+        }
+
+    }
+
+    @Override
+    public void onEval(String eval) {
+        if (controller.getSettingDisplayPV()) {
+            controller.getStatusView().setTextForID(
+                    StatusView.ID_STATUS_EVAL,
+                    eval
+            );
+        }
+    }
+
+    @Override
+    public void onPv(byte[] pv) {
+        if (controller.getSettingDisplayPV() && pv != null) {
+            StringBuilder pvText = new StringBuilder();
+            for (byte move : pv) {
+                pvText.append(new Move(move).getText());
+                pvText.append(" ");
+            }
+            controller.getStatusView().setTextForID(
+                    StatusView.ID_STATUS_PV,
+                    pvText.toString()
+            );
+        }
+
     }
 
 
