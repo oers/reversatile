@@ -566,11 +566,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         ZebraBoard gs = engine.getGameState();
         if (gs != null) {
