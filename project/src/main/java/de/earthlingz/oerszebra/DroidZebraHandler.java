@@ -11,7 +11,7 @@ public class DroidZebraHandler implements ZebraEngineMessageHandler, GameMessage
     private BoardState boardState;
     private ZebraEngine mZebraThread;
     private GameController controller;
-
+    private GameMessageReceiver receiver = this;
     private android.os.Handler handler = new android.os.Handler();
 
     DroidZebraHandler(BoardState boardState, GameController controller, ZebraEngine mZebraThread) {
@@ -215,37 +215,37 @@ public class DroidZebraHandler implements ZebraEngineMessageHandler, GameMessage
 
     @Override
     public void sendPass() {
-        handler.post(this::onPass);
+        handler.post(receiver::onPass);
     }
 
     @Override
     public void sendGameStart() {
-        handler.post(this::onGameStart);
+        handler.post(receiver::onGameStart);
     }
 
     @Override
     public void sendGameOver() {
-        handler.post(this::onGameOver);
+        handler.post(receiver::onGameOver);
     }
 
     @Override
     public void sendMoveStart() {
-        handler.post(this::onMoveStart);
+        handler.post(receiver::onMoveStart);
     }
 
     @Override
     public void sendMoveEnd() {
-        handler.post(this::onMoveEnd);
+        handler.post(receiver::onMoveEnd);
 
     }
 
     @Override
     public void sendEval(String eval) {
-        handler.post(() -> onEval(eval));
+        handler.post(() -> receiver.onEval(eval));
     }
 
     @Override
     public void sendPv(byte[] moves) {
-        handler.post(() -> onPv(moves));
+        handler.post(() -> receiver.onPv(moves));
     }
 }

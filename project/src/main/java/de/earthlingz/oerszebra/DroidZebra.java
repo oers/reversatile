@@ -242,8 +242,8 @@ public class DroidZebra extends FragmentActivity implements GameController, OnCh
                 () -> {
                     setContentView(R.layout.board_layout);
                     new ActionBarHelper(DroidZebra.this).show();
-                    mBoardView = (BoardView) DroidZebra.this.findViewById(R.id.board);
-                    mStatusView = (StatusView) DroidZebra.this.findViewById(R.id.status_panel);
+                    mBoardView = (BoardView) findViewById(R.id.board);
+                    mStatusView = (StatusView) findViewById(R.id.status_panel);
                     mBoardView.setBoardState(getState());
                     mBoardView.setOnMakeMoveListener(DroidZebra.this);
                     mBoardView.requestFocus();
