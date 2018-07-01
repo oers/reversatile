@@ -93,11 +93,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
             mStatusView.clear();
     }
 
-    public void setCandidateMoves(CandidateMove[] cmoves) {
-        getState().setPossibleMoves(cmoves);
-        runOnUiThread(() -> mBoardView.invalidate());
-    }
-
     public boolean evalsDisplayEnabled() {
         return settingsProvider.isSettingPracticeMode() || isHintUp;
     }
@@ -712,7 +707,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     @Override
     public void onGameOver() {
-        this.setCandidateMoves(new CandidateMove[]{});
+        getState().setPossibleMoves(new CandidateMove[]{});
         int max = state.getBoard().length * state.getBoard().length;
         if (state.getBlackScore() + state.getWhiteScore() < max) {
             //adjust result
@@ -722,6 +717,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
                 state.setWhiteScore(max - state.getBlackScore());
             }
         }
+        runOnUiThread(() -> mBoardView.invalidate());//TODO Id doubt runOnUIThread is necessary here
         this.showGameOverDialog();
     }
 
