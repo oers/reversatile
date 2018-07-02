@@ -62,20 +62,15 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     private BoardState state = ZebraServices.getBoardState();
 
-    private GameParser parser;
+    private GameParser parser = ZebraServices.getGameParser();
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
 
     public DroidZebra() {
         super();
-        this.setGameParser(ZebraServices.getGameParser());
     }
 
-
-    void setGameParser(GameParser parser) {
-        this.parser = parser;
-    }
 
     private void waitForReadyToPlay(final Runnable completion) {
         new CompletionAsyncTask(completion, getEngine())
@@ -873,10 +868,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
                     .setNegativeButton(R.string.dialog_quit_button_cancel, null)
                     .create();
         }
-    }
-
-    public GameParser getParser() {
-        return parser;
     }
 
     //-------------------------------------------------------------------------

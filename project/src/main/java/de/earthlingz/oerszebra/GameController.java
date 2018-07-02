@@ -9,7 +9,6 @@ import de.earthlingz.oerszebra.parser.GameParser;
  */
 
 public interface GameController {
-    GameParser getParser();
 
     void setUpBoard(String s);
 

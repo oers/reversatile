@@ -53,7 +53,7 @@ public class EnterMovesDialog extends DialogFragment {
                 }
             }
 
-            if (possibleMatch != null && getController().getParser().canParse(possibleMatch)) {
+            if (possibleMatch != null && ZebraServices.getGameParser().canParse(possibleMatch)) {
                 input.setText(possibleMatch);
             }
         }
