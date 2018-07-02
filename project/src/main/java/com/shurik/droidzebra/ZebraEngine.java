@@ -19,6 +19,7 @@ package com.shurik.droidzebra;
 
 import android.util.Log;
 import de.earthlingz.oerszebra.BuildConfig;
+import de.earthlingz.oerszebra.DroidZebraHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,7 +93,7 @@ public class ZebraEngine extends Thread {
 
 
     public void removeHandler() {
-        mHandler = null;
+        mHandler = new EmptyHandler();
     }
 
 
@@ -114,7 +115,7 @@ public class ZebraEngine extends Thread {
     private GameContext mContext;
 
     // message sink
-    private ZebraEngineMessageHandler mHandler;
+    private ZebraEngineMessageHandler mHandler = new EmptyHandler();
 
     // files folder
     private File mFilesDir;
@@ -931,5 +932,57 @@ public class ZebraEngine extends Thread {
             }
         }
         removeHandler();
+    }
+
+    private static class EmptyHandler implements ZebraEngineMessageHandler {
+        @Override
+        public void sendError(String error) {
+
+        }
+
+        @Override
+        public void sendDebug(String debug) {
+
+        }
+
+        @Override
+        public void sendBoard(GameState board) {
+
+        }
+
+        @Override
+        public void sendPass() {
+
+        }
+
+        @Override
+        public void sendGameStart() {
+
+        }
+
+        @Override
+        public void sendGameOver() {
+
+        }
+
+        @Override
+        public void sendMoveStart() {
+
+        }
+
+        @Override
+        public void sendMoveEnd() {
+
+        }
+
+        @Override
+        public void sendEval(String eval) {
+
+        }
+
+        @Override
+        public void sendPv(byte[] moves) {
+
+        }
     }
 }

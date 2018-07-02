@@ -196,7 +196,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         hideActionBar();
 
         engine = new ZebraEngine(new AndroidContext(getApplicationContext()));
-        engine.setHandler(new DroidZebraHandler(this));
+        engine.start();
 
         this.settingsProvider = new GlobalSettingsLoader(this);
         this.settingsProvider.setOnSettingsChangedListener(this);
@@ -207,6 +207,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
 
         Log.i("Intent", type + " " + action);
 
+        engine.setHandler(new DroidZebraHandler(this));
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
                 engine.setInitialGameState(parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
@@ -221,7 +222,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
             engine.setInitialGameState(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
         }
 
-        engine.start();
 
         waitForReadyToPlay(
                 () -> {
