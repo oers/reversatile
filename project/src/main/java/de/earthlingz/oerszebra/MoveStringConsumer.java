@@ -8,8 +8,8 @@ import de.earthlingz.oerszebra.parser.GameParser;
  * Created by stefan on 18.03.2018.
  */
 
-public interface GameController {
+public interface MoveStringConsumer {
 
-    void setUpBoard(String s);
+    void consumeMovesString(String s);
 
 }

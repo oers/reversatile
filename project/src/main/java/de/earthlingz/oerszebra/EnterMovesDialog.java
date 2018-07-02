@@ -24,8 +24,8 @@ public class EnterMovesDialog extends DialogFragment {
         return moves;
     }
 
-    public GameController getController() {
-        return (GameController) getActivity();
+    public MoveStringConsumer getController() {
+        return (MoveStringConsumer) getActivity();
     }
 
     @NonNull
@@ -60,7 +60,7 @@ public class EnterMovesDialog extends DialogFragment {
 
 
         // Set up the buttons
-        builder.setPositiveButton(R.string.dialog_ok, (dialog, which) -> getController().setUpBoard(input.getText().toString()));
+        builder.setPositiveButton(R.string.dialog_ok, (dialog, which) -> getController().consumeMovesString(input.getText().toString()));
         builder.setNegativeButton(R.string.dialog_cancel, (dialog, which) -> dialog.cancel());
 
         return builder.create();

@@ -47,7 +47,7 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
 
-public class DroidZebra extends FragmentActivity implements GameController, OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameMessageReceiver {
+public class DroidZebra extends FragmentActivity implements MoveStringConsumer, OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameMessageReceiver {
     private ClipboardManager clipboard;
     private ZebraEngine engine;
 
@@ -165,12 +165,12 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             switch (type) {
                 case "text/plain":
-                    setUpBoard(intent.getDataString()); // Handle text being sent
+                    consumeMovesString(intent.getDataString()); // Handle text being sent
 
                     break;
                 case "message/rfc822":
                     Log.i("Intent", intent.getStringExtra(Intent.EXTRA_TEXT));
-                    setUpBoard(intent.getStringExtra(Intent.EXTRA_TEXT)); // Handle text being sent
+                    consumeMovesString(intent.getStringExtra(Intent.EXTRA_TEXT)); // Handle text being sent
 
                     break;
                 default:
@@ -464,7 +464,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         showDialog(newFragment, "dialog_moves");
     }
 
-    public void setUpBoard(String s) {
+    public void consumeMovesString(String s) {
         final LinkedList<Move> moves = parser.makeMoveList(s);
         engine.sendReplayMoves(moves);
     }
