@@ -200,7 +200,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         setContentView(R.layout.spash_layout);
         hideActionBar();
 
-        engine = new ZebraEngine(new AndroidContext(this));
+        engine = new ZebraEngine(new AndroidContext(getApplicationContext()));
         engine.setHandler(new DroidZebraHandler(this));
 
         this.settingsProvider = new GlobalSettingsLoader(this);
