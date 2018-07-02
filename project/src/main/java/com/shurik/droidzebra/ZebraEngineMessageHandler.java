@@ -5,7 +5,7 @@ public interface ZebraEngineMessageHandler {
 
     void sendDebug(String debug);
 
-    void sendBoard(ZebraBoard board);
+    void sendBoard(GameState board);
 
     void sendPass();
 

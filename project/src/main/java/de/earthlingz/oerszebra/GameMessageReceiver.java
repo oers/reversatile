@@ -1,13 +1,13 @@
 package de.earthlingz.oerszebra;
 
-import com.shurik.droidzebra.ZebraBoard;
+import com.shurik.droidzebra.GameState;
 
 interface GameMessageReceiver {
     void onError(String error);
 
     void onDebug(String debug);
 
-    void onBoard(ZebraBoard board);
+    void onBoard(GameState board);
 
     void onPass();
 

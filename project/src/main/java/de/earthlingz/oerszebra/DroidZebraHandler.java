@@ -23,7 +23,7 @@ public class DroidZebraHandler implements ZebraEngineMessageHandler {
     }
 
     @Override
-    public void sendBoard(ZebraBoard board) {
+    public void sendBoard(GameState board) {
         handler.post(() -> receiver.onBoard(board));
     }
 

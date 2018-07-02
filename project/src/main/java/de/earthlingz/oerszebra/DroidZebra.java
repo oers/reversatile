@@ -307,7 +307,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         Date nowTime = calendar.getTime();
         StringBuilder sbBlackPlayer = new StringBuilder();
         StringBuilder sbWhitePlayer = new StringBuilder();
-        ZebraBoard gs = engine.getGameState();
+        GameState gs = engine.getGameState();
         SharedPreferences settings = getSharedPreferences(SHARED_PREFS_NAME, 0);
         byte[] moves = null;
         if (gs != null) {
@@ -545,7 +545,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        ZebraBoard gs = engine.getGameState();
+        GameState gs = engine.getGameState();
         if (gs != null) {
             outState.putByteArray("moves_played", gs.getMoveSequence());
             outState.putInt("moves_played_count", gs.getDisksPlayed());
@@ -590,17 +590,17 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
     }
 
     @Override
-    public void onBoard(ZebraBoard zebraBoard) {
-        int sideToMove = zebraBoard.getSideToMove();
+    public void onBoard(GameState gameState) {
+        int sideToMove = gameState.getSideToMove();
 
         //triggers animations
-        boolean boardChanged = state.update(zebraBoard);
+        boolean boardChanged = state.update(gameState);
 
         setStatusViewScores(sideToMove);
 
         int iStart, iEnd;
-        byte[] black_moves = zebraBoard.getBlackPlayer().getMoves();
-        byte[] white_moves = zebraBoard.getWhitePlayer().getMoves();
+        byte[] black_moves = gameState.getBlackPlayer().getMoves();
+        byte[] white_moves = gameState.getWhitePlayer().getMoves();
 
         iEnd = black_moves.length;
         iStart = Math.max(0, iEnd - 4);
@@ -640,10 +640,10 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         }
 
 
-        if (mStatusView != null && zebraBoard.getOpening() != null) {
+        if (mStatusView != null && gameState.getOpening() != null) {
             mStatusView.setTextForID(
                     StatusView.ID_STATUS_OPENING,
-                    zebraBoard.getOpening()
+                    gameState.getOpening()
             );
         }
         if (boardChanged) {

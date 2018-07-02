@@ -106,20 +106,20 @@ public class BoardState {
         }
     }
 
-    public boolean update(ZebraBoard zebraBoard) {
-        boolean boardChanged = updateBoard(zebraBoard.getBoard());
+    public boolean update(GameState gameState) {
+        boolean boardChanged = updateBoard(gameState.getBoard());
 
-        this.blackScore = zebraBoard.getBlackPlayer().getDiscCount();
-        this.whiteScore = zebraBoard.getWhitePlayer().getDiscCount();
+        this.blackScore = gameState.getBlackPlayer().getDiscCount();
+        this.whiteScore = gameState.getWhitePlayer().getDiscCount();
 
-        byte lastMove = (byte) zebraBoard.getLastMove();
+        byte lastMove = (byte) gameState.getLastMove();
         this.lastMove = lastMove == Move.PASS ? null : new Move(lastMove);
 
-        byte moveNext = (byte) zebraBoard.getNextMove();
+        byte moveNext = (byte) gameState.getNextMove();
         this.nextMove = moveNext == Move.PASS ? null : new Move(moveNext);
 
 
-        possibleMoves.setMoves(zebraBoard.getCandidateMoves());
+        possibleMoves.setMoves(gameState.getCandidateMoves());
 
         return boardChanged;
     }

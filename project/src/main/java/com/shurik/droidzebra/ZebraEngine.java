@@ -96,8 +96,8 @@ public class ZebraEngine extends Thread {
     }
 
 
-    private transient ZebraBoard mInitialGameState;
-    private transient ZebraBoard mCurrentGameState;
+    private transient GameState initialGameState;
+    private transient GameState currentGameState;
 
     // current move
     private JSONObject mPendingEvent = null;
@@ -126,7 +126,7 @@ public class ZebraEngine extends Thread {
 
     private int mEngineState = ES_INITIAL;
 
-    private boolean mRun = false;
+    private boolean isRunning = false;
 
     private boolean bInCallback = false;
 
@@ -198,7 +198,7 @@ public class ZebraEngine extends Thread {
 
     private void waitForEngineState(int state) {
         synchronized (engineStateEventLock) {
-            while (mEngineState != state && mRun)
+            while (mEngineState != state && isRunning)
                 try {
                     engineStateEventLock.wait();
                 } catch (InterruptedException e) {
@@ -229,9 +229,9 @@ public class ZebraEngine extends Thread {
     }
 
     public void setRunning(boolean b) {
-        boolean oldRun = mRun;
-        mRun = b;
-        if (oldRun && !mRun) stopGame();
+        boolean wasRunning = isRunning;
+        isRunning = b;
+        if (wasRunning && !isRunning) stopGame();
     }
 
     // tell zebra to stop thinking
@@ -347,9 +347,9 @@ public class ZebraEngine extends Thread {
             stopGame();
             waitForEngineState(ZebraEngine.ES_READY2PLAY);
         }
-        mInitialGameState = new ZebraBoard();
-        mInitialGameState.setDisksPlayed(moves.size());
-        mInitialGameState.setMoveSequence(toByte(moves));
+        initialGameState = new GameState();
+        initialGameState.setDisksPlayed(moves.size());
+        initialGameState.setMoveSequence(toByte(moves));
         setEngineState(ES_PLAY);
     }
 
@@ -451,16 +451,16 @@ public class ZebraEngine extends Thread {
 
     // gamestate manipulators
     public void setInitialGameState(int moveCount, byte[] moves) {
-        mInitialGameState = new ZebraBoard();
-        mInitialGameState.setDisksPlayed(moveCount);
-        mInitialGameState.setMoveSequence(new byte[moveCount]);
+        initialGameState = new GameState();
+        initialGameState.setDisksPlayed(moveCount);
+        initialGameState.setMoveSequence(new byte[moveCount]);
         for (int i = 0; i < moveCount; i++) {
-            mInitialGameState.getMoveSequence()[i] = moves[i];
+            initialGameState.getMoveSequence()[i] = moves[i];
         }
     }
 
-    public ZebraBoard getGameState() {
-        return mCurrentGameState;
+    public GameState getGameState() {
+        return currentGameState;
     }
 
     // zebra thread
@@ -481,26 +481,26 @@ public class ZebraEngine extends Thread {
 
         setEngineState(ES_READY2PLAY);
 
-        while (mRun) {
+        while (isRunning) {
             waitForEngineState(ES_PLAY);
 
-            if (!mRun) break; // something may have happened while we were waiting
+            if (!isRunning) break; // something may have happened while we were waiting
 
             setEngineState(ES_PLAY_IN_PROGRESS);
 
             synchronized (mJNILock) {
                 setPlayerInfos();
 
-                mCurrentGameState = new ZebraBoard();
-                mCurrentGameState.setDisksPlayed(0);
-                mCurrentGameState.setMoveSequence(new byte[2 * BOARD_SIZE * BOARD_SIZE]);
+                currentGameState = new GameState();
+                currentGameState.setDisksPlayed(0);
+                currentGameState.setMoveSequence(new byte[2 * BOARD_SIZE * BOARD_SIZE]);
 
-                if (mInitialGameState != null)
-                    zePlay(mInitialGameState.getDisksPlayed(), mInitialGameState.getMoveSequence());
+                if (initialGameState != null)
+                    zePlay(initialGameState.getDisksPlayed(), initialGameState.getMoveSequence());
                 else
                     zePlay(0, null);
 
-                mInitialGameState = null;
+                initialGameState = null;
             }
 
             setEngineState(ES_READY2PLAY);
@@ -620,7 +620,7 @@ public class ZebraEngine extends Thread {
                     }
 
                     //update the current game state
-                    ZebraBoard board = getGameState();
+                    GameState board = getGameState();
                     board.setBoard(newBoard);
                     board.setSideToMove(data.getInt("side_to_move"));
                     board.setDisksPlayed(data.getInt("disks_played"));
@@ -636,12 +636,12 @@ public class ZebraEngine extends Thread {
                         zeArray = info.getJSONArray("moves");
                         len = zeArray.length();
                         moves = new byte[len];
-                        if (BuildConfig.DEBUG && !(2 * len <= mCurrentGameState.getMoveSequence().length)) {
+                        if (BuildConfig.DEBUG && !(2 * len <= currentGameState.getMoveSequence().length)) {
                             throw new AssertionError();
                         }
                         for (int i = 0; i < len; i++) {
                             moves[i] = (byte) zeArray.getInt(i);
-                            mCurrentGameState.getMoveSequence()[2 * i] = moves[i];
+                            currentGameState.getMoveSequence()[2 * i] = moves[i];
                         }
                         black.setMoves(moves);
                         board.setBlackPlayer(black);
@@ -658,12 +658,12 @@ public class ZebraEngine extends Thread {
                         zeArray = info.getJSONArray("moves");
                         len = zeArray.length();
                         moves = new byte[len];
-                        if (BuildConfig.DEBUG && !(2 * len <= mCurrentGameState.getMoveSequence().length)) {
+                        if (BuildConfig.DEBUG && !(2 * len <= currentGameState.getMoveSequence().length)) {
                             throw new AssertionError();
                         }
                         for (int i = 0; i < len; i++) {
                             moves[i] = (byte) zeArray.getInt(i);
-                            mCurrentGameState.getMoveSequence()[2 * i + 1] = moves[i];
+                            currentGameState.getMoveSequence()[2 * i + 1] = moves[i];
                         }
                         white.setMoves(moves);
                         board.setWhitePlayer(white);

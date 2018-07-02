@@ -1,6 +1,6 @@
 package com.shurik.droidzebra;
 
-public class ZebraBoard {
+public class GameState {
     private byte[] board;
     private int sideToMove;
     private ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
