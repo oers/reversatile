@@ -1,6 +1,5 @@
 package de.earthlingz.oerszebra;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.shurik.droidzebra.*;
 
@@ -22,6 +21,7 @@ public class BoardState {
         super();
     }
 
+    //TODO encapsulate this
     public FieldState[][] getBoard() {
         return board;
     }
@@ -31,32 +31,16 @@ public class BoardState {
         return lastMove;
     }
 
-    private void setLastMove(Move lastMove) {
-        this.lastMove = lastMove;
-    }
-
     public int getWhiteScore() {
         return whiteScore;
-    }
-
-    private void setWhiteScore(int whiteScore) {
-        this.whiteScore = whiteScore;
     }
 
     public int getBlackScore() {
         return blackScore;
     }
 
-    private void setBlackScore(int blackScore) {
-        this.blackScore = blackScore;
-    }
-
     public CandidateMove[] getMoves() {
         return possibleMoves.getMoves();
-    }
-
-    private void setPossibleMoves(@NonNull CandidateMove[] moves) {
-        possibleMoves.setMoves(moves);
     }
 
     public boolean isValidMove(Move move) {
@@ -105,23 +89,19 @@ public class BoardState {
                 board[i][j] = new FieldState(ZebraEngine.PLAYER_EMPTY);
     }
 
-    private void setNextMove(Move nextMove) {
-        this.nextMove = nextMove;
-    }
-
     public Move getNextMove() {
         return nextMove;
     }
 
     public void processGameOver() {
-        setPossibleMoves(new CandidateMove[]{});
+        possibleMoves.setMoves(new CandidateMove[]{});
         int max = getBoard().length * getBoard().length;
         if (getBlackScore() + getWhiteScore() < max) {
             //adjust result
             if (getBlackScore() > getWhiteScore()) {
-                setBlackScore(max - getWhiteScore());
+                this.blackScore = max - getWhiteScore();
             } else {
-                setWhiteScore(max - getBlackScore());
+                this.whiteScore = max - getBlackScore();
             }
         }
     }
@@ -129,16 +109,17 @@ public class BoardState {
     public boolean update(ZebraBoard zebraBoard) {
         boolean boardChanged = updateBoard(zebraBoard.getBoard());
 
-        setBlackScore(zebraBoard.getBlackPlayer().getDiscCount());
-        setWhiteScore(zebraBoard.getWhitePlayer().getDiscCount());
+        this.blackScore = zebraBoard.getBlackPlayer().getDiscCount();
+        this.whiteScore = zebraBoard.getWhitePlayer().getDiscCount();
+
         byte lastMove = (byte) zebraBoard.getLastMove();
-        setLastMove(lastMove == Move.PASS ? null : new Move(lastMove));
+        this.lastMove = lastMove == Move.PASS ? null : new Move(lastMove);
 
         byte moveNext = (byte) zebraBoard.getNextMove();
-        setNextMove(moveNext == Move.PASS ? null : new Move(moveNext));
+        this.nextMove = moveNext == Move.PASS ? null : new Move(moveNext);
 
 
-        setPossibleMoves(zebraBoard.getCandidateMoves());
+        possibleMoves.setMoves(zebraBoard.getCandidateMoves());
 
         return boardChanged;
     }
