@@ -67,11 +67,6 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     public SettingsProvider settingsProvider;
 
-    public DroidZebra() {
-        super();
-    }
-
-
     private void waitForReadyToPlay(final Runnable completion) {
         new CompletionAsyncTask(completion, getEngine())
                 .execute();
