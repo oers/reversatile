@@ -917,4 +917,19 @@ public class ZebraEngine extends Thread {
     public boolean isReadyToPlay() {
         return getEngineState() == ZebraEngine.ES_READY2PLAY;
     }
+
+    public void kill() {
+        boolean retry = true;
+        setRunning(false);
+        interrupt(); // if waiting
+        while (retry) {
+            try {
+                join();
+                retry = false;
+            } catch (InterruptedException e) {
+                Log.wtf("wtf", e);
+            }
+        }
+        removeHandler();
+    }
 }

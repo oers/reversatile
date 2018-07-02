@@ -82,7 +82,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         return engine;
     }
 
-    public void initBoard() {
+    public void resetStateAndStatusView() {
         getState().reset();
         if (mStatusView != null)
             mStatusView.clear();
@@ -98,7 +98,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
         }
         waitForReadyToPlay(
                 () -> {
-                    initBoard();
+                    resetStateAndStatusView();
                     loadSettings();
                     engine.setEngineStatePlay();
                 }
@@ -193,7 +193,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initBoard();
+        resetStateAndStatusView();
 
         clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
@@ -237,7 +237,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
                     mBoardView.setBoardState(getState());
                     mBoardView.setOnMakeMoveListener(DroidZebra.this);
                     mBoardView.requestFocus();
-                    initBoard();
+                    resetStateAndStatusView();
                     loadSettings();
                     engine.setEngineStatePlay();
                     mIsInitCompleted = true;
@@ -439,18 +439,7 @@ public class DroidZebra extends FragmentActivity implements GameController, OnSe
 
     @Override
     protected void onDestroy() {
-        boolean retry = true;
-        engine.setRunning(false);
-        engine.interrupt(); // if waiting
-        while (retry) {
-            try {
-                engine.join();
-                retry = false;
-            } catch (InterruptedException e) {
-                Log.wtf("wtf", e);
-            }
-        }
-        engine.removeHandler();
+        engine.kill();
         super.onDestroy();
     }
 
