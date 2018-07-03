@@ -195,9 +195,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         setContentView(R.layout.spash_layout);
         hideActionBar();
 
-        engine = new ZebraEngine(new AndroidContext(getApplicationContext()));
-        engine.start();
-
+        engine = ZebraEngine.get(new AndroidContext(getApplicationContext()));
         this.settingsProvider = new GlobalSettingsLoader(this);
         this.settingsProvider.setOnSettingsChangedListener(this);
 

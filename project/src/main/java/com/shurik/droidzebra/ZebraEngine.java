@@ -19,7 +19,6 @@ package com.shurik.droidzebra;
 
 import android.util.Log;
 import de.earthlingz.oerszebra.BuildConfig;
-import de.earthlingz.oerszebra.DroidZebraHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +31,7 @@ import java.util.Locale;
 import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 //import android.util.Log;
 
-// DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler 
+// DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler
 public class ZebraEngine extends Thread {
 
     static public final int BOARD_SIZE = 8;
@@ -50,6 +49,7 @@ public class ZebraEngine extends Thread {
 
     // default parameters
     private static final int INFINITE_TIME = 10000000;
+    private static ZebraEngine engine;
     private int computerMoveDelay = 0;
     private long mMoveStartTime = 0; //ms
 
@@ -131,7 +131,7 @@ public class ZebraEngine extends Thread {
 
     private boolean bInCallback = false;
 
-    public ZebraEngine(GameContext context) {
+    private ZebraEngine(GameContext context) {
         mContext = context;
     }
 
@@ -932,6 +932,15 @@ public class ZebraEngine extends Thread {
             }
         }
         removeHandler();
+    }
+
+    public static synchronized ZebraEngine get(GameContext ctx) {
+        if (engine == null || !engine.isAlive()) {
+            engine = new ZebraEngine(ctx);
+            engine.start();
+        }
+        return engine;
+
     }
 
     private static class EmptyHandler implements ZebraEngineMessageHandler {
