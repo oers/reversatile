@@ -829,7 +829,7 @@ public class ZebraEngine extends Thread {
         return getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS;
     }
 
-    public boolean isValidMove(Move move) {
+    private boolean isValidMove(Move move) {
         if (mValidMoves == null)
             return false;
 
