@@ -12,7 +12,7 @@ public class GameState {
     private int lastMove;
     private int nextMove;
 
-    public void setBoard(byte[] board) {
+    void setBoard(byte[] board) {
         this.board = board;
     }
 
@@ -20,7 +20,7 @@ public class GameState {
         return board;
     }
 
-    public void setSideToMove(int sideToMove) {
+    void setSideToMove(int sideToMove) {
         this.sideToMove = sideToMove;
     }
 
@@ -28,7 +28,7 @@ public class GameState {
         return sideToMove;
     }
 
-    public void setBlackPlayer(ZebraPlayerStatus blackPlayer) {
+    void setBlackPlayer(ZebraPlayerStatus blackPlayer) {
         this.blackPlayer = blackPlayer;
     }
 
@@ -36,7 +36,7 @@ public class GameState {
         return blackPlayer;
     }
 
-    public void setWhitePlayer(ZebraPlayerStatus whitePlayer) {
+    void setWhitePlayer(ZebraPlayerStatus whitePlayer) {
         this.whitePlayer = whitePlayer;
     }
 
@@ -44,7 +44,7 @@ public class GameState {
         return whitePlayer;
     }
 
-    public void setDisksPlayed(int disksPlayed) {
+    void setDisksPlayed(int disksPlayed) {
         this.disksPlayed = disksPlayed;
     }
 
@@ -52,7 +52,7 @@ public class GameState {
         return disksPlayed;
     }
 
-    public void setMoveSequence(byte[] moveSequence) {
+    void setMoveSequence(byte[] moveSequence) {
         this.moveSequence = moveSequence;
     }
 
@@ -60,7 +60,7 @@ public class GameState {
         return moveSequence;
     }
 
-    public void setCandidateMoves(CandidateMove[] candidateMoves) {
+    void setCandidateMoves(CandidateMove[] candidateMoves) {
         this.candidateMoves = candidateMoves;
     }
 
@@ -68,7 +68,7 @@ public class GameState {
         return candidateMoves;
     }
 
-    public void setOpening(String opening) {
+    void setOpening(String opening) {
         this.opening = opening;
     }
 
@@ -76,7 +76,7 @@ public class GameState {
         return opening;
     }
 
-    public void setLastMove(int lastMove) {
+    void setLastMove(int lastMove) {
         this.lastMove = lastMove;
     }
 
@@ -84,7 +84,7 @@ public class GameState {
         return lastMove;
     }
 
-    public void setNextMove(int nextMove) {
+    void setNextMove(int nextMove) {
         this.nextMove = nextMove;
     }
 
@@ -92,7 +92,7 @@ public class GameState {
         return nextMove;
     }
 
-    public void addCandidateMoveEvals(CandidateMove[] cmoves) {
+    void addCandidateMoveEvals(CandidateMove[] cmoves) {
         for (CandidateMove candidateMoveWithEval : cmoves) {
             for (int i = 0, candidateMovesLength = candidateMoves.length; i < candidateMovesLength; i++) {
                 CandidateMove candidateMove = candidateMoves[i];
