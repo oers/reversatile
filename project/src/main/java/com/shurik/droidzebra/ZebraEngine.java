@@ -34,7 +34,7 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 // DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler
 public class ZebraEngine extends Thread {
 
-    static public final int BOARD_SIZE = 8;
+    private static final int BOARD_SIZE = 8;
 
     private static String PATTERNS_FILE = "coeffs2.bin";
     private static String BOOK_FILE = "book.bin";
@@ -219,17 +219,13 @@ public class ZebraEngine extends Thread {
         }
     }
 
-    private int getEngineState() {
-        return mEngineState;
-    }
-
     //TODO This method requires JNI call, which is expensive
     //so maybe we should make it private and get this info differently
     public boolean gameInProgress() {
         return zeGameInProgress();
     }
 
-    public void setRunning(boolean b) {
+    private void setRunning(boolean b) {
         boolean wasRunning = isRunning;
         isRunning = b;
         if (wasRunning && !isRunning) stopGame();
@@ -245,7 +241,7 @@ public class ZebraEngine extends Thread {
         zeForceExit();
         // if waiting for move - get back into the engine
         // every other state should work itself out
-        if (getEngineState() == ES_USER_INPUT_WAIT) {
+        if (mEngineState == ES_USER_INPUT_WAIT) {
             mPendingEvent = new JSONObject();
             try {
                 mPendingEvent.put("type", UI_EVENT_EXIT);
@@ -262,12 +258,12 @@ public class ZebraEngine extends Thread {
 
         // if thinking on human time - stop
         if (isHumanToMove()
-                && getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS) {
+                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
 
-        if (getEngineState() != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -286,12 +282,12 @@ public class ZebraEngine extends Thread {
     public void undoMove() {
         // if thinking on human time - stop
         if (isHumanToMove()
-                && getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS) {
+                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
 
-        if (getEngineState() != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -309,12 +305,12 @@ public class ZebraEngine extends Thread {
     public void redoMove() {
         // if thinking on human time - stop
         if (isHumanToMove()
-                && getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS) {
+                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
 
-        if (getEngineState() != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -332,7 +328,7 @@ public class ZebraEngine extends Thread {
     // notifications that some settings have changes - see if we care
     public void sendSettingsChanged() {
         // if we are waiting for input - restart the move (e.g. if sides switched)
-        if (getEngineState() == ES_USER_INPUT_WAIT) {
+        if (mEngineState == ES_USER_INPUT_WAIT) {
             mPendingEvent = new JSONObject();
             try {
                 mPendingEvent.put("type", UI_EVENT_SETTINGS_CHANGE);
@@ -344,7 +340,7 @@ public class ZebraEngine extends Thread {
     }
 
     public void sendReplayMoves(List<Move> moves) {
-        if (getEngineState() != ZebraEngine.ES_READY2PLAY) {
+        if (mEngineState != ZebraEngine.ES_READY2PLAY) {
             stopGame();
             waitForEngineState(ZebraEngine.ES_READY2PLAY);
         }
@@ -587,7 +583,7 @@ public class ZebraEngine extends Thread {
             bInCallback = true;
             switch (msgcode) {
                 case MSG_ERROR: {
-                    if (getEngineState() == ES_INITIAL) {
+                    if (mEngineState == ES_INITIAL) {
                         // delete .bin files if initialization failed
                         // will be recreated from resources
                         new File(mFilesDir, PATTERNS_FILE).delete();
@@ -826,7 +822,7 @@ public class ZebraEngine extends Thread {
     }
 
     public boolean isThinking() {
-        return getEngineState() == ZebraEngine.ES_PLAY_IN_PROGRESS;
+        return mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS;
     }
 
     private boolean isValidMove(Move move) {
@@ -905,7 +901,7 @@ public class ZebraEngine extends Thread {
 
     private native void zeAnalyzeGame(int providedMoveCount, byte[] providedMoves);
 
-    public native void zeJsonTest(JSONObject json);
+    private native void zeJsonTest(JSONObject json);
 
     static {
         System.loadLibrary("droidzebra");
@@ -916,7 +912,7 @@ public class ZebraEngine extends Thread {
     }
 
     public boolean isReadyToPlay() {
-        return getEngineState() == ZebraEngine.ES_READY2PLAY;
+        return mEngineState == ZebraEngine.ES_READY2PLAY;
     }
 
     public void kill() {
