@@ -4,15 +4,17 @@ public class ZebraPlayerStatus {
     private String time;
     private float eval;
     private int discCount;
-    private byte[] moves = new byte[0];
+    private byte[] moves;
 
     ZebraPlayerStatus() {
+        moves = new byte[0];
     }
 
     ZebraPlayerStatus(String time, float eval, int discCount, byte[] moves) {
         this.time = time;
         this.eval = eval;
         this.discCount = discCount;
+        this.moves = new byte[0];
         this.moves = moves;
     }
 
