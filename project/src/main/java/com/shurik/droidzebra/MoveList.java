@@ -11,7 +11,7 @@ public class MoveList {
         return moves.length;
     }
 
-    public int getIntMove(int i) {
+    public int getMoveInt(int i) {
         return moves[i];
     }
 
