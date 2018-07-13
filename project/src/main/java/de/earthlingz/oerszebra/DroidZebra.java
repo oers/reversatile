@@ -596,8 +596,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         for (int i = 0; i < 4; i++) {
             String move_text;
             if (i + iStart < iEnd) {
-                Move move = new Move(black_moves.getIntMove(i + iStart));
-                move_text = move.getText();
+                move_text = black_moves.getMoveText(i + iStart);
             } else {
                 move_text = "";
             }
@@ -613,8 +612,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         for (int i = 0; i < 4; i++) {
             String move_text;
             if (i + iStart < iEnd) {
-                Move move = new Move(white_moves.getIntMove(i + iStart));
-                move_text = move.getText();
+                move_text = white_moves.getMoveText(i + iStart);
             } else {
                 move_text = "";
             }

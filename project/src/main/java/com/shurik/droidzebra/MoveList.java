@@ -14,4 +14,8 @@ public class MoveList {
     public int getIntMove(int i) {
         return moves[i];
     }
+
+    public String getMoveText(int i) {
+        return new Move(moves[i]).getText();
+    }
 }
