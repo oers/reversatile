@@ -16,6 +16,7 @@ public class GameState {
         this.board = board;
     }
 
+    //TODO possible encapsulation leak
     public byte[] getBoard() {
         return board;
     }
@@ -56,6 +57,7 @@ public class GameState {
         this.moveSequence = moveSequence;
     }
 
+    //TODO possible encapsulation leak
     public byte[] getMoveSequence() {
         return moveSequence;
     }
@@ -64,6 +66,7 @@ public class GameState {
         this.candidateMoves = candidateMoves;
     }
 
+    //TODO possible encapsulation leak
     public CandidateMove[] getCandidateMoves() {
         return candidateMoves;
     }
