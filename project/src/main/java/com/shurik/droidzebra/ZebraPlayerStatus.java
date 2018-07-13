@@ -14,7 +14,6 @@ public class ZebraPlayerStatus {
         this.time = time;
         this.eval = eval;
         this.discCount = discCount;
-        this.moves = new byte[0];
         this.moves = moves;
     }
 
@@ -31,6 +30,6 @@ public class ZebraPlayerStatus {
     }
 
     public byte[] getMoves() {
-        return moves; //TODO potential encapsulation problem, someone can mutate moves
+        return moves; //TODO solve potential encapsulation problem, someone can mutate moves
     }
 }
