@@ -587,7 +587,13 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         iEnd = black_moves.length;
         iStart = Math.max(0, iEnd - 4);
         for (int i = 0; i < 4; i++) {
-            String num_text = String.format(Locale.getDefault(), "%d", i + iStart + 1);
+            mStatusView.setTextForID(
+                    StatusView.ID_SCORELINE_NUM_1 + i,
+                    String.format(Locale.getDefault(), "%d", i + iStart + 1)
+            );
+        }
+
+        for (int i = 0; i < 4; i++) {
             String move_text;
             if (i + iStart < iEnd) {
                 Move move = new Move(black_moves[i + iStart]);
@@ -595,10 +601,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
             } else {
                 move_text = "";
             }
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_NUM_1 + i,
-                    num_text
-            );
+
             mStatusView.setTextForID(
                     StatusView.ID_SCORELINE_BLACK_1 + i,
                     move_text
