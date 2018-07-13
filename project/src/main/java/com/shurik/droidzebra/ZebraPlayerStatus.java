@@ -4,17 +4,17 @@ public class ZebraPlayerStatus {
     private String time;
     private float eval;
     private int discCount;
-    private byte[] moves;
+    private MoveList moveList;
 
     ZebraPlayerStatus() {
-        moves = new byte[0];
+        moveList = new MoveList(new byte[0]);
     }
 
     ZebraPlayerStatus(String time, float eval, int discCount, byte[] moves) {
         this.time = time;
         this.eval = eval;
         this.discCount = discCount;
-        this.moves = moves;
+        moveList = new MoveList(moves);
     }
 
     public String getTime() {
@@ -29,7 +29,7 @@ public class ZebraPlayerStatus {
         return discCount;
     }
 
-    public byte[] getMoves() {
-        return moves; //TODO solve potential encapsulation problem, someone can mutate moves
+    public MoveList getMoveList() {
+        return moveList;
     }
 }

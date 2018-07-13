@@ -581,10 +581,10 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         setStatusViewScores(sideToMove);
 
         int iStart, iEnd;
-        byte[] black_moves = gameState.getBlackPlayer().getMoves();
-        byte[] white_moves = gameState.getWhitePlayer().getMoves();
+        MoveList black_moves = gameState.getBlackPlayer().getMoveList();
+        MoveList white_moves = gameState.getWhitePlayer().getMoveList();
 
-        iEnd = black_moves.length;
+        iEnd = black_moves.length();
         iStart = Math.max(0, iEnd - 4);
         for (int i = 0; i < 4; i++) {
             mStatusView.setTextForID(
@@ -596,7 +596,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         for (int i = 0; i < 4; i++) {
             String move_text;
             if (i + iStart < iEnd) {
-                Move move = new Move(black_moves[i + iStart]);
+                Move move = new Move(black_moves.getIntMove(i + iStart));
                 move_text = move.getText();
             } else {
                 move_text = "";
@@ -608,12 +608,12 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
             );
         }
 
-        iEnd = white_moves.length;
+        iEnd = white_moves.length();
         iStart = Math.max(0, iEnd - 4);
         for (int i = 0; i < 4; i++) {
             String move_text;
             if (i + iStart < iEnd) {
-                Move move = new Move(white_moves[i + iStart]);
+                Move move = new Move(white_moves.getIntMove(i + iStart));
                 move_text = move.getText();
             } else {
                 move_text = "";
