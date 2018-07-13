@@ -35,6 +35,6 @@ public class ZebraPlayerStatus {
     }
 
     public byte[] getMoves() {
-        return moves;
+        return moves; //TODO potential encapsulation problem, someone can mutate moves
     }
 }
