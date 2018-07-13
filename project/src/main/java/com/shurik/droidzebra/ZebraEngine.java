@@ -617,10 +617,9 @@ public class ZebraEngine extends Thread {
                     }
 
                     //update the current game state
-                    GameState board = getGameState();
-                    board.setBoard(newBoard);
-                    board.setSideToMove(data.getInt("side_to_move"));
-                    board.setDisksPlayed(data.getInt("disks_played"));
+                    currentGameState.setBoard(newBoard);
+                    currentGameState.setSideToMove(data.getInt("side_to_move"));
+                    currentGameState.setDisksPlayed(data.getInt("disks_played"));
 
                     // black info
                     {
@@ -641,7 +640,7 @@ public class ZebraEngine extends Thread {
                             currentGameState.getMoveSequence()[2 * i] = moves[i];
                         }
                         black.setMoves(moves);
-                        board.setBlackPlayer(black);
+                        currentGameState.setBlackPlayer(black);
                     }
 
                     // white info
@@ -663,9 +662,9 @@ public class ZebraEngine extends Thread {
                             currentGameState.getMoveSequence()[2 * i + 1] = moves[i];
                         }
                         white.setMoves(moves);
-                        board.setWhitePlayer(white);
+                        currentGameState.setWhitePlayer(white);
                     }
-                    mHandler.sendBoard(board);
+                    mHandler.sendBoard(currentGameState);
                 }
                 break;
 
