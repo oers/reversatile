@@ -623,11 +623,7 @@ public class ZebraEngine extends Thread {
 
                     // black info
                     {
-                        ZebraPlayerStatus black = new ZebraPlayerStatus();
                         info = data.getJSONObject("black");
-                        black.setTime(info.getString("time"));
-                        black.setEval((float) info.getDouble("eval"));
-                        black.setDiscCount(info.getInt("disc_count"));
 
                         zeArray = info.getJSONArray("moves");
                         len = zeArray.length();
@@ -639,17 +635,19 @@ public class ZebraEngine extends Thread {
                             moves[i] = (byte) zeArray.getInt(i);
                             currentGameState.getMoveSequence()[2 * i] = moves[i];
                         }
-                        black.setMoves(moves);
-                        currentGameState.setBlackPlayer(black);
+
+
+                        currentGameState.setBlackPlayer(new ZebraPlayerStatus(
+                                info.getString("time"),
+                                (float) info.getDouble("eval"),
+                                info.getInt("disc_count"),
+                                moves
+                        ));
                     }
 
                     // white info
                     {
-                        ZebraPlayerStatus white = new ZebraPlayerStatus();
                         info = data.getJSONObject("white");
-                        white.setTime(info.getString("time"));
-                        white.setEval((float) info.getDouble("eval"));
-                        white.setDiscCount(info.getInt("disc_count"));
 
                         zeArray = info.getJSONArray("moves");
                         len = zeArray.length();
@@ -661,8 +659,12 @@ public class ZebraEngine extends Thread {
                             moves[i] = (byte) zeArray.getInt(i);
                             currentGameState.getMoveSequence()[2 * i + 1] = moves[i];
                         }
-                        white.setMoves(moves);
-                        currentGameState.setWhitePlayer(white);
+                        currentGameState.setWhitePlayer(new ZebraPlayerStatus(
+                                info.getString("time"),
+                                (float) info.getDouble("eval"),
+                                info.getInt("disc_count"),
+                                moves
+                        ));
                     }
                     mHandler.sendBoard(currentGameState);
                 }

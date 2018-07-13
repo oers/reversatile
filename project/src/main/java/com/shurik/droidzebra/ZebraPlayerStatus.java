@@ -6,6 +6,16 @@ public class ZebraPlayerStatus {
     private int discCount;
     private byte[] moves = new byte[0];
 
+    ZebraPlayerStatus() {
+    }
+
+    ZebraPlayerStatus(String time, float eval, int discCount, byte[] moves) {
+        this.time = time;
+        this.eval = eval;
+        this.discCount = discCount;
+        this.moves = moves;
+    }
+
     public void setTime(String time) {
         this.time = time;
     }
