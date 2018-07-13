@@ -272,7 +272,7 @@ public class ZebraEngine extends Thread {
         mPendingEvent = new JSONObject();
         try {
             mPendingEvent.put("type", UI_EVENT_MOVE);
-            mPendingEvent.put("move", move.mMove);
+            mPendingEvent.put("move", move.getMoveInt());
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
@@ -557,7 +557,7 @@ public class ZebraEngine extends Thread {
     private byte[] toByte(List<Move> moves) {
         byte[] moveBytes = new byte[moves.size()];
         for (int i = 0; i < moves.size(); i++) {
-            moveBytes[i] = (byte) moves.get(i).mMove;
+            moveBytes[i] = (byte) moves.get(i).getMoveInt();
         }
         return moveBytes;
     }
@@ -830,7 +830,7 @@ public class ZebraEngine extends Thread {
 
         boolean valid = false;
         for (int m : mValidMoves)
-            if (m == move.mMove) {
+            if (m == move.getMoveInt()) {
                 valid = true;
                 break;
             }
