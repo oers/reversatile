@@ -628,9 +628,7 @@ public class ZebraEngine extends Thread {
                         zeArray = info.getJSONArray("moves");
                         len = zeArray.length();
                         moves = new byte[len];
-                        if (BuildConfig.DEBUG && !(2 * len <= currentGameState.getMoveSequence().length)) {
-                            throw new AssertionError();
-                        }
+
                         for (int i = 0; i < len; i++) {
                             moves[i] = (byte) zeArray.getInt(i);
                             currentGameState.getMoveSequence()[2 * i] = moves[i];
@@ -652,9 +650,7 @@ public class ZebraEngine extends Thread {
                         zeArray = info.getJSONArray("moves");
                         len = zeArray.length();
                         moves = new byte[len];
-                        if (BuildConfig.DEBUG && !(2 * len <= currentGameState.getMoveSequence().length)) {
-                            throw new AssertionError();
-                        }
+
                         for (int i = 0; i < len; i++) {
                             moves[i] = (byte) zeArray.getInt(i);
                             currentGameState.getMoveSequence()[2 * i + 1] = moves[i];
