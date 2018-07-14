@@ -450,10 +450,10 @@ public class ZebraEngine extends Thread {
     public void setInitialGameState(int moveCount, byte[] moves) {
         initialGameState = new GameState();
         initialGameState.setDisksPlayed(moveCount);
-        initialGameState.setMoveSequence(new byte[moveCount]);
-        for (int i = 0; i < moveCount; i++) {
-            initialGameState.getMoveSequence()[i] = moves[i];
-        }
+        byte[] moveSequence = new byte[moveCount];
+        System.arraycopy(moves, 0, moveSequence, 0, moveCount);
+        initialGameState.setMoveSequence(moveSequence);
+
     }
 
     public GameState getGameState() {
