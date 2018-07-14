@@ -39,6 +39,7 @@ public class BoardState {
         return blackScore;
     }
 
+    //TODO encapsulation leak
     public CandidateMove[] getMoves() {
         return possibleMoves.getMoves();
     }
