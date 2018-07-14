@@ -63,10 +63,14 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
         getActivity().runOnUiThread(() -> diag.getButton(DialogInterface.BUTTON_POSITIVE).performClick());
 
         Thread.sleep(1000);
-        assertSame(60, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_EMPTY));
-        assertSame(2, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_WHITE));
-        assertSame(2, countSquares(this.getActivity().getState().getBoard(), ZebraEngine.PLAYER_BLACK));
+        assertSame(60, countSquares(ZebraEngine.PLAYER_EMPTY));
+        assertSame(2, countSquares(ZebraEngine.PLAYER_WHITE));
+        assertSame(2, countSquares(ZebraEngine.PLAYER_BLACK));
 
+    }
+
+    private int countSquares(byte color) {
+        return countSquares(this.getActivity().getState().getBoard(), color);
     }
 
     private int countSquares(FieldState[][] board, byte playerEmpty) {
