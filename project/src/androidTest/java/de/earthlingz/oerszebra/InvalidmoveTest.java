@@ -50,7 +50,7 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
         this.getActivity().onNewIntent(intent);
         Thread.sleep(1000);
         //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
-        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
+        Log.i("Board: ", getBoardAsString());
 
         int countWait = 0;
         while (getActivity().getAlert() == null && countWait < 100) {
@@ -69,24 +69,9 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
 
     }
 
-    private int countSquares(byte color) {
-        int result = 0;
-        FieldState[][] board = this.getActivity().getState().getBoard();
-        for (int y = 0; y < board.length; y++) {
-            FieldState[] row = board[y];
-            for (int x = 0; x < row.length; x++) {
-                FieldState column = row[x];
-                if (color == column.getState()) {
-                    result++;
-                }
-            }
-        }
-        return result;
-    }
-
-    private String asString(FieldState[][] board) {
+    private String getBoardAsString() {
         StringBuilder builder = new StringBuilder();
-        for (FieldState[] row : board) {
+        for (FieldState[] row : this.getActivity().getState().getBoard()) {
             for (FieldState column : row) {
                 switch (column.getState()) {
                     case ZebraEngine.PLAYER_WHITE:
@@ -103,6 +88,21 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
             builder.append("\n");
         }
         return builder.toString();
+    }
+
+    private int countSquares(byte color) {
+        int result = 0;
+        FieldState[][] board = this.getActivity().getState().getBoard();
+        for (int y = 0; y < board.length; y++) {
+            FieldState[] row = board[y];
+            for (int x = 0; x < row.length; x++) {
+                FieldState column = row[x];
+                if (color == column.getState()) {
+                    result++;
+                }
+            }
+        }
+        return result;
     }
 
 

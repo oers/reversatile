@@ -49,7 +49,7 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         this.getActivity().onNewIntent(intent);
 
         Thread.sleep(500);
-        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
+        Log.i("Board: ", getBoardAsString());
         assertSame(3, countSquares(ZebraEngine.PLAYER_EMPTY));
         assertSame(58, countSquares(ZebraEngine.PLAYER_WHITE));
         assertSame(3, countSquares(ZebraEngine.PLAYER_BLACK));
@@ -66,7 +66,7 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         this.getActivity().onNewIntent(intent);
         Thread.sleep(500);
         //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
-        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
+        Log.i("Board: ", getBoardAsString());
 
         assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
         assertSame(62, countSquares(ZebraEngine.PLAYER_WHITE));
@@ -82,31 +82,15 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         this.getActivity().onNewIntent(intent);
         Thread.sleep(500);
         //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
-        Log.i("Board: ", asString(this.getActivity().getState().getBoard()));
+        Log.i("Board: ", getBoardAsString());
         assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
         assertSame(32, countSquares(ZebraEngine.PLAYER_WHITE));
         assertSame(32, countSquares(ZebraEngine.PLAYER_BLACK));
     }
 
-    private int countSquares(byte color) {
-        FieldState[][] board = this.getActivity().getState().getBoard();
-        int result = 0;
-        for (int y = 0, boardLength = board.length; y < boardLength; y++) {
-            FieldState[] row = board[y];
-            for (int x = 0, rowLength = row.length; x < rowLength; x++) {
-                FieldState column = row[x];
-                if (color == column.getState()) {
-                    result++;
-                }
-            }
-        }
-        return result;
-    }
-
-
-    private String asString(FieldState[][] board) {
+    private String getBoardAsString() {
         StringBuilder builder = new StringBuilder();
-        for (FieldState[] row : board) {
+        for (FieldState[] row : this.getActivity().getState().getBoard()) {
             for (FieldState column : row) {
                 switch (column.getState()) {
                     case ZebraEngine.PLAYER_WHITE:
@@ -123,6 +107,21 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
             builder.append("\n");
         }
         return builder.toString();
+    }
+
+    private int countSquares(byte color) {
+        FieldState[][] board = this.getActivity().getState().getBoard();
+        int result = 0;
+        for (int y = 0, boardLength = board.length; y < boardLength; y++) {
+            FieldState[] row = board[y];
+            for (int x = 0, rowLength = row.length; x < rowLength; x++) {
+                FieldState column = row[x];
+                if (color == column.getState()) {
+                    result++;
+                }
+            }
+        }
+        return result;
     }
 
 
