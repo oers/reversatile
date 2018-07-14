@@ -7,6 +7,10 @@ public class MoveList {
         this.moves = moves;
     }
 
+    MoveList() {
+        moves = new byte[0];
+    }
+
     public int length() {
         return moves.length;
     }

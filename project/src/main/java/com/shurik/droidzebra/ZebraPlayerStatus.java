@@ -7,7 +7,7 @@ public class ZebraPlayerStatus {
     private MoveList moveList;
 
     ZebraPlayerStatus() {
-        moveList = new MoveList(new byte[0]);
+        moveList = new MoveList();
     }
 
     ZebraPlayerStatus(String time, float eval, int discCount, byte[] moves) {
