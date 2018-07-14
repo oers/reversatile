@@ -10,16 +10,12 @@ import com.shurik.droidzebra.*;
 public class BoardState {
     final public static int boardSize = 8;
 
-    private FieldState board[][] = new FieldState[boardSize][boardSize];
+    private MutableFieldState board[][] = new MutableFieldState[boardSize][boardSize];
     private Move lastMove = null;
     private int whiteScore = 0;
     private int blackScore = 0;
     private final CandidateMoves possibleMoves = new CandidateMoves();
     private Move nextMove;
-
-    public BoardState() {
-        super();
-    }
 
     //TODO encapsulate this
     public FieldState[][] getBoard() {
@@ -86,7 +82,7 @@ public class BoardState {
         whiteScore = blackScore = 0;
         for (int i = 0; i < boardSize; i++)
             for (int j = 0; j < boardSize; j++)
-                board[i][j] = new FieldState(ZebraEngine.PLAYER_EMPTY);
+                board[i][j] = new MutableFieldState(ZebraEngine.PLAYER_EMPTY);
     }
 
     public Move getNextMove() {
