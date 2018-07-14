@@ -8,18 +8,18 @@ import com.shurik.droidzebra.ZebraEngine;
 public class FieldState {
     private final static byte ST_FLIPPED = 0x01;
     private byte state;
-    private byte mFlags;
+    private byte flags;
 
     FieldState(byte state) {
         this.state = state;
-        mFlags = 0;
+        flags = 0;
     }
 
-    public void set(byte newState) {
+    public void set(byte newState) { //TODO encapsulation leak
         if (newState != ZebraEngine.PLAYER_EMPTY && state != ZebraEngine.PLAYER_EMPTY && state != newState)
-            mFlags |= ST_FLIPPED;
+            flags |= ST_FLIPPED;
         else
-            mFlags &= ~ST_FLIPPED;
+            flags &= ~ST_FLIPPED;
         state = newState;
     }
 
@@ -28,14 +28,14 @@ public class FieldState {
     }
 
     public boolean isEmpty() {
-        return getState() == ZebraEngine.PLAYER_EMPTY;
+        return state == ZebraEngine.PLAYER_EMPTY;
     }
 
     public boolean isBlack() {
-        return getState() == ZebraEngine.PLAYER_BLACK;
+        return state == ZebraEngine.PLAYER_BLACK;
     }
 
     public boolean isFlipped() {
-        return (mFlags & ST_FLIPPED) > 0;
+        return (flags & ST_FLIPPED) > 0;
     }
 }
