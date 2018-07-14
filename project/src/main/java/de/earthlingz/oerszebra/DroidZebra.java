@@ -302,10 +302,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         StringBuilder sbWhitePlayer = new StringBuilder();
         GameState gs = engine.getGameState();
         SharedPreferences settings = getSharedPreferences(SHARED_PREFS_NAME, 0);
-        byte[] moves = null;
-        if (gs != null) {
-            moves = gs.getMoveSequence();
-        }
+
 
         Intent intent = new Intent();
         Intent chooser = Intent.createChooser(intent, "");
@@ -369,20 +366,8 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         sb.append("\r\n\r\n");
         sb.append(getResources().getString(R.string.mail_move));
         sb.append(" ");
-        StringBuilder sbMoves = new StringBuilder();
-        if (moves != null) {
-
-            for (byte move1 : moves) {
-                if (move1 != 0x00) {
-                    Move move = new Move(move1);
-                    sbMoves.append(move.getText());
-                    if (Objects.equal(getState().getLastMove(), move)) {
-                        break;
-                    }
-                }
-            }
-        }
-        sb.append(sbMoves);
+        String sbMovesString = gs.getMoveSequenceAsString();
+        sb.append(sbMovesString);
         sb.append("\r\n\r\n");
         sb.append(sbBlackPlayer.toString());
         sb.append("  (B)  ");

@@ -1,5 +1,6 @@
 package com.shurik.droidzebra;
 
+
 public class GameState {
     private int sideToMove;
     private ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
@@ -115,4 +116,24 @@ public class GameState {
     public void setByteBoard(ByteBoard byteBoard) {
         this.byteBoard = byteBoard;
     }
+
+
+    public String getMoveSequenceAsString() {
+        StringBuilder sbMoves = new StringBuilder();
+
+        if (moveSequence != null) {
+
+            for (byte move1 : moveSequence) {
+                if (move1 != 0x00) {
+                    Move move = new Move(move1);
+                    sbMoves.append(move.getText());
+                    if (move1 == lastMove) {
+                        break;
+                    }
+                }
+            }
+        }
+        return sbMoves.toString();
+    }
+
 }
