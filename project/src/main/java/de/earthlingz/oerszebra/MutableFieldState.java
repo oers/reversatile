@@ -15,7 +15,7 @@ public class MutableFieldState implements FieldState {
         flags = 0;
     }
 
-    public void set(byte newState) { //TODO encapsulation leak
+    public void set(byte newState) {
         if (newState != ZebraEngine.PLAYER_EMPTY && state != ZebraEngine.PLAYER_EMPTY && state != newState)
             flags |= ST_FLIPPED;
         else
