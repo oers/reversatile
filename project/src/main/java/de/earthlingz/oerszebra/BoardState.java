@@ -22,6 +22,10 @@ public class BoardState {
         return board;
     }
 
+    public FieldState getFieldState(int x, int y){
+        return board[x][y];
+    }
+
     @Nullable
     public Move getLastMove() {
         return lastMove;
@@ -91,7 +95,7 @@ public class BoardState {
 
     public void processGameOver() {
         possibleMoves.setMoves(new CandidateMove[]{});
-        int max = getBoard().length * getBoard().length;
+        int max = board.length * board.length;
         if (getBlackScore() + getWhiteScore() < max) {
             //adjust result
             if (getBlackScore() > getWhiteScore()) {
