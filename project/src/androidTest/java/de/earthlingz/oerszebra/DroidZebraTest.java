@@ -89,21 +89,20 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
     }
 
     private int countSquares(byte color) {
-        return countSquares(this.getActivity().getState().getBoard(), color);
-    }
-
-
-    private int countSquares(FieldState[][] board, byte playerEmpty) {
+        FieldState[][] board = this.getActivity().getState().getBoard();
         int result = 0;
-        for (FieldState[] row : board) {
-            for (FieldState column : row) {
-                if (playerEmpty == column.getState()) {
+        for (int y = 0, boardLength = board.length; y < boardLength; y++) {
+            FieldState[] row = board[y];
+            for (int x = 0, rowLength = row.length; x < rowLength; x++) {
+                FieldState column = row[x];
+                if (color == column.getState()) {
                     result++;
                 }
             }
         }
         return result;
     }
+
 
     private String asString(FieldState[][] board) {
         StringBuilder builder = new StringBuilder();

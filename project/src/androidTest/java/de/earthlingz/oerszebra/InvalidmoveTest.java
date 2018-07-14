@@ -70,14 +70,13 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
     }
 
     private int countSquares(byte color) {
-        return countSquares(this.getActivity().getState().getBoard(), color);
-    }
-
-    private int countSquares(FieldState[][] board, byte playerEmpty) {
         int result = 0;
-        for (FieldState[] row : board) {
-            for (FieldState column : row) {
-                if (playerEmpty == column.getState()) {
+        FieldState[][] board = this.getActivity().getState().getBoard();
+        for (int y = 0; y < board.length; y++) {
+            FieldState[] row = board[y];
+            for (int x = 0; x < row.length; x++) {
+                FieldState column = row[x];
+                if (color == column.getState()) {
                     result++;
                 }
             }
