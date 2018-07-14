@@ -641,7 +641,7 @@ public class ZebraEngine extends Thread {
                                 info.getString("time"),
                                 (float) info.getDouble("eval"),
                                 info.getInt("disc_count"),
-                                moves
+                                new MoveList(moves)
                         ));
                     }
 
@@ -663,7 +663,7 @@ public class ZebraEngine extends Thread {
                                 info.getString("time"),
                                 (float) info.getDouble("eval"),
                                 info.getInt("disc_count"),
-                                moves
+                                new MoveList(moves)
                         ));
                     }
                     mHandler.sendBoard(currentGameState);

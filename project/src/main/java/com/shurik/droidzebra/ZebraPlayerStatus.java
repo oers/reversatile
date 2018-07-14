@@ -10,11 +10,11 @@ public class ZebraPlayerStatus {
         moveList = new MoveList();
     }
 
-    ZebraPlayerStatus(String time, float eval, int discCount, byte[] moves) {
+    ZebraPlayerStatus(String time, float eval, int discCount, MoveList moveList) {
         this.time = time;
         this.eval = eval;
         this.discCount = discCount;
-        moveList = new MoveList(moves);
+        this.moveList = moveList;
     }
 
     public String getTime() {
