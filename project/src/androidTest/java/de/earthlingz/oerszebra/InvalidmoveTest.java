@@ -50,7 +50,6 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
         this.getActivity().onNewIntent(intent);
         Thread.sleep(1000);
         //this.getActivity().getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
-        Log.i("Board: ", getBoardAsString());
 
         int countWait = 0;
         while (getActivity().getAlert() == null && countWait < 100) {
@@ -69,26 +68,6 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
 
     }
 
-    private String getBoardAsString() {
-        StringBuilder builder = new StringBuilder();
-        for (FieldState[] row : this.getActivity().getState().getBoard()) {
-            for (FieldState column : row) {
-                switch (column.getState()) {
-                    case ZebraEngine.PLAYER_WHITE:
-                        builder.append("o");
-                        break;
-                    case ZebraEngine.PLAYER_BLACK:
-                        builder.append("x");
-                        break;
-                    default:
-                        builder.append("-");
-                        break;
-                }
-            }
-            builder.append("\n");
-        }
-        return builder.toString();
-    }
 
     private int countSquares(byte color) {
         int result = 0;
