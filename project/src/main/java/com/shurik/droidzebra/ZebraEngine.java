@@ -633,11 +633,16 @@ public class ZebraEngine extends Thread {
 
                     for (int i = 0; i < blackMovesLength; i++) {
                         blackMoves[i] = (byte) blackMovesJSON.getInt(i);
+                    }
+                    for (int i = 0; i < whiteMovesLength; i++) {
+                        whiteMoves[i] = (byte) whiteMovesJSON.getInt(i);
+                    }
+
+                    for (int i = 0; i < blackMovesLength; i++) {
                         currentGameState.getMoveSequence()[2 * i] = blackMoves[i];
                     }
 
                     for (int i = 0; i < whiteMovesLength; i++) {
-                        whiteMoves[i] = (byte) whiteMovesJSON.getInt(i);
                         currentGameState.getMoveSequence()[2 * i + 1] = whiteMoves[i];
                     }
 
