@@ -604,14 +604,8 @@ public class ZebraEngine extends Thread {
                 case MSG_BOARD: {
                     {
                         JSONArray zeboard = data.getJSONArray("board");
-                        byte newBoard[] = new byte[BOARD_SIZE * BOARD_SIZE];
-                        for (int i = 0; i < zeboard.length(); i++) {
-                            JSONArray row = zeboard.getJSONArray(i);
-                            for (int j = 0; j < row.length(); j++) {
-                                newBoard[i * BOARD_SIZE + j] = (byte) row.getInt(j);
-                            }
-                        }
-                        currentGameState.setBoard(newBoard);
+
+                        currentGameState.setByteBoard(new ByteBoard(zeboard, BOARD_SIZE));
 
                     }
                     currentGameState.setSideToMove(data.getInt("side_to_move"));

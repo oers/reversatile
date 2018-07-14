@@ -121,13 +121,13 @@ public class BoardState {
     }
 
     private boolean updateBoard(GameState gameState) {
-        byte[] board = gameState.getBoard();
+        ByteBoard board = gameState.getByteBoard();
 
         boolean changed = false;
         //only update the board if anything has changed
         for (int i = 0; !changed && i < boardSize; i++) {
             for (int j = 0; !changed && j < boardSize; j++) {
-                byte newState = board[i * boardSize + j];
+                byte newState = board.get(i, j);
                 if (this.board[i][j].getState() != newState) {
                     changed = true;
                 }
@@ -137,7 +137,7 @@ public class BoardState {
         if (changed) {
             for (int i = 0; i < boardSize; i++) {
                 for (int j = 0; j < boardSize; j++) {
-                    byte newState = board[i * boardSize + j];
+                    byte newState = board.get(i, j);
                     this.board[i][j].set(newState); //this also remembers if a flip has happened
                 }
             }
