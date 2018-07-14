@@ -109,4 +109,16 @@ public class GameState {
             }
         }
     }
+
+
+    public void updateMoveSequence(MoveList blackMoveList, MoveList whiteMoveList) {
+        for (int i = 0; i < blackMoveList.length(); i++) {
+            moveSequence[2 * i] = blackMoveList.getMoveByte(i);
+        }
+
+        for (int i = 0; i < whiteMoveList.length(); i++) {
+            moveSequence[2 * i + 1] = whiteMoveList.getMoveByte(i);
+        }
+    }
+
 }
