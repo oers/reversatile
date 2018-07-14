@@ -7,24 +7,24 @@ import com.shurik.droidzebra.ZebraEngine;
  */
 public class FieldState {
     private final static byte ST_FLIPPED = 0x01;
-    public byte mState;
+    private byte state;
     private byte mFlags;
 
     FieldState(byte state) {
-        mState = state;
+        this.state = state;
         mFlags = 0;
     }
 
     public void set(byte newState) {
-        if (newState != ZebraEngine.PLAYER_EMPTY && mState != ZebraEngine.PLAYER_EMPTY && mState != newState)
+        if (newState != ZebraEngine.PLAYER_EMPTY && state != ZebraEngine.PLAYER_EMPTY && state != newState)
             mFlags |= ST_FLIPPED;
         else
             mFlags &= ~ST_FLIPPED;
-        mState = newState;
+        state = newState;
     }
 
     public byte getState() {
-        return mState;
+        return state;
     }
 
     public boolean isEmpty() {

@@ -16,6 +16,6 @@ public class MoveList {
     }
 
     public String getMoveText(int i) {
-        return new Move(moves[i]).getText();
+        return new Move(moves[i]).getText(); //TODO optimize - get rid of 'new Move'
     }
 }

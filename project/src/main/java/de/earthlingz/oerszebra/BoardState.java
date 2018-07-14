@@ -62,7 +62,7 @@ public class BoardState {
         for (int i = 0; !changed && i < boardSize; i++) {
             for (int j = 0; !changed && j < boardSize; j++) {
                 byte newState = board[i * boardSize + j];
-                if (this.board[i][j].mState != newState) {
+                if (this.board[i][j].getState() != newState) {
                     changed = true;
                 }
             }
