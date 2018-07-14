@@ -7,6 +7,7 @@ public class MoveList {
     private byte[] moves;
 
     MoveList (JSONArray moves) throws JSONException {
+        this.moves = new byte[moves.length()];
         for (int i = 0; i < moves.length(); i++) {
             this.moves[i] = (byte) moves.getInt(i);
         }
