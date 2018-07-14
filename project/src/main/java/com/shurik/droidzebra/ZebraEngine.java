@@ -621,23 +621,21 @@ public class ZebraEngine extends Thread {
                     JSONObject whiteInfoJSON = data.getJSONObject("white");
 
                     JSONArray whiteMovesJSON = whiteInfoJSON.getJSONArray("moves");
-                    int whiteMovesLength = whiteMovesJSON.length();
 
 
                     JSONObject blackInfoJSON = data.getJSONObject("black");
 
                     JSONArray blackMovesJSON = blackInfoJSON.getJSONArray("moves");
-                    int blackMovesLength = blackMovesJSON.length();
 
 
                     MoveList blackMoveList = new MoveList(blackMovesJSON);
                     MoveList whiteMoveList = new MoveList(whiteMovesJSON);
 
-                    for (int i = 0; i < blackMovesLength; i++) {
+                    for (int i = 0; i < blackMoveList.length(); i++) {
                         currentGameState.getMoveSequence()[2 * i] = blackMoveList.getMoveByte(i);
                     }
 
-                    for (int i = 0; i < whiteMovesLength; i++) {
+                    for (int i = 0; i < whiteMoveList.length(); i++) {
                         currentGameState.getMoveSequence()[2 * i + 1] = whiteMoveList.getMoveByte(i);
                     }
                     currentGameState.setBlackPlayer(new ZebraPlayerStatus(
