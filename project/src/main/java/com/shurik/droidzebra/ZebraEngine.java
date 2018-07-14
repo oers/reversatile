@@ -493,7 +493,7 @@ public class ZebraEngine extends Thread {
                 currentGameState.setMoveSequence(new byte[2 * BOARD_SIZE * BOARD_SIZE]);
 
                 if (initialGameState != null)
-                    zePlay(initialGameState.getDisksPlayed(), initialGameState.getMoveSequence());
+                    zePlay(initialGameState.getDisksPlayed(), initialGameState.exportMoveSequence());
                 else
                     zePlay(0, null);
 

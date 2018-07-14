@@ -514,7 +514,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
     protected void onSaveInstanceState(Bundle outState) {
         GameState gs = engine.getGameState();
         if (gs != null) {
-            outState.putByteArray("moves_played", gs.getMoveSequence());
+            outState.putByteArray("moves_played", gs.exportMoveSequence());
             outState.putInt("moves_played_count", gs.getDisksPlayed());
             outState.putInt("version", 1);
         }

@@ -53,9 +53,8 @@ public class GameState {
         this.moveSequence = moveSequence;
     }
 
-    //TODO possible encapsulation leak
-    public byte[] getMoveSequence() {
-        return moveSequence;
+    public byte[] exportMoveSequence() {
+        return moveSequence.clone();
     }
 
     void setCandidateMoves(CandidateMove[] candidateMoves) {
