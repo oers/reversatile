@@ -602,32 +602,29 @@ public class ZebraEngine extends Thread {
                 break;
 
                 case MSG_BOARD: {
-                    int len;
-                    JSONObject info;
-                    JSONArray zeArray;
-                    byte[] moves;
-
-                    JSONArray zeboard = data.getJSONArray("board");
-                    byte newBoard[] = new byte[BOARD_SIZE * BOARD_SIZE];
-                    for (int i = 0; i < zeboard.length(); i++) {
-                        JSONArray row = zeboard.getJSONArray(i);
-                        for (int j = 0; j < row.length(); j++) {
-                            newBoard[i * BOARD_SIZE + j] = (byte) row.getInt(j);
+                    {
+                        JSONArray zeboard = data.getJSONArray("board");
+                        byte newBoard[] = new byte[BOARD_SIZE * BOARD_SIZE];
+                        for (int i = 0; i < zeboard.length(); i++) {
+                            JSONArray row = zeboard.getJSONArray(i);
+                            for (int j = 0; j < row.length(); j++) {
+                                newBoard[i * BOARD_SIZE + j] = (byte) row.getInt(j);
+                            }
                         }
-                    }
+                        currentGameState.setBoard(newBoard);
 
+                    }
                     //update the current game state
-                    currentGameState.setBoard(newBoard);
                     currentGameState.setSideToMove(data.getInt("side_to_move"));
                     currentGameState.setDisksPlayed(data.getInt("disks_played"));
 
-                    // black info
+//                    JSONArray zeArray;
                     {
-                        info = data.getJSONObject("black");
+                        JSONObject info = data.getJSONObject("black");
 
-                        zeArray = info.getJSONArray("moves");
-                        len = zeArray.length();
-                        moves = new byte[len];
+                        JSONArray zeArray = info.getJSONArray("moves");
+                        int len = zeArray.length();
+                        byte[] moves = new byte[len];
 
                         for (int i = 0; i < len; i++) {
                             moves[i] = (byte) zeArray.getInt(i);
@@ -645,11 +642,11 @@ public class ZebraEngine extends Thread {
 
                     // white info
                     {
-                        info = data.getJSONObject("white");
+                        JSONObject info = data.getJSONObject("white");
 
-                        zeArray = info.getJSONArray("moves");
-                        len = zeArray.length();
-                        moves = new byte[len];
+                        JSONArray zeArray = info.getJSONArray("moves");
+                        int len = zeArray.length();
+                        byte[] moves = new byte[len];
 
                         for (int i = 0; i < len; i++) {
                             moves[i] = (byte) zeArray.getInt(i);
