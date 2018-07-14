@@ -1,10 +1,15 @@
 package com.shurik.droidzebra;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 public class MoveList {
     private byte[] moves;
 
-    MoveList(byte[] moves) {
-        this.moves = moves;
+    MoveList (JSONArray moves) throws JSONException {
+        for (int i = 0; i < moves.length(); i++) {
+            this.moves[i] = (byte) moves.getInt(i);
+        }
     }
 
     MoveList() {
