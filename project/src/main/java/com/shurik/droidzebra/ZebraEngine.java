@@ -619,46 +619,46 @@ public class ZebraEngine extends Thread {
                     currentGameState.setDisksPlayed(data.getInt("disks_played"));
 
 //                    JSONArray zeArray;
-                    {
-                        JSONObject info = data.getJSONObject("black");
 
-                        JSONArray zeArray = info.getJSONArray("moves");
-                        int len = zeArray.length();
-                        byte[] moves = new byte[len];
+                    JSONObject blackInfoJSON = data.getJSONObject("black");
 
-                        for (int i = 0; i < len; i++) {
-                            moves[i] = (byte) zeArray.getInt(i);
-                            currentGameState.getMoveSequence()[2 * i] = moves[i];
-                        }
+                    JSONArray blackMovesJSON = blackInfoJSON.getJSONArray("moves");
+                    int blackMovesLength = blackMovesJSON.length();
+                    byte[] blackMoves = new byte[blackMovesLength];
 
-
-                        currentGameState.setBlackPlayer(new ZebraPlayerStatus(
-                                info.getString("time"),
-                                (float) info.getDouble("eval"),
-                                info.getInt("disc_count"),
-                                new MoveList(moves)
-                        ));
+                    for (int i = 0; i < blackMovesLength; i++) {
+                        blackMoves[i] = (byte) blackMovesJSON.getInt(i);
+                        currentGameState.getMoveSequence()[2 * i] = blackMoves[i];
                     }
+
+
+                    currentGameState.setBlackPlayer(new ZebraPlayerStatus(
+                            blackInfoJSON.getString("time"),
+                            (float) blackInfoJSON.getDouble("eval"),
+                            blackInfoJSON.getInt("disc_count"),
+                            new MoveList(blackMoves)
+                    ));
+
 
                     // white info
-                    {
-                        JSONObject info = data.getJSONObject("white");
 
-                        JSONArray zeArray = info.getJSONArray("moves");
-                        int len = zeArray.length();
-                        byte[] moves = new byte[len];
+                    JSONObject whiteInfoJSON = data.getJSONObject("white");
 
-                        for (int i = 0; i < len; i++) {
-                            moves[i] = (byte) zeArray.getInt(i);
-                            currentGameState.getMoveSequence()[2 * i + 1] = moves[i];
-                        }
-                        currentGameState.setWhitePlayer(new ZebraPlayerStatus(
-                                info.getString("time"),
-                                (float) info.getDouble("eval"),
-                                info.getInt("disc_count"),
-                                new MoveList(moves)
-                        ));
+                    JSONArray whiteMovesJSON = whiteInfoJSON.getJSONArray("moves");
+                    int len = whiteMovesJSON.length();
+                    byte[] whiteMoves = new byte[len];
+
+                    for (int i = 0; i < len; i++) {
+                        whiteMoves[i] = (byte) whiteMovesJSON.getInt(i);
+                        currentGameState.getMoveSequence()[2 * i + 1] = whiteMoves[i];
                     }
+                    currentGameState.setWhitePlayer(new ZebraPlayerStatus(
+                            whiteInfoJSON.getString("time"),
+                            (float) whiteInfoJSON.getDouble("eval"),
+                            whiteInfoJSON.getInt("disc_count"),
+                            new MoveList(whiteMoves)
+                    ));
+
                     mHandler.sendBoard(currentGameState);
                 }
                 break;
