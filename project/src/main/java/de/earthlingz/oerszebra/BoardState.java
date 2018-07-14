@@ -103,7 +103,7 @@ public class BoardState {
     }
 
     public boolean update(GameState gameState) {
-        boolean boardChanged = updateBoard(gameState.getBoard());
+        boolean boardChanged = updateBoard(gameState);
 
         this.blackScore = gameState.getBlackPlayer().getDiscCount();
         this.whiteScore = gameState.getWhitePlayer().getDiscCount();
@@ -118,6 +118,33 @@ public class BoardState {
         possibleMoves.setMoves(gameState.getCandidateMoves());
 
         return boardChanged;
+    }
+
+    private boolean updateBoard(GameState gameState) {
+        byte[] board = gameState.getBoard();
+
+        boolean changed = false;
+        //only update the board if anything has changed
+        for (int i = 0; !changed && i < boardSize; i++) {
+            for (int j = 0; !changed && j < boardSize; j++) {
+                byte newState = board[i * boardSize + j];
+                if (this.board[i][j].getState() != newState) {
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            for (int i = 0; i < boardSize; i++) {
+                for (int j = 0; j < boardSize; j++) {
+                    byte newState = board[i * boardSize + j];
+                    this.board[i][j].set(newState); //this also remembers if a flip has happened
+                }
+            }
+        }
+
+        return changed;
+
     }
 
     public int getBoardRowWidth(int y) {

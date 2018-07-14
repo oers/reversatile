@@ -1,7 +1,7 @@
 package com.shurik.droidzebra;
 
 public class GameState {
-    private byte[] board;
+    private byte[] board = new byte[0];
     private int sideToMove;
     private ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
     private ZebraPlayerStatus whitePlayer = new ZebraPlayerStatus();
@@ -13,7 +13,11 @@ public class GameState {
     private int nextMove;
 
     void setBoard(byte[] board) {
-        this.board = board;
+        if (board == null) {
+            this.board = new byte[0];
+        } else {
+            this.board = board;
+        }
     }
 
     //TODO possible encapsulation leak
