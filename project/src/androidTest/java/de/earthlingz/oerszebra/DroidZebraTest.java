@@ -2,7 +2,6 @@ package de.earthlingz.oerszebra;
 
 import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
-import android.util.Log;
 import com.shurik.droidzebra.ZebraEngine;
 
 /**
@@ -86,13 +85,12 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
     }
 
     private int countSquares(byte color) {
-        FieldState[][] board = this.getActivity().getState().getBoard();
+        BoardState state = this.getActivity().getState();
         int result = 0;
-        for (int y = 0, boardLength = board.length; y < boardLength; y++) {
-            FieldState[] row = board[y];
-            for (int x = 0, rowLength = row.length; x < rowLength; x++) {
-                FieldState column = row[x];
-                if (color == column.getState()) {
+        for (int y = 0, boardLength = state.getBoardHeight(); y < boardLength; y++) {
+            for (int x = 0, rowLength = state.getBoardRowWidth(y); x < rowLength; x++) {
+                FieldState fieldState = state.getFieldState(x,y);
+                if (color == fieldState.getState()) {
                     result++;
                 }
             }

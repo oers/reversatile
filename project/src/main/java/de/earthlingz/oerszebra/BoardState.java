@@ -17,13 +17,8 @@ public class BoardState {
     private final CandidateMoves possibleMoves = new CandidateMoves();
     private Move nextMove;
 
-    //TODO encapsulate this
-    public FieldState[][] getBoard() {
-        return board;
-    }
-
-    public FieldState getFieldState(int x, int y){
-        return board[x][y];
+    public FieldState getFieldState(int x, int y) {
+        return board[y][x];
     }
 
     @Nullable
@@ -123,5 +118,13 @@ public class BoardState {
         possibleMoves.setMoves(gameState.getCandidateMoves());
 
         return boardChanged;
+    }
+
+    public int getBoardRowWidth(int y) {
+        return board[y].length;
+    }
+
+    public int getBoardHeight() {
+        return board.length;
     }
 }
