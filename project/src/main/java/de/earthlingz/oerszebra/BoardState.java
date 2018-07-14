@@ -18,7 +18,7 @@ public class BoardState {
     private Move nextMove;
 
     public FieldState getFieldState(int x, int y) {
-        return board[y][x];
+        return board[x][y];
     }
 
     @Nullable
