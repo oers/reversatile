@@ -228,7 +228,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                     mBoardView.requestFocus();
                     resetStateAndStatusView();
                     loadUISettings();
-                    loadEngineSettings();
+                    engine.loadConfig(settingsProvider.createEngineConfig());
                     engine.setEngineStatePlay();
                     mIsInitCompleted = true;
                 }
