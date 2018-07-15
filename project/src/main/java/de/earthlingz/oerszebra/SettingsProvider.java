@@ -44,6 +44,8 @@ interface SettingsProvider {
 
     EngineConfig createEngineConfig();
 
+    EngineConfig createPracticeModeAlterConfig();
+
     interface OnSettingsChangedListener {
         void onSettingsChanged();
     }

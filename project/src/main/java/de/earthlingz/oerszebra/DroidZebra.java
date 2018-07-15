@@ -398,7 +398,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private void showHint() {
         if (!settingsProvider.isSettingPracticeMode()) {
             setHintUp(true);
-            engine.setPracticeMode(true);
+            engine.loadConfig(settingsProvider.createPracticeModeAlterConfig());
         }
     }
 
@@ -651,7 +651,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         this.dismissBusyDialog();
         if (isHintUp) {
             this.setHintUp(false);
-            engine.setPracticeMode(settingsProvider.isSettingPracticeMode());
+            engine.loadConfig(settingsProvider.createEngineConfig());
         }
 
     }

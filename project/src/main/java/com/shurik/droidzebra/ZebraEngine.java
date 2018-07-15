@@ -393,12 +393,11 @@ public class ZebraEngine extends Thread {
             zeSetHumanOpenings(0);
     }
 
-    public void setPracticeMode(boolean _enable) {
+    private void setPracticeMode(boolean _enable) {
         if (_enable)
             zeSetPracticeMode(1);
         else
             zeSetPracticeMode(0);
-        engine.sendSettingsChanged();//TODO not best place to set up, because it will be called multiple times uselessly, but I will get rid of it later
     }
 
     private void setUseBook(boolean _enable) {
