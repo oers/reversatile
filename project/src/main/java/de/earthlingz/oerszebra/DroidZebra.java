@@ -94,7 +94,8 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         waitForReadyToPlay(
                 () -> {
                     resetStateAndStatusView();
-                    loadSettings();
+                    loadUISettings();
+                    loadEngineSettings();
                     engine.setEngineStatePlay();
                 }
         );
@@ -232,7 +233,8 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                     mBoardView.setOnMakeMoveListener(DroidZebra.this);
                     mBoardView.requestFocus();
                     resetStateAndStatusView();
-                    loadSettings();
+                    loadUISettings();
+                    loadEngineSettings();
                     engine.setEngineStatePlay();
                     mIsInitCompleted = true;
                 }
@@ -253,7 +255,12 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         }
     }
 
-    private void loadSettings() {
+    private void loadEngineSettings() {
+        if (engine == null) return;
+        engine.loadConfig(settingsProvider.createEngineConfig());
+    }
+
+    private void loadUISettings() {
         if (mBoardView != null) {
             mBoardView.setDisplayAnimations(settingsProvider.isSettingDisplayEnableAnimations());
             mBoardView.setAnimationDuration(settingsProvider.getSettingAnimationDuration());
@@ -277,10 +284,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
             mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
         }
-        if (engine == null) return;
-        engine.loadConfig(settingsProvider.createEngineConfig());
-
-
     }
 
 
@@ -390,7 +393,8 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             editor.apply();
         }
 
-        loadSettings();
+        loadUISettings();
+        loadEngineSettings();
 
     }
 
@@ -517,7 +521,8 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     @Override
     public void onSettingsChanged() {
-        loadSettings();
+        loadUISettings();
+        loadEngineSettings();
     }
 
     @Override
