@@ -17,17 +17,17 @@ public class GameState {
     private ByteBoard byteBoard = new ByteBoard();
 
     GameState(int boardSize) {
-        setDisksPlayed(0);
+        this.disksPlayed = 0;
         this.moveSequence = new byte[2 * boardSize * boardSize];
     }
 
     GameState(int boardSize, List<Move> moves) {
-        setDisksPlayed(moves.size());
+        this.disksPlayed = moves.size();
         this.moveSequence = toBytesWithBoardSize(moves, boardSize);
     }
 
     GameState(int boardSize, byte[] moves, int movesPlayed) {
-        setDisksPlayed(movesPlayed);
+        this.disksPlayed = movesPlayed;
         this.moveSequence = Arrays.copyOf(moves, boardByteLength(boardSize));
     }
 
@@ -48,32 +48,16 @@ public class GameState {
         return byteBoard;
     }
 
-    void setSideToMove(int sideToMove) {
-        this.sideToMove = sideToMove;
-    }
-
     public int getSideToMove() {
         return sideToMove;
-    }
-
-    void setBlackPlayer(ZebraPlayerStatus blackPlayer) {
-        this.blackPlayer = blackPlayer;
     }
 
     public ZebraPlayerStatus getBlackPlayer() {
         return blackPlayer;
     }
 
-    void setWhitePlayer(ZebraPlayerStatus whitePlayer) {
-        this.whitePlayer = whitePlayer;
-    }
-
     public ZebraPlayerStatus getWhitePlayer() {
         return whitePlayer;
-    }
-
-    void setDisksPlayed(int disksPlayed) {
-        this.disksPlayed = disksPlayed;
     }
 
     public int getDisksPlayed() {
@@ -129,7 +113,7 @@ public class GameState {
     }
 
 
-    public void updateMoveSequence(MoveList blackMoveList, MoveList whiteMoveList) {
+    private void updateMoveSequence(MoveList blackMoveList, MoveList whiteMoveList) {
         for (int i = 0; i < blackMoveList.length(); i++) {
             moveSequence[2 * i] = blackMoveList.getMoveByte(i);
         }
@@ -137,10 +121,6 @@ public class GameState {
         for (int i = 0; i < whiteMoveList.length(); i++) {
             moveSequence[2 * i + 1] = whiteMoveList.getMoveByte(i);
         }
-    }
-
-    void setByteBoard(ByteBoard byteBoard) {
-        this.byteBoard = byteBoard;
     }
 
 
@@ -160,6 +140,26 @@ public class GameState {
             }
         }
         return sbMoves.toString();
+    }
+
+    void updateGameState(int sideToMove, int disksPlayed, String blackTime, float blackEval, int blackDiscCount, String whiteTime, float whiteEval, int whiteDiscCOunt, MoveList blackMoveList, MoveList whiteMoveList, ByteBoard byteBoard) {
+        this.byteBoard = byteBoard;
+        this.sideToMove = sideToMove;
+        this.disksPlayed = disksPlayed;
+        updateMoveSequence(blackMoveList, whiteMoveList);
+        this.blackPlayer = new ZebraPlayerStatus(
+                blackTime,
+                blackEval,
+                blackDiscCount,
+                blackMoveList
+        );
+
+        this.whitePlayer = new ZebraPlayerStatus(
+                whiteTime,
+                whiteEval,
+                whiteDiscCOunt,
+                whiteMoveList
+        );
     }
 
 }

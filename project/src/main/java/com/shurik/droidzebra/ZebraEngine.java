@@ -344,7 +344,7 @@ public class ZebraEngine extends Thread {
             stopGame();
             waitForEngineState(ZebraEngine.ES_READY2PLAY);
         }
-        initialGameState = new GameState(BOARD_SIZE ,moves);
+        initialGameState = new GameState(BOARD_SIZE, moves);
 
         setEngineState(ES_PLAY);
     }
@@ -441,7 +441,7 @@ public class ZebraEngine extends Thread {
     }
 
     public void setInitialGameState(LinkedList<Move> moves) {
-        this.initialGameState =  new GameState(BOARD_SIZE, moves);
+        this.initialGameState = new GameState(BOARD_SIZE, moves);
     }
 
     // gamestate manipulators
@@ -585,38 +585,27 @@ public class ZebraEngine extends Thread {
                 break;
 
                 case MSG_BOARD: {
-                    {
-                        JSONArray zeboard = data.getJSONArray("board");
 
-                        currentGameState.setByteBoard(new ByteBoard(zeboard, BOARD_SIZE));
-
-                    }
-                    currentGameState.setSideToMove(data.getInt("side_to_move"));
-                    currentGameState.setDisksPlayed(data.getInt("disks_played"));
-
-
+                    JSONArray boardJSON = data.getJSONArray("board");
                     JSONObject whiteInfoJSON = data.getJSONObject("white");
-
                     JSONObject blackInfoJSON = data.getJSONObject("black");
+                    JSONArray blackMovesJSON = blackInfoJSON.getJSONArray("moves");
+                    JSONArray whiteMovesJSON = whiteInfoJSON.getJSONArray("moves");
+                    int sideToMove = data.getInt("side_to_move");
+                    int disksPlayed = data.getInt("disks_played");
+                    String blackTime = blackInfoJSON.getString("time");
+                    float blackEval = (float) blackInfoJSON.getDouble("eval");
+                    int blackDiscCount = blackInfoJSON.getInt("disc_count");
+                    String whiteTime = whiteInfoJSON.getString("time");
+                    float whiteEval = (float) whiteInfoJSON.getDouble("eval");
+                    int whiteDiscCOunt = whiteInfoJSON.getInt("disc_count");
 
+                    MoveList blackMoveList = new MoveList(blackMovesJSON);
+                    MoveList whiteMoveList = new MoveList(whiteMovesJSON);
 
-                    MoveList blackMoveList = new MoveList(blackInfoJSON.getJSONArray("moves"));
-                    MoveList whiteMoveList = new MoveList(whiteInfoJSON.getJSONArray("moves"));
+                    ByteBoard byteBoard = new ByteBoard(boardJSON, BOARD_SIZE);
 
-                    currentGameState.updateMoveSequence(blackMoveList, whiteMoveList);
-                    currentGameState.setBlackPlayer(new ZebraPlayerStatus(
-                            blackInfoJSON.getString("time"),
-                            (float) blackInfoJSON.getDouble("eval"),
-                            blackInfoJSON.getInt("disc_count"),
-                            blackMoveList
-                    ));
-
-                    currentGameState.setWhitePlayer(new ZebraPlayerStatus(
-                            whiteInfoJSON.getString("time"),
-                            (float) whiteInfoJSON.getDouble("eval"),
-                            whiteInfoJSON.getInt("disc_count"),
-                            whiteMoveList
-                    ));
+                    currentGameState.updateGameState(sideToMove, disksPlayed, blackTime, blackEval, blackDiscCount, whiteTime, whiteEval, whiteDiscCOunt, blackMoveList, whiteMoveList, byteBoard);
 
                     mHandler.sendBoard(currentGameState);
                 }
