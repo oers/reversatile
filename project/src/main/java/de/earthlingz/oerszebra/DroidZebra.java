@@ -256,8 +256,9 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     private void loadEngineSettings() {
-        if (engine == null) return;
-        engine.loadConfig(settingsProvider.createEngineConfig());
+        if (engine != null) {
+            engine.loadConfig(settingsProvider.createEngineConfig());
+        }
     }
 
     private void loadUISettings() {
