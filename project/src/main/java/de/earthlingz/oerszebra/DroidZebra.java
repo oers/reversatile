@@ -95,7 +95,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 () -> {
                     resetStateAndStatusView();
                     loadUISettings();
-                    loadEngineSettings();
+                    engine.loadConfig(settingsProvider.createEngineConfig());
                     engine.setEngineStatePlay();
                 }
         );
