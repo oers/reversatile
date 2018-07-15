@@ -344,9 +344,8 @@ public class ZebraEngine extends Thread {
             stopGame();
             waitForEngineState(ZebraEngine.ES_READY2PLAY);
         }
-        initialGameState = new GameState();
-        initialGameState.setDisksPlayed(moves.size());
-        initialGameState.setMoveSequence(toByte(moves));
+        initialGameState = new GameState(BOARD_SIZE ,moves);
+
         setEngineState(ES_PLAY);
     }
 
@@ -442,18 +441,12 @@ public class ZebraEngine extends Thread {
     }
 
     public void setInitialGameState(LinkedList<Move> moves) {
-        byte[] bytes = toByte(moves);
-        setInitialGameState(moves.size(), bytes);
+        this.initialGameState =  new GameState(BOARD_SIZE, moves);
     }
 
     // gamestate manipulators
     public void setInitialGameState(int moveCount, byte[] moves) {
-        initialGameState = new GameState();
-        initialGameState.setDisksPlayed(moveCount);
-        byte[] moveSequence = new byte[moveCount];
-        System.arraycopy(moves, 0, moveSequence, 0, moveCount);
-        initialGameState.setMoveSequence(moveSequence);
-
+        initialGameState = new GameState(BOARD_SIZE, moves, moveCount);
     }
 
     public GameState getGameState() {
@@ -488,9 +481,8 @@ public class ZebraEngine extends Thread {
             synchronized (mJNILock) {
                 setPlayerInfos();
 
-                currentGameState = new GameState();
-                currentGameState.setDisksPlayed(0);
-                currentGameState.setMoveSequence(new byte[2 * BOARD_SIZE * BOARD_SIZE]);
+                currentGameState = new GameState(BOARD_SIZE);
+
 
                 if (initialGameState != null)
                     zePlay(initialGameState.getDisksPlayed(), initialGameState.exportMoveSequence());
@@ -548,20 +540,11 @@ public class ZebraEngine extends Thread {
         return blackPlayerInfo;
     }
 
-    public void analyzeGame(List<Move> moves) {
-        byte[] bytes = toByte(moves);
-        zeAnalyzeGame(moves.size(), bytes);
-    }
-
-
-    private byte[] toByte(List<Move> moves) {
-        byte[] moveBytes = new byte[moves.size()];
-        for (int i = 0; i < moves.size(); i++) {
-            moveBytes[i] = (byte) moves.get(i).getMoveInt();
-        }
-        return moveBytes;
-    }
-
+// TODO when we want it, then we do it ;), for now it's not clear how it should work so I commented it out
+//    public void analyzeGame(List<Move> moves) {
+//        byte[] bytes = toByte(moves);
+//        zeAnalyzeGame(moves.size(), bytes);
+//    }
 
     // called by native code
     //public void Error(String msg) throws EngineError

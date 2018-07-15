@@ -1,6 +1,9 @@
 package com.shurik.droidzebra;
 
 
+import java.util.Arrays;
+import java.util.List;
+
 public class GameState {
     private int sideToMove;
     private ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
@@ -12,6 +15,34 @@ public class GameState {
     private int lastMove;
     private int nextMove;
     private ByteBoard byteBoard = new ByteBoard();
+
+    GameState(int boardSize) {
+        setDisksPlayed(0);
+        this.moveSequence = new byte[2 * boardSize * boardSize];
+    }
+
+    GameState(int boardSize, List<Move> moves) {
+        setDisksPlayed(moves.size());
+        this.moveSequence = toBytesWithBoardSize(moves, boardSize);
+    }
+
+    GameState(int boardSize, byte[] moves, int movesPlayed) {
+        setDisksPlayed(movesPlayed);
+        this.moveSequence = Arrays.copyOf(moves, boardByteLength(boardSize));
+    }
+
+    private int boardByteLength(int boardSize) {
+        return boardSize * boardSize * 2;
+    }
+
+    private byte[] toBytesWithBoardSize(List<Move> moves, int boardSize) {//TODO add boardsize there to be consistent
+        byte[] moveBytes = new byte[boardByteLength(boardSize)];
+        for (int i = 0; i < moves.size() && i < moveBytes.length; i++) {
+            moveBytes[i] = (byte) moves.get(i).getMoveInt();
+        }
+        return moveBytes;
+    }
+
 
     public ByteBoard getByteBoard() {
         return byteBoard;
@@ -47,10 +78,6 @@ public class GameState {
 
     public int getDisksPlayed() {
         return disksPlayed;
-    }
-
-    void setMoveSequence(byte[] moveSequence) {
-        this.moveSequence = moveSequence;
     }
 
     public byte[] exportMoveSequence() {
