@@ -8,7 +8,7 @@ public class CompletionAsyncTask extends AsyncTask<Void, Void, Void> {
     private Runnable completion;
     private ZebraEngine engine;
 
-    CompletionAsyncTask(final Runnable completion, ZebraEngine engine) {
+    public CompletionAsyncTask(final Runnable completion, ZebraEngine engine) {
 
         this.completion = completion;
         this.engine = engine;

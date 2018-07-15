@@ -88,17 +88,11 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     public void newGame() {
-        if (!engine.isReadyToPlay()) {
-            engine.stopGame();
-        }
-        waitForReadyToPlay(
-                () -> {
-                    resetStateAndStatusView();
-                    loadUISettings();
-                    engine.loadConfig(settingsProvider.createEngineConfig());
-                    engine.setEngineStatePlay();
-                }
-        );
+        engine.newGame(settingsProvider.createEngineConfig());
+
+        resetStateAndStatusView();
+        loadUISettings();
+
     }
 
     /* Creates the menu items */

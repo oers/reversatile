@@ -18,6 +18,7 @@
 package com.shurik.droidzebra;
 
 import android.util.Log;
+import de.earthlingz.oerszebra.CompletionAsyncTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -843,6 +844,23 @@ public class ZebraEngine {
 
         setComputerMoveDelay((cfg.engineFunction != FUNCTION_HUMAN_VS_HUMAN) ? cfg.computerMoveDelay : 0);
         sendSettingsChanged();
+    }
+
+    private void waitForReadyToPlay(final Runnable completion) {
+        new CompletionAsyncTask(completion, this)
+                .execute();
+    }
+    public void newGame(EngineConfig engineConfig) {
+
+        if (!isReadyToPlay()) {
+            stopGame();
+        }
+        waitForReadyToPlay(
+                () -> {
+                    loadConfig(engineConfig);
+                    setEngineStatePlay();
+                }
+        );
     }
 
     public interface OnEngineErrorListener {
