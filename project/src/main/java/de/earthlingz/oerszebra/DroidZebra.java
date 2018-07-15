@@ -263,26 +263,11 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         }
 
         if (engine == null) return;
-        int settingFunction = settingsProvider.getSettingFunction();
         int depth = settingsProvider.getSettingZebraDepth();
         int depthExact = settingsProvider.getSettingZebraDepthExact();
         int depthWLD = settingsProvider.getSettingZebraDepthWLD();
-        engine.setAutoMakeMoves(settingsProvider.isSettingAutoMakeForcedMoves());
-        engine.setForcedOpening(settingsProvider.getSettingForceOpening());
-        engine.setHumanOpenings(settingsProvider.isSettingHumanOpenings());
-        engine.setPracticeMode(settingsProvider.isSettingPracticeMode());
-        engine.setUseBook(settingsProvider.isSettingUseBook());
 
-        engine.setEngineFunction(settingFunction, depth, depthExact, depthWLD);
-
-        engine.setSlack(settingsProvider.getSettingSlack());
-        engine.setPerturbation(settingsProvider.getSettingPerturbation());
-
-
-
-        engine.setComputerMoveDelay((settingFunction != FUNCTION_HUMAN_VS_HUMAN) ? settingsProvider.getComputerMoveDelay() : 0);
-        engine.sendSettingsChanged();
-
+        engine.loadConfig(settingsProvider.createEngineConfig());
         mStatusView.setTextForID(
                 StatusView.ID_SCORE_SKILL,
                 String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)

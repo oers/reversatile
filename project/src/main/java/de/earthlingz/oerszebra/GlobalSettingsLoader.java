@@ -2,6 +2,7 @@ package de.earthlingz.oerszebra;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.shurik.droidzebra.EngineConfig;
 
 import java.util.Locale;
 
@@ -290,6 +291,24 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     @Override
     public int getComputerMoveDelay() {
         return computerMoveDelay;
+    }
+
+    @Override
+    public EngineConfig createEngineConfig() {
+        return new EngineConfig(
+                settingFunction,
+                settingZebraDepth,
+                settingZebraDepthExact,
+                settingZebraDepthWLD,
+                settingAutoMakeForcedMoves,
+                settingRandomness,
+                settingForceOpening,
+                settingHumanOpenings,
+                settingPracticeMode,
+                settingUseBook,
+                settingSlack,
+                settingPerturbation,
+                computerMoveDelay);
     }
 
 

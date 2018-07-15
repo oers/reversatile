@@ -18,8 +18,6 @@
 package com.shurik.droidzebra;
 
 import android.util.Log;
-import de.earthlingz.oerszebra.DroidZebra;
-import de.earthlingz.oerszebra.DroidZebraHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +28,6 @@ import java.util.List;
 import java.util.Locale;
 
 import static de.earthlingz.oerszebra.GameSettingsConstants.*;
-//import android.util.Log;
 
 // DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler
 public class ZebraEngine extends Thread {
@@ -347,7 +344,7 @@ public class ZebraEngine extends Thread {
     // settings helpers
 
 
-    public void setEngineFunction(int settingFunction, int depth, int depthExact, int depthWLD) {
+    private void setEngineFunction(int settingFunction, int depth, int depthExact, int depthWLD) {
         switch (settingFunction) {
             case FUNCTION_HUMAN_VS_HUMAN:
                 setBlackPlayerInfo(new PlayerInfo(0, 0, 0));
@@ -370,26 +367,26 @@ public class ZebraEngine extends Thread {
         setZebraPlayerInfo(new PlayerInfo(depth + 1, depthExact + 1, depthWLD + 1));
     }
 
-    public void setAutoMakeMoves(boolean _settingAutoMakeForcedMoves) {
+    private void setAutoMakeMoves(boolean _settingAutoMakeForcedMoves) {
         if (_settingAutoMakeForcedMoves)
             zeSetAutoMakeMoves(1);
         else
             zeSetAutoMakeMoves(0);
     }
 
-    public void setSlack(int _slack) {
+    private void setSlack(int _slack) {
         zeSetSlack(_slack);
     }
 
-    public void setPerturbation(int _perturbation) {
+    private void setPerturbation(int _perturbation) {
         zeSetPerturbation(_perturbation);
     }
 
-    public void setForcedOpening(String _openingName) {
+    private void setForcedOpening(String _openingName) {
         zeSetForcedOpening(_openingName);
     }
 
-    public void setHumanOpenings(boolean _enable) {
+    private void setHumanOpenings(boolean _enable) {
         if (_enable)
             zeSetHumanOpenings(1);
         else
@@ -403,7 +400,7 @@ public class ZebraEngine extends Thread {
             zeSetPracticeMode(0);
     }
 
-    public void setUseBook(boolean _enable) {
+    private void setUseBook(boolean _enable) {
         if (_enable)
             zeSetUseBook(1);
         else
@@ -431,7 +428,7 @@ public class ZebraEngine extends Thread {
         }
     }
 
-    public void setComputerMoveDelay(int delay) {
+    private void setComputerMoveDelay(int delay) {
         computerMoveDelay = delay;
     }
 
@@ -856,7 +853,7 @@ public class ZebraEngine extends Thread {
         }
     }
 
-    public static synchronized ZebraEngine get(GameContext ctx) {
+    public static synchronized ZebraEngine get(GameContext ctx) { //TODO this is still kinda risky..
         if (engine == null || !engine.isAlive()) {
             engine = new ZebraEngine(ctx);
             engine.start();
@@ -886,6 +883,21 @@ public class ZebraEngine extends Thread {
         this.handler = handler;
     }
 
+    public void loadConfig(EngineConfig cfg) {
+        setEngineFunction(cfg.engineFunction, cfg.depth, cfg.depthExact, cfg.depthWLD);
+
+        setAutoMakeMoves(cfg.autoForcedMoves);
+        setForcedOpening(cfg.forcedOpening);
+        setHumanOpenings(cfg.humanOpenings);
+        setPracticeMode(cfg.practiceMode);
+        setUseBook(cfg.useBook);
+
+        setSlack(cfg.slack);
+        setPerturbation(cfg.perturbation);
+
+        setComputerMoveDelay((cfg.engineFunction != FUNCTION_HUMAN_VS_HUMAN) ? cfg.computerMoveDelay : 0);
+        sendSettingsChanged();
+    }
 
 
     public interface OnEngineErrorListener {
