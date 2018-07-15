@@ -851,11 +851,6 @@ public class ZebraEngine {
         sendSettingsChanged();
     }
 
-    public void run() {
-        engineThread.run();
-    }
-
-
     public interface OnEngineErrorListener {
         default void onError(String error) {
             Log.v("OersZebra", error);
