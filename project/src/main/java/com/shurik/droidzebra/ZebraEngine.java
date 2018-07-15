@@ -30,7 +30,7 @@ import java.util.Locale;
 import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 
 // DroidZebra -> ZebraEngine:public -async-> ZebraEngine thread(jni) -> Callback() -async-> DroidZebra:Handler
-public class ZebraEngine extends Thread {
+public class ZebraEngine {
 
     private static final int BOARD_SIZE = 8;
 
@@ -48,6 +48,7 @@ public class ZebraEngine extends Thread {
     // default parameters
     private static final int INFINITE_TIME = 10000000;
     private static ZebraEngine engine;
+    private final EngineThread engineThread = new EngineThread();
     private int computerMoveDelay = 0;
     private long mMoveStartTime = 0; //ms
 
@@ -433,7 +434,7 @@ public class ZebraEngine extends Thread {
     }
 
     public void setInitialGameState(LinkedList<Move> moves) {
-        this.initialGameState = new GameState(BOARD_SIZE, moves);
+        ZebraEngine.this.initialGameState = new GameState(BOARD_SIZE, moves);
     }
 
     // gamestate manipulators
@@ -443,55 +444,6 @@ public class ZebraEngine extends Thread {
 
     public GameState getGameState() {
         return currentGameState;
-    }
-
-    // zebra thread
-    @Override
-    public void run() {
-        setRunning(true);
-
-        setEngineState(ES_INITIAL);
-
-        // init data files
-        if (!initFiles()) return;
-
-        synchronized (mJNILock) {
-            zeGlobalInit(mFilesDir.getAbsolutePath());
-            zeSetPlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINITE_TIME, 0);
-            zeSetPlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINITE_TIME, 0);
-        }
-
-        setEngineState(ES_READY2PLAY);
-
-        while (isRunning) {
-            waitForEngineState(ES_PLAY);
-
-            if (!isRunning) break; // something may have happened while we were waiting
-
-            setEngineState(ES_PLAY_IN_PROGRESS);
-
-            synchronized (mJNILock) {
-                setPlayerInfos();
-
-                currentGameState = new GameState(BOARD_SIZE);
-                currentGameState.setHandler(handler);
-
-
-                if (initialGameState != null)
-                    zePlay(initialGameState.getDisksPlayed(), initialGameState.exportMoveSequence());
-                else
-                    zePlay(0, null);
-
-                initialGameState = null;
-            }
-
-            setEngineState(ES_READY2PLAY);
-            //setEngineState(ES_PLAY);  // test
-        }
-
-        synchronized (mJNILock) {
-            zeGlobalTerminate();
-        }
     }
 
     private void setPlayerInfos() {
@@ -555,13 +507,13 @@ public class ZebraEngine extends Thread {
                         new File(mFilesDir, BOOK_FILE_COMPRESSED).delete();
                     }
                     String error = data.getString("error");
-                    this.onErrorListener.onError(error);
+                    ZebraEngine.this.onErrorListener.onError(error);
                 }
                 break;
 
                 case MSG_DEBUG: {
                     String message = data.getString("message");
-                    this.onDebugListener.onDebug(message);
+                    ZebraEngine.this.onDebugListener.onDebug(message);
                 }
                 break;
 
@@ -842,10 +794,10 @@ public class ZebraEngine extends Thread {
     public void kill() {
         boolean retry = true;
         setRunning(false);
-        interrupt(); // if waiting
+        engineThread.interrupt(); // if waiting
         while (retry) {
             try {
-                join();
+                engineThread.join();
                 retry = false;
             } catch (InterruptedException e) {
                 Log.wtf("wtf", e);
@@ -854,9 +806,9 @@ public class ZebraEngine extends Thread {
     }
 
     public static synchronized ZebraEngine get(GameContext ctx) { //TODO this is still kinda risky..
-        if (engine == null || !engine.isAlive()) {
+        if (engine == null || !engine.engineThread.isAlive()) {
             engine = new ZebraEngine(ctx);
-            engine.start();
+            engine.engineThread.start();
         }
         return engine;
 
@@ -864,23 +816,23 @@ public class ZebraEngine extends Thread {
 
     public void setOnErrorListener(OnEngineErrorListener onErrorListener) {
         if (onErrorListener == null) {
-            this.onErrorListener = new OnEngineErrorListener() {
+            ZebraEngine.this.onErrorListener = new OnEngineErrorListener() {
             };
         } else {
-            this.onErrorListener = onErrorListener;
+            ZebraEngine.this.onErrorListener = onErrorListener;
         }
     }
 
     public void setOnDebugListener(OnEngineDebugListener listener) {
         if (listener == null)
-            this.onDebugListener = new OnEngineDebugListener() {
+            ZebraEngine.this.onDebugListener = new OnEngineDebugListener() {
             };
         else
-            this.onDebugListener = listener;
+            ZebraEngine.this.onDebugListener = listener;
     }
 
     public void setHandler(ZebraEngineMessageHandler handler) {//TODO delete and don't use this. I just need to test if all refactoring works nowF
-        this.handler = handler;
+        ZebraEngine.this.handler = handler;
     }
 
     public void loadConfig(EngineConfig cfg) {
@@ -899,6 +851,10 @@ public class ZebraEngine extends Thread {
         sendSettingsChanged();
     }
 
+    public void run() {
+        engineThread.run();
+    }
+
 
     public interface OnEngineErrorListener {
         default void onError(String error) {
@@ -909,6 +865,57 @@ public class ZebraEngine extends Thread {
     public interface OnEngineDebugListener {
         default void onDebug(String message) {
             Log.v("OersZebra", message);
+        }
+    }
+
+    private class EngineThread extends Thread {
+        // zebra thread
+        @Override
+        public void run() {
+            setRunning(true);
+
+            setEngineState(ES_INITIAL);
+
+            // init data files
+            if (!initFiles()) return;
+
+            synchronized (mJNILock) {
+                zeGlobalInit(mFilesDir.getAbsolutePath());
+                zeSetPlayerInfo(PLAYER_BLACK, 0, 0, 0, INFINITE_TIME, 0);
+                zeSetPlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINITE_TIME, 0);
+            }
+
+            setEngineState(ES_READY2PLAY);
+
+            while (isRunning) {
+                waitForEngineState(ES_PLAY);
+
+                if (!isRunning) break; // something may have happened while we were waiting
+
+                setEngineState(ES_PLAY_IN_PROGRESS);
+
+                synchronized (mJNILock) {
+                    setPlayerInfos();
+
+                    currentGameState = new GameState(BOARD_SIZE);
+                    currentGameState.setHandler(handler);
+
+
+                    if (initialGameState != null)
+                        zePlay(initialGameState.getDisksPlayed(), initialGameState.exportMoveSequence());
+                    else
+                        zePlay(0, null);
+
+                    initialGameState = null;
+                }
+
+                setEngineState(ES_READY2PLAY);
+                //setEngineState(ES_PLAY);  // test
+            }
+
+            synchronized (mJNILock) {
+                zeGlobalTerminate();
+            }
         }
     }
 }
