@@ -18,16 +18,16 @@ public class GameState {
     private ZebraEngineMessageHandler handler = new ZebraEngineMessageHandler() {
     };
 
-    //TODO all these constructors leave the instance at inconsistent state :/
-    GameState(int boardSize) {
-        this.disksPlayed = 0;
-        this.moveSequence = new byte[2 * boardSize * boardSize];
-        byteBoard = new ByteBoard(boardSize);
-    }
-
     GameState(int boardSize, List<Move> moves) {
         this.disksPlayed = moves.size();
         this.moveSequence = toBytesWithBoardSize(moves, boardSize);
+        byteBoard = new ByteBoard(boardSize);
+    }
+
+    //TODO all these constructors above leave the instance at inconsistent state :/
+    GameState(int boardSize) {
+        this.disksPlayed = 0;
+        this.moveSequence = new byte[2 * boardSize * boardSize];
         byteBoard = new ByteBoard(boardSize);
     }
 
