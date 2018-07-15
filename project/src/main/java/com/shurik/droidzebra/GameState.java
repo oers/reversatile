@@ -139,7 +139,7 @@ public class GameState {
         }
     }
 
-    public void setByteBoard(ByteBoard byteBoard) {
+    void setByteBoard(ByteBoard byteBoard) {
         this.byteBoard = byteBoard;
     }
 
