@@ -88,7 +88,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     public void newGame() {
-        if (!(engine.isReadyToPlay())) {
+        if (!engine.isReadyToPlay()) {
             engine.stopGame();
         }
         waitForReadyToPlay(
