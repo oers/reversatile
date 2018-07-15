@@ -14,22 +14,42 @@ public class GameState {
     private String opening;
     private int lastMove;
     private int nextMove;
-    private ByteBoard byteBoard = new ByteBoard();
+    private ByteBoard byteBoard;
+    private ZebraEngineMessageHandler handler = new ZebraEngineMessageHandler() {
+    };
 
     GameState(int boardSize) {
         this.disksPlayed = 0;
         this.moveSequence = new byte[2 * boardSize * boardSize];
+        byteBoard = new ByteBoard(boardSize);
     }
 
     GameState(int boardSize, List<Move> moves) {
         this.disksPlayed = moves.size();
         this.moveSequence = toBytesWithBoardSize(moves, boardSize);
+        byteBoard = new ByteBoard(boardSize);
     }
 
     GameState(int boardSize, byte[] moves, int movesPlayed) {
         this.disksPlayed = movesPlayed;
         this.moveSequence = Arrays.copyOf(moves, boardByteLength(boardSize));
+        byteBoard = new ByteBoard(boardSize);
     }
+
+
+    public void removeHandler() {
+        handler = new ZebraEngineMessageHandler() {
+        };
+    }
+
+    public void setHandler(ZebraEngineMessageHandler handler) {
+        if (handler == null) {
+            removeHandler();
+        } else {
+            this.handler = handler;
+        }
+    }
+
 
     private static int boardByteLength(int boardSize) {
         return boardSize * boardSize * 2;
@@ -79,6 +99,7 @@ public class GameState {
 
     void setOpening(String opening) {
         this.opening = opening;
+        handler.sendBoard(this);
     }
 
     public String getOpening() {
@@ -87,6 +108,7 @@ public class GameState {
 
     void setLastMove(int lastMove) {
         this.lastMove = lastMove;
+        handler.sendBoard(this);
     }
 
     public int getLastMove() {
@@ -95,6 +117,7 @@ public class GameState {
 
     void setNextMove(int nextMove) {
         this.nextMove = nextMove;
+        handler.sendBoard(this);
     }
 
     public int getNextMove() {
@@ -110,6 +133,7 @@ public class GameState {
                 }
             }
         }
+        handler.sendBoard(this);
     }
 
 
@@ -160,6 +184,35 @@ public class GameState {
                 whiteDiscCOunt,
                 whiteMoveList
         );
+        handler.sendBoard(this);
+
     }
 
+    public void sendPv(byte[] moves) {
+        this.handler.sendPv(moves);
+    }
+
+    public void sendPass() {
+        handler.sendPass();
+    }
+
+    public void sendGameStart() {
+        handler.sendGameStart();
+    }
+
+    public void sendGameOver() {
+        handler.sendGameOver();
+    }
+
+    public void sendMoveStart() {
+        handler.sendMoveStart();
+    }
+
+    public void sendEval(String eval) {
+        handler.sendEval(eval);
+    }
+
+    public void sendMoveEnd() {
+        handler.sendMoveEnd();
+    }
 }

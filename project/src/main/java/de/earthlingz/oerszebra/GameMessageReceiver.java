@@ -3,23 +3,27 @@ package de.earthlingz.oerszebra;
 import com.shurik.droidzebra.GameState;
 
 interface GameMessageReceiver {
-    void onError(String error);
+    default void onBoard(GameState board) {
+    }
 
-    void onDebug(String debug);
+    default void onPass() {
+    }
 
-    void onBoard(GameState board);
+    default void onGameStart() {
+    }
 
-    void onPass();
+    default void onGameOver() {
+    }
 
-    void onGameStart();
+    default void onMoveStart() {
+    }
 
-    void onGameOver();
+    default void onMoveEnd() {
+    }
 
-    void onMoveStart();
+    default void onEval(String eval) {
+    }
 
-    void onMoveEnd();
-
-    void onEval(String eval);
-
-    void onPv(byte[] moves);
+    default void onPv(byte[] moves) {
+    }
 }

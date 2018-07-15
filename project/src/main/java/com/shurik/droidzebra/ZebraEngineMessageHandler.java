@@ -1,23 +1,27 @@
 package com.shurik.droidzebra;
 
 public interface ZebraEngineMessageHandler {
-    void sendError(String error);
+    default void sendBoard(GameState board) {
+    }
 
-    void sendDebug(String debug);
+    default void sendPass() {
+    }
 
-    void sendBoard(GameState board);
+    default void sendGameStart() {
+    }
 
-    void sendPass();
+    default void sendGameOver() {
+    }
 
-    void sendGameStart();
+    default void sendMoveStart() {
+    }
 
-    void sendGameOver();
+    default void sendMoveEnd() {
+    }
 
-    void sendMoveStart();
+    default void sendEval(String eval) {
+    }
 
-    void sendMoveEnd();
-
-    void sendEval(String eval);
-
-    void sendPv(byte[] moves);
+    default void sendPv(byte[] moves) {
+    }
 }

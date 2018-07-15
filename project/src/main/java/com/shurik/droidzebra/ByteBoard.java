@@ -20,9 +20,9 @@ public class ByteBoard {
         this.boardSize = boardSize;
     }
 
-    ByteBoard() {
-        board = new byte[0];
-        this.boardSize = 0;
+    ByteBoard(int boardSize) {
+        board = new byte[boardSize * boardSize];
+        this.boardSize = boardSize;
     }
 
     public byte get(int i, int j) {

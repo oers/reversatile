@@ -18,6 +18,8 @@
 package com.shurik.droidzebra;
 
 import android.util.Log;
+import de.earthlingz.oerszebra.DroidZebra;
+import de.earthlingz.oerszebra.DroidZebraHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -91,11 +93,6 @@ public class ZebraEngine extends Thread {
     private PlayerInfo whitePlayerInfo = new PlayerInfo(0, 0, 0);
 
 
-    public void removeHandler() {
-        mHandler = new EmptyHandler();
-    }
-
-
     private transient GameState initialGameState;
     private transient GameState currentGameState;
 
@@ -113,9 +110,6 @@ public class ZebraEngine extends Thread {
     // context
     private GameContext mContext;
 
-    // message sink
-    private ZebraEngineMessageHandler mHandler = new EmptyHandler();
-
     // files folder
     private File mFilesDir;
 
@@ -129,14 +123,16 @@ public class ZebraEngine extends Thread {
     private boolean isRunning = false;
 
     private boolean bInCallback = false;
+    private OnEngineErrorListener onErrorListener = new OnEngineErrorListener() {
+    };
+    private OnEngineDebugListener onDebugListener = new OnEngineDebugListener() {
+    };
+    private ZebraEngineMessageHandler handler;
 
     private ZebraEngine(GameContext context) {
         mContext = context;
     }
 
-    public void setHandler(ZebraEngineMessageHandler mHandler) {
-        this.mHandler = mHandler;
-    }
 
     private boolean initFiles() {
         mFilesDir = null;
@@ -481,6 +477,7 @@ public class ZebraEngine extends Thread {
                 setPlayerInfos();
 
                 currentGameState = new GameState(BOARD_SIZE);
+                currentGameState.setHandler(handler);
 
 
                 if (initialGameState != null)
@@ -561,13 +558,13 @@ public class ZebraEngine extends Thread {
                         new File(mFilesDir, BOOK_FILE_COMPRESSED).delete();
                     }
                     String error = data.getString("error");
-                    mHandler.sendError(error);
+                    this.onErrorListener.onError(error);
                 }
                 break;
 
                 case MSG_DEBUG: {
-                    String debug = data.getString("message");
-                    mHandler.sendDebug(debug);
+                    String message = data.getString("message");
+                    this.onDebugListener.onDebug(message);
                 }
                 break;
 
@@ -594,7 +591,6 @@ public class ZebraEngine extends Thread {
 
                     currentGameState.updateGameState(sideToMove, disksPlayed, blackTime, blackEval, blackDiscCount, whiteTime, whiteEval, whiteDiscCOunt, blackMoveList, whiteMoveList, byteBoard);
 
-                    mHandler.sendBoard(currentGameState);
                 }
                 break;
 
@@ -633,14 +629,14 @@ public class ZebraEngine extends Thread {
 
                 case MSG_PASS: {
                     setEngineState(ES_USER_INPUT_WAIT);
-                    mHandler.sendPass();
+                    currentGameState.sendPass();
                     waitForEngineState(ES_PLAY);
                     setEngineState(ES_PLAY_IN_PROGRESS);
                 }
                 break;
                 case MSG_ANALYZE_GAME: {
                     setEngineState(ES_USER_INPUT_WAIT);
-                    //mHandler.sendMessage(msg);
+                    //currentGameState.sendMessage(msg);
                     waitForEngineState(ES_PLAY);
                     setEngineState(ES_PLAY_IN_PROGRESS);
                 }
@@ -648,36 +644,35 @@ public class ZebraEngine extends Thread {
 
                 case MSG_OPENING_NAME: {
                     getGameState().setOpening(data.getString("opening"));
-                    mHandler.sendBoard(getGameState());
+
                 }
                 break;
 
                 case MSG_LAST_MOVE: {
                     getGameState().setLastMove(data.getInt("move"));
-                    mHandler.sendBoard(getGameState());
                 }
                 break;
 
                 case MSG_NEXT_MOVE: {
                     getGameState().setNextMove(data.getInt("move"));
-                    mHandler.sendBoard(getGameState());
+
                 }
                 break;
 
                 case MSG_GAME_START: {
-                    mHandler.sendGameStart();
+                    currentGameState.sendGameStart();
                 }
                 break;
 
                 case MSG_GAME_OVER: {
-                    mHandler.sendGameOver();
+                    currentGameState.sendGameOver();
                 }
                 break;
 
                 case MSG_MOVE_START: {
                     mMoveStartTime = android.os.SystemClock.uptimeMillis();
 
-                    mSideToMove = data.getInt("side_to_move");
+                    mSideToMove = data.getInt("side_to_move");//TODO shouldn't this be set on GameState now?
 
                     // can change player info here
                     synchronized (playerInfoLock) {
@@ -687,26 +682,29 @@ public class ZebraEngine extends Thread {
                         }
                     }
 
-                    mHandler.sendMoveStart();
+                    currentGameState.sendMoveStart();
                 }
                 break;
 
                 case MSG_MOVE_END: {
                     // introduce delay between moves made by the computer without user input
                     // so we can actually to see that the game is being played :)
+                    // TODO thanks a lot :D, now it will be way more problematic to handle shared use of the engine
+                    // TODO this should be handled entirely by UI. Stopping time-critical engine thread for the sake of UI is just ridiculous
+
                     if (computerMoveDelay > 0 && !isHumanToMove()) {
                         long moveEnd = android.os.SystemClock.uptimeMillis();
                         if ((moveEnd - mMoveStartTime) < computerMoveDelay) {
                             android.os.SystemClock.sleep(computerMoveDelay - (moveEnd - mMoveStartTime));
                         }
                     }
-                    mHandler.sendMoveEnd();
+                    currentGameState.sendMoveEnd();
                 }
                 break;
 
                 case MSG_EVAL_TEXT: {
                     String eval = data.getString("eval");
-                    mHandler.sendEval(eval);
+                    currentGameState.sendEval(eval);
                 }
                 break;
 
@@ -716,7 +714,7 @@ public class ZebraEngine extends Thread {
                     byte[] moves = new byte[len];
                     for (int i = 0; i < len; i++)
                         moves[i] = (byte) zeArray.getInt(i);
-                    mHandler.sendPv(moves);
+                    currentGameState.sendPv(moves);
                 }
                 break;
 
@@ -733,17 +731,17 @@ public class ZebraEngine extends Thread {
                         );
                     }
                     getGameState().addCandidateMoveEvals(cmoves);
-                    mHandler.sendBoard(getGameState());
+
                 }
                 break;
 
                 default: {
-                    mHandler.sendError(String.format(Locale.getDefault(), "Unknown message ID %d", msgcode));
+                    onErrorListener.onError(String.format(Locale.getDefault(), "Unknown message ID %d", msgcode));
                 }
                 break;
             }
         } catch (JSONException e) {
-            mHandler.sendError("JSONException:" + e.getMessage());
+            onErrorListener.onError("JSONException:" + e.getMessage());
         } finally {
             bInCallback = false;
         }
@@ -856,7 +854,6 @@ public class ZebraEngine extends Thread {
                 Log.wtf("wtf", e);
             }
         }
-        removeHandler();
     }
 
     public static synchronized ZebraEngine get(GameContext ctx) {
@@ -868,55 +865,38 @@ public class ZebraEngine extends Thread {
 
     }
 
-    private static class EmptyHandler implements ZebraEngineMessageHandler {
-        @Override
-        public void sendError(String error) {
-
+    public void setOnErrorListener(OnEngineErrorListener onErrorListener) {
+        if (onErrorListener == null) {
+            this.onErrorListener = new OnEngineErrorListener() {
+            };
+        } else {
+            this.onErrorListener = onErrorListener;
         }
+    }
 
-        @Override
-        public void sendDebug(String debug) {
+    public void setOnDebugListener(OnEngineDebugListener listener) {
+        if (listener == null)
+            this.onDebugListener = new OnEngineDebugListener() {
+            };
+        else
+            this.onDebugListener = listener;
+    }
 
+    public void setHandler(ZebraEngineMessageHandler handler) {//TODO delete and don't use this. I just need to test if all refactoring works nowF
+        this.handler = handler;
+    }
+
+
+
+    public interface OnEngineErrorListener {
+        default void onError(String error) {
+            Log.v("OersZebra", error);
         }
+    }
 
-        @Override
-        public void sendBoard(GameState board) {
-
-        }
-
-        @Override
-        public void sendPass() {
-
-        }
-
-        @Override
-        public void sendGameStart() {
-
-        }
-
-        @Override
-        public void sendGameOver() {
-
-        }
-
-        @Override
-        public void sendMoveStart() {
-
-        }
-
-        @Override
-        public void sendMoveEnd() {
-
-        }
-
-        @Override
-        public void sendEval(String eval) {
-
-        }
-
-        @Override
-        public void sendPv(byte[] moves) {
-
+    public interface OnEngineDebugListener {
+        default void onDebug(String message) {
+            Log.v("OersZebra", message);
         }
     }
 }

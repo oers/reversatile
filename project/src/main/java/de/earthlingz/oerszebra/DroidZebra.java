@@ -47,7 +47,8 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.*;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
 
-public class DroidZebra extends FragmentActivity implements MoveStringConsumer, OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameMessageReceiver {
+public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
+        OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameMessageReceiver, ZebraEngine.OnEngineErrorListener {
     private ClipboardManager clipboard;
     private ZebraEngine engine;
 
@@ -204,6 +205,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
         String type = intent.getType();
 
         Log.i("Intent", type + " " + action);
+        engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
 
         engine.setHandler(new DroidZebraHandler(this));
         if (Intent.ACTION_SEND.equals(action) && type != null) {
@@ -418,6 +420,11 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
     @Override
     protected void onDestroy() {
         engine.kill();
+
+        //TODO - I shouldn't be able to touch current game state from here
+        //TODO remove this and replace by call to my own my instance of GameState
+        engine.getGameState().removeHandler();
+
         super.onDestroy();
     }
 
@@ -552,11 +559,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
     }
 
     @Override
-    public void onDebug(String debug) {
-        Log.v("OersZebra", debug);
-    }
-
-    @Override
     public void onBoard(GameState gameState) {
         int sideToMove = gameState.getSideToMove();
 
@@ -653,20 +655,10 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer, 
     }
 
     @Override
-    public void onGameStart() {
-        // noop
-    }
-
-    @Override
     public void onGameOver() {
         state.processGameOver();
         runOnUiThread(() -> mBoardView.invalidate());//TODO Id doubt runOnUIThread is necessary here
         this.showGameOverDialog();
-    }
-
-    @Override
-    public void onMoveStart() {
-
     }
 
     @Override

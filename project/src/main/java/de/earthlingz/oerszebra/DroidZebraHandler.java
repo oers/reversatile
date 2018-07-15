@@ -13,16 +13,6 @@ public class DroidZebraHandler implements ZebraEngineMessageHandler {
     }
 
     @Override
-    public void sendError(String error) {
-        handler.post(() -> receiver.onError(error));
-    }
-
-    @Override
-    public void sendDebug(String debug) {
-        handler.post(() -> receiver.onDebug(debug));
-    }
-
-    @Override
     public void sendBoard(GameState board) {
         handler.post(() -> receiver.onBoard(board));
     }
