@@ -278,6 +278,11 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         engine.setSlack(settingsProvider.getSettingSlack());
         engine.setPerturbation(settingsProvider.getSettingPerturbation());
 
+
+
+        engine.setComputerMoveDelay((settingFunction != FUNCTION_HUMAN_VS_HUMAN) ? settingsProvider.getComputerMoveDelay() : 0);
+        engine.sendSettingsChanged();
+
         mStatusView.setTextForID(
                 StatusView.ID_SCORE_SKILL,
                 String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
@@ -288,9 +293,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
             mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
         }
-
-        engine.setComputerMoveDelay((settingFunction != FUNCTION_HUMAN_VS_HUMAN) ? settingsProvider.getComputerMoveDelay() : 0);
-        engine.sendSettingsChanged();
 
     }
 
