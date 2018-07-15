@@ -33,7 +33,6 @@ import android.util.Log;
 import android.view.*;
 import android.widget.Button;
 import android.widget.TextView;
-import com.google.common.base.Objects;
 import com.shurik.droidzebra.*;
 import de.earthlingz.oerszebra.parser.GameParser;
 

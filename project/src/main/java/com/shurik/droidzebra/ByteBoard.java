@@ -3,6 +3,8 @@ package com.shurik.droidzebra;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.Arrays;
+
 
 public class ByteBoard {
 
@@ -21,8 +23,9 @@ public class ByteBoard {
     }
 
     ByteBoard(int boardSize) {
-        board = new byte[boardSize * boardSize];
         this.boardSize = boardSize;
+        board = new byte[boardSize * boardSize];
+        Arrays.fill(board, ZebraEngine.PLAYER_EMPTY);
     }
 
     public byte get(int i, int j) {
