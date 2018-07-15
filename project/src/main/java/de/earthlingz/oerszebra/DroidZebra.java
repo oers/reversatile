@@ -399,7 +399,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         if (!settingsProvider.isSettingPracticeMode()) {
             setHintUp(true);
             engine.setPracticeMode(true);
-            engine.sendSettingsChanged();
         }
     }
 
@@ -653,7 +652,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         if (isHintUp) {
             this.setHintUp(false);
             engine.setPracticeMode(settingsProvider.isSettingPracticeMode());
-            engine.sendSettingsChanged();
         }
 
     }

@@ -318,7 +318,7 @@ public class ZebraEngine extends Thread {
     }
 
     // notifications that some settings have changes - see if we care
-    public void sendSettingsChanged() {
+    private void sendSettingsChanged() {
         // if we are waiting for input - restart the move (e.g. if sides switched)
         if (mEngineState == ES_USER_INPUT_WAIT) {
             mPendingEvent = new JSONObject();
@@ -398,6 +398,7 @@ public class ZebraEngine extends Thread {
             zeSetPracticeMode(1);
         else
             zeSetPracticeMode(0);
+        engine.sendSettingsChanged();//TODO not best place to set up, because it will be called multiple times uselessly, but I will get rid of it later
     }
 
     private void setUseBook(boolean _enable) {
