@@ -390,9 +390,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
         loadSettings();
 
-        // start a new game if not playing
-        if (!engine.gameInProgress())
-            newGame();
     }
 
     private void showHint() {
