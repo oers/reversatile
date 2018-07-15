@@ -9,10 +9,10 @@ public class ByteBoard {
     private final byte[] board;
     private final int boardSize;
 
-    public ByteBoard(JSONArray zeboard, int boardSize) throws JSONException {
+    ByteBoard(JSONArray jsonByteBoard, int boardSize) throws JSONException {
         board = new byte[boardSize * boardSize];
-        for (int i = 0; i < zeboard.length(); i++) {
-            JSONArray row = zeboard.getJSONArray(i);
+        for (int i = 0; i < jsonByteBoard.length(); i++) {
+            JSONArray row = jsonByteBoard.getJSONArray(i);
             for (int j = 0; j < row.length(); j++) {
                 board[i * boardSize + j] = (byte) row.getInt(j);
             }
@@ -20,7 +20,7 @@ public class ByteBoard {
         this.boardSize = boardSize;
     }
 
-    public ByteBoard() {
+    ByteBoard() {
         board = new byte[0];
         this.boardSize = 0;
     }
