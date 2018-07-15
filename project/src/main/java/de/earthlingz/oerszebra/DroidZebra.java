@@ -262,12 +262,11 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             mBoardView.setDisplayEvals(evalsDisplayEnabled());
         }
 
-        if (engine == null) return;
+
         int depth = settingsProvider.getSettingZebraDepth();
         int depthExact = settingsProvider.getSettingZebraDepthExact();
         int depthWLD = settingsProvider.getSettingZebraDepthWLD();
 
-        engine.loadConfig(settingsProvider.createEngineConfig());
         mStatusView.setTextForID(
                 StatusView.ID_SCORE_SKILL,
                 String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
@@ -278,6 +277,9 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
             mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
         }
+        if (engine == null) return;
+        engine.loadConfig(settingsProvider.createEngineConfig());
+
 
     }
 
