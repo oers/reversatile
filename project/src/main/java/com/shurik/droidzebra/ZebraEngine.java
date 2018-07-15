@@ -785,7 +785,7 @@ public class ZebraEngine {
         return mEngineState == ZebraEngine.ES_READY2PLAY;
     }
 
-    public void kill() {
+    public void kill() { //TODO remove this, no one should be able to kill the engine
         boolean retry = true;
         setRunning(false);
         engineThread.interrupt(); // if waiting
