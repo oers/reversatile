@@ -31,11 +31,11 @@ public class GameState {
         this.moveSequence = Arrays.copyOf(moves, boardByteLength(boardSize));
     }
 
-    private int boardByteLength(int boardSize) {
+    private static int boardByteLength(int boardSize) {
         return boardSize * boardSize * 2;
     }
 
-    private byte[] toBytesWithBoardSize(List<Move> moves, int boardSize) {//TODO add boardsize there to be consistent
+    private static byte[] toBytesWithBoardSize(List<Move> moves, int boardSize) {
         byte[] moveBytes = new byte[boardByteLength(boardSize)];
         for (int i = 0; i < moves.size() && i < moveBytes.length; i++) {
             moveBytes[i] = (byte) moves.get(i).getMoveInt();

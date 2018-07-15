@@ -18,7 +18,6 @@
 package com.shurik.droidzebra;
 
 import android.util.Log;
-import de.earthlingz.oerszebra.BuildConfig;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -504,43 +503,31 @@ public class ZebraEngine extends Thread {
     private void setPlayerInfos() {
         zeSetPlayerInfo(
                 PLAYER_BLACK,
-                getBlackPlayerInfo().skill,
-                getBlackPlayerInfo().exactSolvingSkill,
-                getBlackPlayerInfo().wldSolvingSkill,
+                blackPlayerInfo.skill,
+                blackPlayerInfo.exactSolvingSkill,
+                blackPlayerInfo.wldSolvingSkill,
                 INFINITE_TIME,
                 0
         );
         zeSetPlayerInfo(
                 PLAYER_WHITE,
-                getWhitePlayerInfo().skill,
-                getWhitePlayerInfo().exactSolvingSkill,
-                getWhitePlayerInfo().wldSolvingSkill,
+                whitePlayerInfo.skill,
+                whitePlayerInfo.exactSolvingSkill,
+                whitePlayerInfo.wldSolvingSkill,
                 INFINITE_TIME,
                 0
         );
         zeSetPlayerInfo(
                 PLAYER_ZEBRA,
-                getZebraPlayerInfo().skill,
-                getZebraPlayerInfo().exactSolvingSkill,
-                getZebraPlayerInfo().wldSolvingSkill,
+                zebraPlayerInfo.skill,
+                zebraPlayerInfo.exactSolvingSkill,
+                zebraPlayerInfo.wldSolvingSkill,
                 INFINITE_TIME,
                 0
         );
     }
 
-    private PlayerInfo getZebraPlayerInfo() {
-        return zebraPlayerInfo;
-    }
-
-    private PlayerInfo getWhitePlayerInfo() {
-        return whitePlayerInfo;
-    }
-
-    private PlayerInfo getBlackPlayerInfo() {
-        return blackPlayerInfo;
-    }
-
-// TODO when we want it, then we do it ;), for now it's not clear how it should work so I commented it out
+    // TODO when we want it, then we do it ;), for now it's not clear how it should work so I commented it out
 //    public void analyzeGame(List<Move> moves) {
 //        byte[] bytes = toByte(moves);
 //        zeAnalyzeGame(moves.size(), bytes);
@@ -786,12 +773,12 @@ public class ZebraEngine extends Thread {
 
     private PlayerInfo getSideToMovePlayerInfo() {
         if (mSideToMove == PLAYER_BLACK) {
-            return getBlackPlayerInfo();
+            return blackPlayerInfo;
         }
         if (mSideToMove == PLAYER_WHITE) {
-            return getWhitePlayerInfo();
+            return whitePlayerInfo;
         }
-        return getZebraPlayerInfo();
+        return zebraPlayerInfo;
     }
 
     private void fatalError(String message) {
