@@ -67,6 +67,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     public SettingsProvider settingsProvider;
     private DroidZebraHandler handler = new DroidZebraHandler(this);
+    private GameState gameState;
 
 
     public ZebraEngine getEngine() {
@@ -84,7 +85,13 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     public void newGame() {
-        engine.newGame(settingsProvider.createEngineConfig(), handler);
+        engine.newGame(settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState gameState) {
+                DroidZebra.this.gameState = gameState;
+                gameState.setHandler(handler);
+            }
+        });
 
         resetStateAndStatusView();
         loadUISettings();
@@ -278,7 +285,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         Date nowTime = calendar.getTime();
         StringBuilder sbBlackPlayer = new StringBuilder();
         StringBuilder sbWhitePlayer = new StringBuilder();
-        GameState gs = engine.getGameState();
+        GameState gs = gameState;
         SharedPreferences settings = getSharedPreferences(SHARED_PREFS_NAME, 0);
 
 
@@ -394,9 +401,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     protected void onDestroy() {
         engine.kill();
 
-        //TODO - I shouldn't be able to touch current game state from here
-        //TODO remove this and replace by call to my own my instance of GameState
-        engine.getGameState().removeHandler();
+        gameState.removeHandler();
 
         super.onDestroy();
     }
@@ -492,7 +497,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        GameState gs = engine.getGameState();
+        GameState gs = gameState;
         if (gs != null) {
             outState.putByteArray("moves_played", gs.exportMoveSequence());
             outState.putInt("moves_played_count", gs.getDisksPlayed());

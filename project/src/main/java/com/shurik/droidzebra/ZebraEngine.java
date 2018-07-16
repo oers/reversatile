@@ -126,7 +126,8 @@ public class ZebraEngine {
     };
     private OnEngineDebugListener onDebugListener = new OnEngineDebugListener() {
     };
-    private ZebraEngineMessageHandler handler;
+    private OnGameStateReadyListener onGameStateReadyListener = new OnGameStateReadyListener() {
+    };
 
     private ZebraEngine(GameContext context) {
         mContext = context;
@@ -435,10 +436,6 @@ public class ZebraEngine {
     // gamestate manipulators
     public void setInitialGameState(int moveCount, byte[] moves) {
         initialGameState = new GameState(BOARD_SIZE, moves, moveCount);
-    }
-
-    public GameState getGameState() {
-        return currentGameState;
     }
 
     private void setPlayerInfos() {
@@ -847,8 +844,8 @@ public class ZebraEngine {
                 .execute();
     }
 
-    public void newGame(EngineConfig engineConfig, ZebraEngineMessageHandler handler) {
-        this.handler = handler;
+    public void newGame(EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
+        this.onGameStateReadyListener = onGameStateReadyListener;
         if (!isReadyToPlay()) {
             stopGame();
         }
@@ -908,7 +905,9 @@ public class ZebraEngine {
                     setPlayerInfos();
 
                     currentGameState = new GameState(BOARD_SIZE);
-                    currentGameState.setHandler(handler);
+                    onGameStateReadyListener.onGameStateReady(currentGameState);
+                    onGameStateReadyListener = new OnGameStateReadyListener() {
+                    };
 
 
                     if (initialGameState != null)
