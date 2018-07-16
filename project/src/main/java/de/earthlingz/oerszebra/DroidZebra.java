@@ -204,18 +204,23 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         Log.i("Intent", type + " " + action);
         engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
 
+        LinkedList<Move> moveLinkedList;
+        int moves_played_count;
+        byte[] moves_played;
+
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
-                engine.setInitialGameState(parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
+                moveLinkedList = parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT));
+                engine.setInitialGameState(moveLinkedList);
             } else {
                 Log.e("intent", "unknown intent");
             }
-        } else if (savedInstanceState != null
-                && savedInstanceState.containsKey("moves_played_count")
-                && savedInstanceState.getInt("moves_played_count") > 0) {
-            Log.i("moves_play_count", String.valueOf(savedInstanceState.getInt("moves_played_count")));
-            Log.i("moves_played", String.valueOf(savedInstanceState.getInt("moves_played")));
-            engine.setInitialGameState(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
+        } else if (savedInstanceState != null) {
+            moves_played_count = savedInstanceState.getInt("moves_played_count");
+            moves_played = savedInstanceState.getByteArray("moves_played");
+            if (savedInstanceState.containsKey("moves_played_count") && moves_played_count > 0) {
+                engine.setInitialGameState(moves_played_count, moves_played);
+            }
         }
 
         new CompletionAsyncTask(() -> {
