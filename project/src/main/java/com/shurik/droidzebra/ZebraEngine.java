@@ -782,7 +782,7 @@ public class ZebraEngine {
         waitForEngineState(ZebraEngine.ES_READY2PLAY);
     }
 
-    public boolean isReadyToPlay() {
+    private boolean isReadyToPlay() {
         return mEngineState == ZebraEngine.ES_READY2PLAY;
     }
 
