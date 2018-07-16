@@ -923,7 +923,7 @@ public class ZebraEngine {
                     if (initialGameState != null) {
                         GameState initialGameState = ZebraEngine.this.initialGameState;
                         ZebraEngine.this.initialGameState = null;
-                        zePlay(initialGameState.getDisksPlayed(), ZebraEngine.this.initialGameState.exportMoveSequence());
+                        zePlay(initialGameState.getDisksPlayed(), initialGameState.exportMoveSequence());
                     } else
                         zePlay(0, null);
 
