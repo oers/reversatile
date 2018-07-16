@@ -19,7 +19,6 @@ package com.shurik.droidzebra;
 
 import android.util.Log;
 import de.earthlingz.oerszebra.CompletionAsyncTask;
-import de.earthlingz.oerszebra.DroidZebraHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -548,7 +547,7 @@ public class ZebraEngine {
                         mValidMoves[i] = jscmoves.getJSONObject(i).getInt("move");
                         cmoves[i] = new CandidateMove(new Move(jscmove.getInt("move")));
                     }
-                    getGameState().setCandidateMoves(cmoves);
+                    currentGameState.setCandidateMoves(cmoves);
                 }
                 break;
 
@@ -588,18 +587,18 @@ public class ZebraEngine {
                 break;
 
                 case MSG_OPENING_NAME: {
-                    getGameState().setOpening(data.getString("opening"));
+                    currentGameState.setOpening(data.getString("opening"));
 
                 }
                 break;
 
                 case MSG_LAST_MOVE: {
-                    getGameState().setLastMove(data.getInt("move"));
+                    currentGameState.setLastMove(data.getInt("move"));
                 }
                 break;
 
                 case MSG_NEXT_MOVE: {
-                    getGameState().setNextMove(data.getInt("move"));
+                    currentGameState.setNextMove(data.getInt("move"));
 
                 }
                 break;
@@ -675,7 +674,7 @@ public class ZebraEngine {
                                 (jsceval.getInt("best") != 0)
                         );
                     }
-                    getGameState().addCandidateMoveEvals(cmoves);
+                    currentGameState.addCandidateMoveEvals(cmoves);
 
                 }
                 break;
