@@ -70,10 +70,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private GameState gameState;
 
 
-    public ZebraEngine getEngine() {
-        return engine;
-    }
-
     public void resetStateAndStatusView() {
         getState().reset();
         if (mStatusView != null)
@@ -209,7 +205,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
 
 
-        new CompletionAsyncTask(() -> {
+        engine.onReady(() -> {
             setContentView(R.layout.board_layout);
             showActionBar();
             mBoardView = (BoardView) findViewById(R.id.board);
@@ -233,9 +229,10 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
 
             mIsInitCompleted = true;
-        }, getEngine())
-                .execute();
+        });
     }
+
+
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
         engine.newGame(moves, settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {

@@ -1,14 +1,13 @@
-package de.earthlingz.oerszebra;
+package com.shurik.droidzebra;
 
 import android.os.AsyncTask;
 
-import com.shurik.droidzebra.ZebraEngine;
 
 public class CompletionAsyncTask extends AsyncTask<Void, Void, Void> {
     private Runnable completion;
     private ZebraEngine engine;
 
-    public CompletionAsyncTask(final Runnable completion, ZebraEngine engine) {
+    CompletionAsyncTask(final Runnable completion, ZebraEngine engine) {
 
         this.completion = completion;
         this.engine = engine;

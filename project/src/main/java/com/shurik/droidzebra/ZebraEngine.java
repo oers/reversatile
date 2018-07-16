@@ -18,7 +18,6 @@
 package com.shurik.droidzebra;
 
 import android.util.Log;
-import de.earthlingz.oerszebra.CompletionAsyncTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -775,7 +774,7 @@ public class ZebraEngine {
         System.loadLibrary("droidzebra");
     }
 
-    public void waitForReadyToPlay() {
+    void waitForReadyToPlay() {
         waitForEngineState(ZebraEngine.ES_READY2PLAY);
     }
 
@@ -865,6 +864,11 @@ public class ZebraEngine {
     public void newGame(byte[] fromMoves, int movesCount, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
         engine.setInitialGameState(movesCount, fromMoves);
         newGame(engineConfig, onGameStateReadyListener);
+    }
+
+    public void onReady(Runnable onEngineReady) {
+        new CompletionAsyncTask(onEngineReady, this)
+                .execute();
     }
 
     public interface OnEngineErrorListener {
