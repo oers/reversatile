@@ -328,7 +328,7 @@ public class ZebraEngine {
         }
     }
 
-    public void sendReplayMoves(List<Move> moves) {
+    private void sendReplayMoves(List<Move> moves) {
         if (mEngineState != ZebraEngine.ES_READY2PLAY) {
             stopGame();
             waitForEngineState(ZebraEngine.ES_READY2PLAY);

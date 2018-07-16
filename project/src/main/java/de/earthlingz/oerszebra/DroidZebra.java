@@ -467,7 +467,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     public void consumeMovesString(String s) {
         final LinkedList<Move> moves = parser.makeMoveList(s);
-        engine.sendReplayMoves(moves);
+        startNewGameAndResetUI(moves);
     }
 
     private void showBusyDialog() {
