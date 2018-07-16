@@ -225,7 +225,7 @@ public class ZebraEngine {
     }
 
     // tell zebra to end current game
-    public void stopGame() {
+    private void stopGame() {
         zeForceExit();
         // if waiting for move - get back into the engine
         // every other state should work itself out
