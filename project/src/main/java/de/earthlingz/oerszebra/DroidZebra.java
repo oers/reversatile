@@ -67,11 +67,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     public SettingsProvider settingsProvider;
 
-    private void waitForReadyToPlay(final Runnable completion) {
-        new CompletionAsyncTask(completion, getEngine())
-                .execute();
-    }
-
 
     public ZebraEngine getEngine() {
         return engine;
@@ -216,23 +211,21 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             engine.setInitialGameState(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
         }
 
-
-        waitForReadyToPlay(
-                () -> {
-                    setContentView(R.layout.board_layout);
-                    showActionBar();
-                    mBoardView = (BoardView) findViewById(R.id.board);
-                    mStatusView = (StatusView) findViewById(R.id.status_panel);
-                    mBoardView.setBoardState(getState());
-                    mBoardView.setOnMakeMoveListener(DroidZebra.this);
-                    mBoardView.requestFocus();
-                    resetStateAndStatusView();
-                    loadUISettings();
-                    engine.loadConfig(settingsProvider.createEngineConfig());
-                    engine.setEngineStatePlay();
-                    mIsInitCompleted = true;
-                }
-        );
+        new CompletionAsyncTask(() -> {
+            setContentView(R.layout.board_layout);
+            showActionBar();
+            mBoardView = (BoardView) findViewById(R.id.board);
+            mStatusView = (StatusView) findViewById(R.id.status_panel);
+            mBoardView.setBoardState(getState());
+            mBoardView.setOnMakeMoveListener(this);
+            mBoardView.requestFocus();
+            resetStateAndStatusView();
+            loadUISettings();
+            engine.loadConfig(settingsProvider.createEngineConfig());
+            engine.setEngineStatePlay();
+            mIsInitCompleted = true;
+        }, getEngine())
+                .execute();
     }
 
     private void showActionBar() {
