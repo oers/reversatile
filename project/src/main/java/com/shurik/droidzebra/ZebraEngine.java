@@ -539,9 +539,9 @@ public class ZebraEngine {
                     CandidateMove cmoves[] = new CandidateMove[jscmoves.length()];
                     mValidMoves = new int[jscmoves.length()];
                     for (int i = 0; i < jscmoves.length(); i++) {
-                        JSONObject jscmove = jscmoves.getJSONObject(i);
-                        mValidMoves[i] = jscmoves.getJSONObject(i).getInt("move");
-                        cmoves[i] = new CandidateMove(new Move(jscmove.getInt("move")));
+                        int move = jscmoves.getJSONObject(i).getInt("move");
+                        mValidMoves[i] = move;
+                        cmoves[i] = new CandidateMove(new Move(move));
                     }
                     currentGameState.setCandidateMoves(cmoves);
                 }
