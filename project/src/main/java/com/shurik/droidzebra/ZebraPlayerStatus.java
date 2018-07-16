@@ -1,12 +1,15 @@
 package com.shurik.droidzebra;
 
 public class ZebraPlayerStatus {
-    private String time;
-    private float eval;
-    private int discCount;
-    private MoveList moveList;
+    private final String time;
+    private final float eval;
+    private final int discCount;
+    private final MoveList moveList;
 
     ZebraPlayerStatus() {
+        this.time = "";
+        this.eval = 0;
+        this.discCount = 0;
         moveList = new MoveList();
     }
 
