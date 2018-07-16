@@ -429,12 +429,12 @@ public class ZebraEngine {
         computerMoveDelay = delay;
     }
 
-    public void setInitialGameState(LinkedList<Move> moves) {
+    private void setInitialGameState(LinkedList<Move> moves) {
         ZebraEngine.this.initialGameState = new GameState(BOARD_SIZE, moves);
     }
 
     // gamestate manipulators
-    public void setInitialGameState(int moveCount, byte[] moves) {
+    private void setInitialGameState(int moveCount, byte[] moves) {
         initialGameState = new GameState(BOARD_SIZE, moves, moveCount);
     }
 
@@ -920,12 +920,13 @@ public class ZebraEngine {
                     };
 
 
-                    if (initialGameState != null)
-                        zePlay(initialGameState.getDisksPlayed(), initialGameState.exportMoveSequence());
-                    else
+                    if (initialGameState != null) {
+                        GameState initialGameState = ZebraEngine.this.initialGameState;
+                        ZebraEngine.this.initialGameState = null;
+                        zePlay(initialGameState.getDisksPlayed(), ZebraEngine.this.initialGameState.exportMoveSequence());
+                    } else
                         zePlay(0, null);
 
-                    initialGameState = null;
                 }
 
                 setEngineState(ES_READY2PLAY);

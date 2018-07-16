@@ -567,7 +567,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     @Override
     public void onError(String error) {
         this.showAlertDialog(error);
-        engine.setInitialGameState(new LinkedList<>());
     }
 
     @Override
