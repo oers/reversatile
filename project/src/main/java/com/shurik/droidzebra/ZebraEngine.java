@@ -857,6 +857,16 @@ public class ZebraEngine {
         );
     }
 
+    public void newGame(LinkedList<Move> fromMoves, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
+        engine.setInitialGameState(fromMoves);
+        newGame(engineConfig, onGameStateReadyListener);
+    }
+
+    public void newGame(byte[] fromMoves, int movesCount, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
+        engine.setInitialGameState(movesCount, fromMoves);
+        newGame(engineConfig, onGameStateReadyListener);
+    }
+
     public interface OnEngineErrorListener {
         default void onError(String error) {
             Log.v("OersZebra", error);

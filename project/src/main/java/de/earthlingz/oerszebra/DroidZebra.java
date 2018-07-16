@@ -84,7 +84,15 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         return settingsProvider.isSettingPracticeMode() || isHintUp;
     }
 
-    public void newGame() {
+    public void startNewGameAndResetUI() {
+        startNewGame();
+
+        resetStateAndStatusView();
+        loadUISettings();
+
+    }
+
+    private void startNewGame() {
         engine.newGame(settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState) {
@@ -92,10 +100,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 gameState.setHandler(handler);
             }
         });
-
-        resetStateAndStatusView();
-        loadUISettings();
-
     }
 
     /* Creates the menu items */
@@ -115,7 +119,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         if (!mIsInitCompleted) return false;
         switch (item.getItemId()) {
             case R.id.menu_new_game:
-                newGame();
+                startNewGameAndResetUI();
                 return true;
             case R.id.menu_quit:
                 showQuitDialog();
@@ -217,14 +221,14 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
             if (Intent.ACTION_SEND.equals(action) && type != null) {
                 if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
-                    newGame(parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
+                    startNewGameAndResetUI(parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
                 }
             } else if (savedInstanceState != null
                     && savedInstanceState.containsKey("moves_played_count")
                     && savedInstanceState.getInt("moves_played_count") > 0) {
-                newGame(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
+                startNewGameAndResetUI(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
             } else {
-                newGame();
+                startNewGameAndResetUI();
             }
 
 
@@ -233,14 +237,32 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 .execute();
     }
 
-    private void newGame(LinkedList<Move> moves) {
-        engine.setInitialGameState(moves);
-        newGame();
+    private void startNewGameAndResetUI(LinkedList<Move> moves) {
+        engine.newGame(moves, settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState gameState1) {
+                DroidZebra.this.gameState = gameState1;
+                gameState1.setHandler(handler);
+            }
+        });
+
+        resetStateAndStatusView();
+        loadUISettings();
+
     }
 
-    private void newGame(int moves_played_count, byte[] moves_played) {
-        engine.setInitialGameState(moves_played_count, moves_played);
-        newGame();
+    private void startNewGameAndResetUI(int moves_played_count, byte[] moves_played) {
+        engine.newGame(moves_played, moves_played_count, settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState gameState1) {
+                DroidZebra.this.gameState = gameState1;
+                gameState1.setHandler(handler);
+            }
+        });
+
+        resetStateAndStatusView();
+        loadUISettings();
+
     }
 
     private void showActionBar() {
@@ -473,7 +495,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     public void showAlertDialog(String msg) {
-        DroidZebra.this.newGame();
+        DroidZebra.this.startNewGameAndResetUI();
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("Zebra Error");
         alertDialog.setMessage(msg);
@@ -752,7 +774,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             button.setOnClickListener(
                     v15 -> {
                         dismiss();
-                        getDroidZebra().newGame();
+                        getDroidZebra().startNewGameAndResetUI();
                     });
 
             button = (Button) v.findViewById(R.id.gameover_choice_switch);
