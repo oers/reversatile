@@ -872,6 +872,12 @@ public class ZebraEngine {
         }
     }
 
+    public interface OnGameStateReadyListener {
+        default void onGameStateReady(GameState gameState) {
+        }
+    }
+
+
     private class EngineThread extends Thread {
         // zebra thread
         @Override
