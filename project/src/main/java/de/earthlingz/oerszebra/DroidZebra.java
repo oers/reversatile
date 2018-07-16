@@ -196,7 +196,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         Log.i("Intent", type + " " + action);
         engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
 
-        engine.setHandler(new DroidZebraHandler(this));
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
                 engine.setInitialGameState(parser.makeMoveList(intent.getStringExtra(Intent.EXTRA_TEXT)));
@@ -221,6 +220,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             mBoardView.requestFocus();
             resetStateAndStatusView();
             loadUISettings();
+            engine.setHandler(new DroidZebraHandler(this));
             engine.loadConfig(settingsProvider.createEngineConfig());
             engine.setEngineStatePlay();
             mIsInitCompleted = true;
