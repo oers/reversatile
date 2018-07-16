@@ -66,6 +66,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
+    private DroidZebraHandler handler = new DroidZebraHandler(this);
 
 
     public ZebraEngine getEngine() {
@@ -83,7 +84,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     public void newGame() {
-        engine.newGame(settingsProvider.createEngineConfig());
+        engine.newGame(settingsProvider.createEngineConfig(), handler);
 
         resetStateAndStatusView();
         loadUISettings();
@@ -218,11 +219,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             mBoardView.setBoardState(getState());
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
-            resetStateAndStatusView();
-            loadUISettings();
-            engine.setHandler(new DroidZebraHandler(this));
-            engine.loadConfig(settingsProvider.createEngineConfig());
-            engine.setEngineStatePlay();
+            newGame();
             mIsInitCompleted = true;
         }, getEngine())
                 .execute();

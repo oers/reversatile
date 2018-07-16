@@ -19,6 +19,7 @@ package com.shurik.droidzebra;
 
 import android.util.Log;
 import de.earthlingz.oerszebra.CompletionAsyncTask;
+import de.earthlingz.oerszebra.DroidZebraHandler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -826,10 +827,6 @@ public class ZebraEngine {
             ZebraEngine.this.onDebugListener = listener;
     }
 
-    public void setHandler(ZebraEngineMessageHandler handler) {//TODO delete and don't use this. I just need to test if all refactoring works nowF
-        ZebraEngine.this.handler = handler;
-    }
-
     public void loadConfig(EngineConfig cfg) {
         setEngineFunction(cfg.engineFunction, cfg.depth, cfg.depthExact, cfg.depthWLD);
 
@@ -850,8 +847,9 @@ public class ZebraEngine {
         new CompletionAsyncTask(completion, this)
                 .execute();
     }
-    public void newGame(EngineConfig engineConfig) {
 
+    public void newGame(EngineConfig engineConfig, ZebraEngineMessageHandler handler) {
+        this.handler = handler;
         if (!isReadyToPlay()) {
             stopGame();
         }
