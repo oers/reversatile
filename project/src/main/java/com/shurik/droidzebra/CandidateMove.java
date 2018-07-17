@@ -9,8 +9,8 @@ public class CandidateMove {
     public final String mEvalShort;
     public final boolean mBest;
 
-    public CandidateMove(Move move) {
-        mMove = move;
+    public CandidateMove(int move) {
+        mMove = new Move(move);
         mHasEval = false;
         mEvalShort = null;
         mBest = false;
