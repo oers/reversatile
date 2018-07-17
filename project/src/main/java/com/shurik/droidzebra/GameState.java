@@ -130,7 +130,7 @@ public class GameState {
         for (CandidateMove candidateMoveWithEval : cmoves) {
             for (int i = 0, candidateMovesLength = candidateMoves.length; i < candidateMovesLength; i++) {
                 CandidateMove candidateMove = candidateMoves[i];
-                if (candidateMove.mMove.getMoveInt() == candidateMoveWithEval.mMove.getMoveInt()) {
+                if (candidateMove.getMove().getMoveInt() == candidateMoveWithEval.getMove().getMoveInt()) {
                     candidateMoves[i] = candidateMoveWithEval;
                 }
             }

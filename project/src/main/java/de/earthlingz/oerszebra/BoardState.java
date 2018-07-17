@@ -41,7 +41,7 @@ public class BoardState {
 
     public boolean isValidMove(Move move) {
         for (CandidateMove m : possibleMoves.getMoves()) {
-            if (m.mMove.getX() == move.getX() && m.mMove.getY() == move.getY()) {
+            if (m.getMove().getX() == move.getX() && m.getMove().getY() == move.getY()) {
                 return true;
             }
         }

@@ -4,7 +4,7 @@ package com.shurik.droidzebra;
  * Created by stefan on 18.03.2018.
  */ // candidate move with evals
 public class CandidateMove {
-    public final Move mMove;
+    private final Move mMove;
     public final boolean mHasEval;
     public final String mEvalShort;
     public final boolean mBest;
@@ -21,5 +21,9 @@ public class CandidateMove {
         mEvalShort = evalShort;
         mBest = best;
         mHasEval = true;
+    }
+
+    public Move getMove() {
+        return mMove;
     }
 }

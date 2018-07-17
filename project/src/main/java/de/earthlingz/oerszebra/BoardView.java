@@ -333,7 +333,7 @@ public class BoardView extends View {
             mPaint.setStrokeWidth(lineWidth * 2);
             float lineLength = mSizeCell / 4;
             for (CandidateMove m : getGameState().getMoves()) {
-                RectF cr = getCellRect(m.mMove.getX(), m.mMove.getY());
+                RectF cr = getCellRect(m.getMove().getX(), m.getMove().getY());
                 if (m.mHasEval && shouldDisplayEvals()) {
                     if (m.mBest)
                         mPaintEvalText.setColor(mColorEvalsBest);
