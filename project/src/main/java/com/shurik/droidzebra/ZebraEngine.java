@@ -664,7 +664,7 @@ public class ZebraEngine {
                     for (int i = 0; i < jscevals.length(); i++) {
                         JSONObject jsceval = jscevals.getJSONObject(i);
                         cmoves[i] = new CandidateMove(
-                                new Move(jsceval.getInt("move")),
+                                (jsceval.getInt("move")),
                                 jsceval.getString("eval_s"),
                                 jsceval.getString("eval_l"),
                                 (jsceval.getInt("best") != 0)
