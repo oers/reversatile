@@ -22,7 +22,4 @@ public class CandidateMove extends Move {
         mHasEval = true;
     }
 
-    public Move getMove() {
-        return this;
-    }
 }
