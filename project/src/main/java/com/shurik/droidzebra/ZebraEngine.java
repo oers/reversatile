@@ -980,9 +980,10 @@ public class ZebraEngine {
                     setPlayerInfos();
 
                     currentGameState = new GameState(BOARD_SIZE);
-                    onGameStateReadyListener.onGameStateReady(currentGameState);
+                    OnGameStateReadyListener listener = onGameStateReadyListener;
                     onGameStateReadyListener = new OnGameStateReadyListener() {
                     };
+                    listener.onGameStateReady(currentGameState);
 
 
                     if (initialGameState != null) {
