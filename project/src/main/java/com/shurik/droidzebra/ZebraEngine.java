@@ -249,10 +249,7 @@ public class ZebraEngine {
             throw new InvalidMove();
 
         // if thinking on human time - stop
-        if (isThinkingOnHumanTime()) {
-            stopMove();
-            waitForEngineState(ES_USER_INPUT_WAIT, 1000);
-        }
+        stopIfThinkingOnHumanTime();
 
         if (mEngineState != ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
@@ -270,6 +267,13 @@ public class ZebraEngine {
         setEngineState(ES_PLAY);
     }
 
+    private void stopIfThinkingOnHumanTime() {
+        if (isThinkingOnHumanTime()) {
+            stopMove();
+            waitForEngineState(ES_USER_INPUT_WAIT, 1000);
+        }
+    }
+
     public void undoMove(GameState gameState) {
         if (currentGameState != gameState) {
             //TODO switch context and undo on that board - later we might do it completely without engine -
@@ -277,10 +281,7 @@ public class ZebraEngine {
             return;
         }
         // if thinking on human time - stop
-        if (isThinkingOnHumanTime()) {
-            stopMove();
-            waitForEngineState(ES_USER_INPUT_WAIT, 1000); //TODO this is blocking UI thread
-        }
+        stopIfThinkingOnHumanTime();
 
         if (mEngineState != ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
@@ -299,10 +300,7 @@ public class ZebraEngine {
 
     public void redoMove() {
         // if thinking on human time - stop
-        if (isThinkingOnHumanTime()) {
-            stopMove();
-            waitForEngineState(ES_USER_INPUT_WAIT, 1000);
-        }
+        stopIfThinkingOnHumanTime();
 
         if (mEngineState != ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
