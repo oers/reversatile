@@ -233,7 +233,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
 
-
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
         engine.newGame(moves, settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
             @Override
@@ -278,7 +277,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     private void loadEngineSettings() {
         if (engine != null) {
-            engine.loadConfig(settingsProvider.createEngineConfig());
+            engine.updateConfig(gameState, settingsProvider.createEngineConfig());
         }
     }
 
@@ -553,7 +552,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 showBusyDialog();
             } else {
                 try {
-                    engine.makeMove(gameState,move);
+                    engine.makeMove(gameState, move);
                 } catch (InvalidMove e) {
                     Log.e("Invalid Move", e.getMessage(), e);
                 }
@@ -674,7 +673,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         this.dismissBusyDialog();
         if (isHintUp) {
             this.setHintUp(false);
-            engine.loadConfig(settingsProvider.createEngineConfig());
+            engine.updateConfig(gameState, settingsProvider.createEngineConfig());
         }
 
     }

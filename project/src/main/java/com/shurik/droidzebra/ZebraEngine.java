@@ -834,7 +834,7 @@ public class ZebraEngine {
             ZebraEngine.this.onDebugListener = listener;
     }
 
-    public void loadConfig(EngineConfig cfg) {
+    private void loadConfig(EngineConfig cfg) {
         setEngineFunction(cfg.engineFunction, cfg.depth, cfg.depthExact, cfg.depthWLD);
 
         setAutoMakeMoves(cfg.autoForcedMoves);
@@ -885,7 +885,7 @@ public class ZebraEngine {
 
     public void stopIfThinking(GameState gameState) {
         if (gameState != currentGameState) {
-            return; //TODO
+            return; //TODO switch context
         }
         if (engine.isThinking()) {
             engine.stopMove();
@@ -897,6 +897,13 @@ public class ZebraEngine {
             return; //TODO switch context
         }
         loadConfig(engineConfig.practiceMode ? engineConfig : engineConfig.alterPracticeMode(true));
+    }
+
+    public void updateConfig(GameState gameState, EngineConfig engineConfig) {
+        if(currentGameState != gameState){
+            return; //TODO switch context
+        }
+        loadConfig(engineConfig);
     }
 
     public interface OnEngineErrorListener {
