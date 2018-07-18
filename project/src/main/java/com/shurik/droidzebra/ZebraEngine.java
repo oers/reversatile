@@ -267,12 +267,17 @@ public class ZebraEngine {
         setEngineState(ES_PLAY);
     }
 
-    public void undoMove() {
+    public void undoMove(GameState gameState) {
+        if (currentGameState != gameState) {
+            //TODO switch context and undo on that board - later we might do it completely without engine -
+            // TODO why would you need it here right?
+            return;
+        }
         // if thinking on human time - stop
         if (isHumanToMove()
                 && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
             stopMove();
-            waitForEngineState(ES_USER_INPUT_WAIT, 1000);
+            waitForEngineState(ES_USER_INPUT_WAIT, 1000); //TODO this is blocking UI thread
         }
 
         if (mEngineState != ES_USER_INPUT_WAIT) {

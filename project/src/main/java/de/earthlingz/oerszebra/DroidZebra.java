@@ -121,7 +121,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 showQuitDialog();
                 return true;
             case R.id.menu_take_back:
-                engine.undoMove();
+                engine.undoMove(gameState);
                 return true;
             case R.id.menu_take_redo:
                 engine.redoMove();
@@ -519,7 +519,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            engine.undoMove();
+            engine.undoMove(gameState);
             return true;
         }
         return super.onKeyDown(keyCode, event);
