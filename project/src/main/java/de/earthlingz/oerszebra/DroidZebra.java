@@ -469,7 +469,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     private void showBusyDialog() {
-        if (!mBusyDialogUp && engine.isThinking()) {
+        if (!mBusyDialogUp && engine.isThinking(gameState)) {
             DialogFragment newFragment = DialogBusy.newInstance();
             mBusyDialogUp = true;
             showDialog(newFragment, "dialog_busy");

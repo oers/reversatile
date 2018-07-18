@@ -925,6 +925,13 @@ public class ZebraEngine {
         setEngineStatePlay();
     }
 
+    public boolean isThinking(GameState gameState) {
+        if (currentGameState != gameState) {
+            return false; //TODO switch context
+        }
+        return isThinking();
+    }
+
     public interface OnEngineErrorListener {
         default void onError(String error) {
             Log.v("OersZebra", error);
