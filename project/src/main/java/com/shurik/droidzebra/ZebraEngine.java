@@ -705,7 +705,7 @@ public class ZebraEngine {
         return retval;
     }
 
-    public boolean isThinking() {
+    private boolean isThinking() {
         return mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS;
     }
 
