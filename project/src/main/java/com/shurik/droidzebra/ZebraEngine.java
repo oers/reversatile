@@ -240,7 +240,11 @@ public class ZebraEngine {
         }
     }
 
-    public void makeMove(Move move) throws InvalidMove {
+    public void makeMove(GameState gameState, Move move) throws InvalidMove {
+        if(gameState != currentGameState){
+            //TODO switch context and play
+            return;
+        }
         if (!isValidMove(move))
             throw new InvalidMove();
 

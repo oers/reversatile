@@ -553,7 +553,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 showBusyDialog();
             } else {
                 try {
-                    engine.makeMove(move);
+                    engine.makeMove(gameState,move);
                 } catch (InvalidMove e) {
                     Log.e("Invalid Move", e.getMessage(), e);
                 }
