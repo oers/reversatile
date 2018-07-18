@@ -896,7 +896,7 @@ public class ZebraEngine {
         if (currentGameState != gameState) {
             return; //TODO switch context
         }
-        loadConfig(engineConfig.alterPracticeMode(true));
+        loadConfig(engineConfig.practiceMode ? engineConfig : engineConfig.alterPracticeMode(true));
     }
 
     public interface OnEngineErrorListener {
