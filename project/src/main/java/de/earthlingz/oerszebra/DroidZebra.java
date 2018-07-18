@@ -548,7 +548,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     public void onMakeMove(Move move) {
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
-            if (engine.isThinking() && !engine.isHumanToMove()) {
+            if (engine.isThinking() && !engine.isHumanToMove(gameState)) {
                 showBusyDialog();
             } else {
                 try {

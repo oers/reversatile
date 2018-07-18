@@ -326,7 +326,7 @@ public class ZebraEngine {
     }
 
     private boolean isThinkingOnHumanTime() {
-        return isHumanToMove()
+        return isHumanToMove(currentGameState)
                 && isThinking();
     }
 
@@ -649,7 +649,7 @@ public class ZebraEngine {
                     // TODO thanks a lot :D, now it will be way more problematic to handle shared use of the engine
                     // TODO this should be handled entirely by UI. Stopping time-critical engine thread for the sake of UI is just ridiculous
 
-                    if (computerMoveDelay > 0 && !isHumanToMove()) {
+                    if (computerMoveDelay > 0 && !isHumanToMove(currentGameState)) {
                         long moveEnd = android.os.SystemClock.uptimeMillis();
                         if ((moveEnd - mMoveStartTime) < computerMoveDelay) {
                             android.os.SystemClock.sleep(computerMoveDelay - (moveEnd - mMoveStartTime));
@@ -722,7 +722,10 @@ public class ZebraEngine {
         return valid;
     }
 
-    public boolean isHumanToMove() {
+    public boolean isHumanToMove(GameState gameState) {
+        if (gameState != currentGameState) {
+            return false; //TODO switch context
+        }
         return getSideToMovePlayerInfo().skill == 0;
     }
 
