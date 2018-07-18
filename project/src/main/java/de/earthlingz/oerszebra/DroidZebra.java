@@ -869,9 +869,9 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 }
 
                 private void stopZebra() {
-                    if (getDroidZebra().engine.isThinking()) {
-                        getDroidZebra().engine.stopMove();
-                    }
+                    ZebraEngine engine = getDroidZebra().engine;
+                    engine.stopIfThinking(getDroidZebra().gameState);
+
                     getDroidZebra().mBusyDialogUp = false;
                     cancel();
                 }

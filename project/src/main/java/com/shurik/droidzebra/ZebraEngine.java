@@ -883,6 +883,15 @@ public class ZebraEngine {
                 .execute();
     }
 
+    public void stopIfThinking(GameState gameState) {
+        if (gameState != currentGameState) {
+            return; //TODO
+        }
+        if (engine.isThinking()) {
+            engine.stopMove();
+        }
+    }
+
     public interface OnEngineErrorListener {
         default void onError(String error) {
             Log.v("OersZebra", error);
