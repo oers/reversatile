@@ -249,8 +249,7 @@ public class ZebraEngine {
             throw new InvalidMove();
 
         // if thinking on human time - stop
-        if (isHumanToMove()
-                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
+        if (isThinkingOnHumanTime()) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
@@ -278,8 +277,7 @@ public class ZebraEngine {
             return;
         }
         // if thinking on human time - stop
-        if (isHumanToMove()
-                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
+        if (isThinkingOnHumanTime()) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000); //TODO this is blocking UI thread
         }
@@ -301,8 +299,7 @@ public class ZebraEngine {
 
     public void redoMove() {
         // if thinking on human time - stop
-        if (isHumanToMove()
-                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS) {
+        if (isThinkingOnHumanTime()) {
             stopMove();
             waitForEngineState(ES_USER_INPUT_WAIT, 1000);
         }
@@ -320,6 +317,11 @@ public class ZebraEngine {
             // Log.getStackTraceString(e);
         }
         setEngineState(ES_PLAY);
+    }
+
+    private boolean isThinkingOnHumanTime() {
+        return isHumanToMove()
+                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS;
     }
 
     // notifications that some settings have changes - see if we care
