@@ -855,25 +855,25 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             ProgressDialog pd = new ProgressDialog(getActivity()) {
                 @Override
                 public boolean onKeyDown(int keyCode, KeyEvent event) {
-                    if (getDroidZebra().engine.isThinking()) {
-                        getDroidZebra().engine.stopMove();
-                    }
-                    getDroidZebra().mBusyDialogUp = false;
-                    cancel();
+                    stopZebra();
                     return super.onKeyDown(keyCode, event);
                 }
 
                 @Override
                 public boolean onTouchEvent(MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        if (getDroidZebra().engine.isThinking()) {
-                            getDroidZebra().engine.stopMove();
-                        }
-                        getDroidZebra().mBusyDialogUp = false;
-                        cancel();
+                        stopZebra();
                         return true;
                     }
                     return super.onTouchEvent(event);
+                }
+
+                private void stopZebra() {
+                    if (getDroidZebra().engine.isThinking()) {
+                        getDroidZebra().engine.stopMove();
+                    }
+                    getDroidZebra().mBusyDialogUp = false;
+                    cancel();
                 }
             };
             pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
