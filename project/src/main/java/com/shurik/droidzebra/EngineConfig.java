@@ -3,9 +3,9 @@ package com.shurik.droidzebra;
 public class EngineConfig {
     public final int engineFunction;
 
-    public final int depth ;
-    public final int depthExact ;
-    public final int depthWLD ;
+    public final int depth;
+    public final int depthExact;
+    public final int depthWLD;
 
     public final boolean autoForcedMoves;
     public final int randomness;
@@ -31,5 +31,9 @@ public class EngineConfig {
         this.slack = slack;
         this.perturbation = perturbation;
         this.computerMoveDelay = computerMoveDelay;
+    }
+
+    public EngineConfig alterPracticeMode(boolean practiceMode) {
+        return new EngineConfig(engineFunction, depth, depthExact, depthWLD, autoForcedMoves, randomness, forcedOpening, humanOpenings, practiceMode, useBook, slack, perturbation, computerMoveDelay);
     }
 }

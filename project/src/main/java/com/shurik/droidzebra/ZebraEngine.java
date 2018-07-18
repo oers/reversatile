@@ -892,6 +892,13 @@ public class ZebraEngine {
         }
     }
 
+    public void loadEvals(GameState gameState, EngineConfig engineConfig) {
+        if (currentGameState != gameState) {
+            return; //TODO switch context
+        }
+        loadConfig(engineConfig.alterPracticeMode(true));
+    }
+
     public interface OnEngineErrorListener {
         default void onError(String error) {
             Log.v("OersZebra", error);

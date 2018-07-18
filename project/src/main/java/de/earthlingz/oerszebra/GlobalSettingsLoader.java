@@ -311,23 +311,5 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
                 computerMoveDelay);
     }
 
-    @Override
-    public EngineConfig createPracticeModeAlterConfig() {
-        return new EngineConfig(
-                settingFunction,
-                settingZebraDepth,
-                settingZebraDepthExact,
-                settingZebraDepthWLD,
-                settingAutoMakeForcedMoves,
-                settingRandomness,
-                settingForceOpening,
-                settingHumanOpenings,
-                true,
-                settingUseBook,
-                settingSlack,
-                settingPerturbation,
-                computerMoveDelay);
-    }
-
 
 }
