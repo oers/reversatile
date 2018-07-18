@@ -241,7 +241,7 @@ public class ZebraEngine {
     }
 
     public void makeMove(GameState gameState, Move move) throws InvalidMove {
-        if(gameState != currentGameState){
+        if (gameState != currentGameState) {
             //TODO switch context and play
             return;
         }
@@ -267,6 +267,9 @@ public class ZebraEngine {
         setEngineState(ES_PLAY);
     }
 
+    /**
+     * This is needed when zebra is thinking on practice mode but user wants to play - as I found out, maybe it is needed for something else too
+     */
     private void stopIfThinkingOnHumanTime() {
         if (isThinkingOnHumanTime()) {
             stopMove();
