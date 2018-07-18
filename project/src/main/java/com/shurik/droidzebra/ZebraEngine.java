@@ -321,7 +321,7 @@ public class ZebraEngine {
 
     private boolean isThinkingOnHumanTime() {
         return isHumanToMove()
-                && mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS;
+                && isThinking();
     }
 
     // notifications that some settings have changes - see if we care
