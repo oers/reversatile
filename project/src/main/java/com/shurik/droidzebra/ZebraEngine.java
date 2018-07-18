@@ -722,10 +722,14 @@ public class ZebraEngine {
         return valid;
     }
 
-    public boolean isHumanToMove(GameState gameState) {
+    public boolean isHumanToMove(GameState gameState, EngineConfig config) {
         if (gameState != currentGameState) {
             return false; //TODO switch context
         }
+        return isHumanToMove(gameState);
+    }
+
+    private boolean isHumanToMove(GameState gameState) {
         return getSideToMovePlayerInfo().skill == 0;
     }
 

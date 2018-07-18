@@ -68,6 +68,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     public SettingsProvider settingsProvider;
     private DroidZebraHandler handler = new DroidZebraHandler(this);
     private GameState gameState;
+    private EngineConfig engineConfig;
 
 
     public void resetStateAndStatusView() {
@@ -89,7 +90,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     private void startNewGame() {
-        engine.newGame(settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
+        engine.newGame(engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState) {
                 DroidZebra.this.gameState = gameState;
@@ -196,6 +197,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         engine = ZebraEngine.get(new AndroidContext(getApplicationContext()));
         this.settingsProvider = new GlobalSettingsLoader(this);
         this.settingsProvider.setOnSettingsChangedListener(this);
+        this.engineConfig = settingsProvider.createEngineConfig();
 
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -203,7 +205,6 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
         Log.i("Intent", type + " " + action);
         engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
-
 
         engine.onReady(() -> {
             setContentView(R.layout.board_layout);
@@ -234,7 +235,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
-        engine.newGame(moves, settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
+        engine.newGame(moves, engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState1) {
                 DroidZebra.this.gameState = gameState1;
@@ -248,7 +249,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     private void startNewGameAndResetUI(int moves_played_count, byte[] moves_played) {
-        engine.newGame(moves_played, moves_played_count, settingsProvider.createEngineConfig(), new ZebraEngine.OnGameStateReadyListener() {
+        engine.newGame(moves_played, moves_played_count, engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState1) {
                 DroidZebra.this.gameState = gameState1;
@@ -276,8 +277,9 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     }
 
     private void loadEngineSettings() {
+        this.engineConfig = settingsProvider.createEngineConfig();
         if (engine != null) {
-            engine.updateConfig(gameState, settingsProvider.createEngineConfig());
+            engine.updateConfig(gameState, engineConfig);
         }
     }
 
@@ -422,7 +424,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private void showHint() {
         if (!settingsProvider.isSettingPracticeMode()) {
             setHintUp(true);
-            engine.loadEvals(gameState, settingsProvider.createEngineConfig());
+            engine.loadEvals(gameState, engineConfig);
         }
     }
 
@@ -548,7 +550,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     public void onMakeMove(Move move) {
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
-            if (engine.isThinking() && !engine.isHumanToMove(gameState)) {
+            if (engine.isThinking() && !engine.isHumanToMove(gameState, engineConfig)) {
                 showBusyDialog();
             } else {
                 try {
@@ -673,7 +675,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         this.dismissBusyDialog();
         if (isHintUp) {
             this.setHintUp(false);
-            engine.updateConfig(gameState, settingsProvider.createEngineConfig());
+            engine.updateConfig(gameState, engineConfig);
         }
 
     }

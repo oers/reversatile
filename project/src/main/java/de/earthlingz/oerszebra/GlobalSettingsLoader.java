@@ -294,7 +294,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     }
 
     @Override
-    public EngineConfig createEngineConfig() {
+    public EngineConfig createEngineConfig() { //TODO cache?
         return new EngineConfig(
                 settingFunction,
                 settingZebraDepth,
