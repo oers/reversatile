@@ -202,7 +202,7 @@ public class ZebraEngine {
         }
     }
 
-    public void setEngineStatePlay() {
+    private void setEngineStatePlay() {
         setEngineState(ZebraEngine.ES_PLAY);
     }
 
@@ -220,7 +220,7 @@ public class ZebraEngine {
     }
 
     // tell zebra to stop thinking
-    public void stopMove() {
+    private void stopMove() {
         zeForceReturn();
     }
 
@@ -916,6 +916,13 @@ public class ZebraEngine {
             return; //TODO switch context
         }
         loadConfig(engineConfig);
+    }
+
+    public void pass(GameState gameState, EngineConfig config) {
+        if (currentGameState != gameState) {
+            return; //TODO switch context
+        }
+        setEngineStatePlay();
     }
 
     public interface OnEngineErrorListener {

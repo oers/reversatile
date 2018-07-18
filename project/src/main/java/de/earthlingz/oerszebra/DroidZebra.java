@@ -725,7 +725,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             return new AlertDialog.Builder(getActivity())
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.dialog_pass_text)
-                    .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().engine.setEngineStatePlay())
+                    .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
                     .create();
         }
     }
