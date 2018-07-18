@@ -124,7 +124,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                 engine.undoMove(gameState);
                 return true;
             case R.id.menu_take_redo:
-                engine.redoMove();
+                engine.redoMove(gameState);
                 return true;
             case R.id.menu_settings: {
                 // Launch Preference activity

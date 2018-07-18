@@ -301,7 +301,12 @@ public class ZebraEngine {
         setEngineState(ES_PLAY);
     }
 
-    public void redoMove() {
+    public void redoMove(GameState gameState) {
+        if (currentGameState != gameState) {
+            //TODO switch context
+            return;
+        }
+
         // if thinking on human time - stop
         stopIfThinkingOnHumanTime();
 
@@ -900,7 +905,7 @@ public class ZebraEngine {
     }
 
     public void updateConfig(GameState gameState, EngineConfig engineConfig) {
-        if(currentGameState != gameState){
+        if (currentGameState != gameState) {
             return; //TODO switch context
         }
         loadConfig(engineConfig);
