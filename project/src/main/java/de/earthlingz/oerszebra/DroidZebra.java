@@ -49,7 +49,7 @@ import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
 
 
 public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
-        OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameMessageReceiver, ZebraEngine.OnEngineErrorListener {
+        OnSettingsChangedListener, BoardView.OnMakeMoveListener, GameStateListener, ZebraEngine.OnEngineErrorListener {
     private ClipboardManager clipboard;
     private ZebraEngine engine;
 
@@ -68,7 +68,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
-    private GameStateHandlerProxy handler = new GameStateHandlerProxy(this);
+    private GameStateListener handler = new GameStateHandlerProxy(this);
     private GameState gameState;
     private EngineConfig engineConfig;
 

@@ -8,51 +8,51 @@ import com.shurik.droidzebra.*;
  */
 public class GameStateHandlerProxy implements GameStateListener {
 
-    private GameMessageReceiver receiver;
+    private GameStateListener receiver;
     private android.os.Handler handler = new android.os.Handler();
 
-    GameStateHandlerProxy(GameMessageReceiver receiver) {
+    GameStateHandlerProxy(GameStateListener receiver) {
         this.receiver = receiver;
     }
 
     @Override
-    public void sendBoard(GameState board) {
+    public void onBoard(GameState board) {
         handler.post(() -> receiver.onBoard(board));
     }
 
     @Override
-    public void sendPass() {
+    public void onPass() {
         handler.post(receiver::onPass);
     }
 
     @Override
-    public void sendGameStart() {
+    public void onGameStart() {
         handler.post(receiver::onGameStart);
     }
 
     @Override
-    public void sendGameOver() {
+    public void onGameOver() {
         handler.post(receiver::onGameOver);
     }
 
     @Override
-    public void sendMoveStart() {
+    public void onMoveStart() {
         handler.post(receiver::onMoveStart);
     }
 
     @Override
-    public void sendMoveEnd() {
+    public void onMoveEnd() {
         handler.post(receiver::onMoveEnd);
 
     }
 
     @Override
-    public void sendEval(String eval) {
+    public void onEval(String eval) {
         handler.post(() -> receiver.onEval(eval));
     }
 
     @Override
-    public void sendPv(byte[] moves) {
+    public void onPv(byte[] moves) {
         handler.post(() -> receiver.onPv(moves));
     }
 }

@@ -1,27 +1,27 @@
 package com.shurik.droidzebra;
 
 public interface GameStateListener {
-    default void sendBoard(GameState board) {
+    default void onBoard(GameState board) {
     }
 
-    default void sendPass() {
+    default void onPass() {
     }
 
-    default void sendGameStart() {
+    default void onGameStart() {
     }
 
-    default void sendGameOver() {
+    default void onGameOver() {
     }
 
-    default void sendMoveStart() {
+    default void onMoveStart() {
     }
 
-    default void sendMoveEnd() {
+    default void onMoveEnd() {
     }
 
-    default void sendEval(String eval) {
+    default void onEval(String eval) {
     }
 
-    default void sendPv(byte[] moves) {
+    default void onPv(byte[] moves) {
     }
 }

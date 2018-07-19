@@ -104,7 +104,7 @@ public class GameState {
 
     void setOpening(String opening) {
         this.opening = opening;
-        handler.sendBoard(this);
+        handler.onBoard(this);
     }
 
     public String getOpening() {
@@ -113,7 +113,7 @@ public class GameState {
 
     void setLastMove(int lastMove) {
         this.lastMove = lastMove;
-        handler.sendBoard(this);
+        handler.onBoard(this);
     }
 
     public int getLastMove() {
@@ -122,7 +122,7 @@ public class GameState {
 
     void setNextMove(int nextMove) {
         this.nextMove = nextMove;
-        handler.sendBoard(this);
+        handler.onBoard(this);
     }
 
     public int getNextMove() {
@@ -138,7 +138,7 @@ public class GameState {
                 }
             }
         }
-        handler.sendBoard(this);
+        handler.onBoard(this);
     }
 
 
@@ -189,35 +189,35 @@ public class GameState {
                 whiteDiscCOunt,
                 whiteMoveList
         );
-        handler.sendBoard(this);
+        handler.onBoard(this);
 
     }
 
     public void sendPv(byte[] moves) {
-        this.handler.sendPv(moves);
+        this.handler.onPv(moves);
     }
 
     public void sendPass() {
-        handler.sendPass();
+        handler.onPass();
     }
 
     public void sendGameStart() {
-        handler.sendGameStart();
+        handler.onGameStart();
     }
 
     public void sendGameOver() {
-        handler.sendGameOver();
+        handler.onGameOver();
     }
 
     public void sendMoveStart() {
-        handler.sendMoveStart();
+        handler.onMoveStart();
     }
 
     public void sendEval(String eval) {
-        handler.sendEval(eval);
+        handler.onEval(eval);
     }
 
     public void sendMoveEnd() {
-        handler.sendMoveEnd();
+        handler.onMoveEnd();
     }
 }
