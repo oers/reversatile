@@ -130,6 +130,7 @@ public class ZebraEngine {
 
     private ZebraEngine(GameContext context) {
         mContext = context;
+        engineThread.start();
     }
 
 
@@ -821,9 +822,8 @@ public class ZebraEngine {
     }
 
     public static synchronized ZebraEngine get(GameContext ctx) { //TODO this is still kinda risky..
-        if (engine == null || !engine.engineThread.isAlive()) {
+        if (engine == null ) {
             engine = new ZebraEngine(ctx);
-            engine.engineThread.start();
         }
         return engine;
 
