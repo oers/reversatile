@@ -2,9 +2,6 @@ package de.earthlingz.oerszebra.BoardView;
 
 import android.support.annotation.Nullable;
 import com.shurik.droidzebra.*;
-import de.earthlingz.oerszebra.BoardView.BoardView;
-import de.earthlingz.oerszebra.FieldState;
-import de.earthlingz.oerszebra.MutableFieldState;
 
 /**
  * Created by stefan on 17.03.2018.

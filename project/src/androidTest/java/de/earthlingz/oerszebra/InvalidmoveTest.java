@@ -7,6 +7,7 @@ import android.test.ActivityInstrumentationTestCase2;
 
 import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.BoardView.FieldState;
 
 import java.lang.ref.WeakReference;
 

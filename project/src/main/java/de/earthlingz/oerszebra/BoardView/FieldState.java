@@ -1,4 +1,4 @@
-package de.earthlingz.oerszebra;
+package de.earthlingz.oerszebra.BoardView;
 
 public interface FieldState {
     byte getState();

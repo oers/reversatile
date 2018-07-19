@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
 import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.BoardView.FieldState;
 
 /**
  * This is a simple framework for a test of an Application.  See
