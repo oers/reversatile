@@ -4,6 +4,9 @@ package com.shurik.droidzebra;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Holds Game State, This state should only be produced by engine as that's the source of truth
+ */
 public class GameState {
     private int sideToMove;
     private ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
