@@ -31,7 +31,7 @@ import com.shurik.droidzebra.Move;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BoardView extends View {
+public class BoardView extends View implements OnBoardStateChangedListener {
 
     private float lineWidth = 1;
     private float gridCirclesRadius = 3;
@@ -565,6 +565,7 @@ public class BoardView extends View {
         }
     }
 
+    @Override
     public void onBoardStateChanged() {
         mMoveSelection = null;
         if (shouldDisplayAnimations()) {
