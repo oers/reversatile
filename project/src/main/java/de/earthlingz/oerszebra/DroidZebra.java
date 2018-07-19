@@ -60,7 +60,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private BoardView mBoardView;
     private StatusView mStatusView;
 
-    private BoardState state = ZebraServices.getBoardState();
+    private BoardViewModel state = ZebraServices.getBoardState();
 
     private GameParser parser = ZebraServices.getGameParser();
     private WeakReference<AlertDialog> alert = null;
@@ -211,7 +211,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             showActionBar();
             mBoardView = (BoardView) findViewById(R.id.board);
             mStatusView = (StatusView) findViewById(R.id.status_panel);
-            mBoardView.setBoardState(getState());
+            mBoardView.setBoardViewModel(getState());
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
 
@@ -535,7 +535,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         }
     }
 
-    public BoardState getState() {
+    public BoardViewModel getState() {
         return state;
     }
 

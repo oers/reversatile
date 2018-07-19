@@ -28,7 +28,7 @@ public class ByteBoard {
         Arrays.fill(board, ZebraEngine.PLAYER_EMPTY);
     }
 
-    public byte get(int i, int j) {
-        return board[i * boardSize + j];
+    public byte get(int x, int y) {
+        return board[x * boardSize + y];
     }
 }

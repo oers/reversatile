@@ -85,7 +85,7 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
     }
 
     private int countSquares(byte color) {
-        BoardState state = this.getActivity().getState();
+        BoardViewModel state = this.getActivity().getState();
         int result = 0;
         for (int y = 0, boardLength = state.getBoardHeight(); y < boardLength; y++) {
             for (int x = 0, rowLength = state.getBoardRowWidth(y); x < rowLength; x++) {

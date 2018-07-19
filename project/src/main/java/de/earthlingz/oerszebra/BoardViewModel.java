@@ -7,7 +7,7 @@ import com.shurik.droidzebra.*;
  * Created by stefan on 17.03.2018.
  */
 
-public class BoardState {
+public class BoardViewModel {
     final public static int boardSize = 8;
 
     private MutableFieldState board[][] = new MutableFieldState[boardSize][boardSize];
@@ -46,35 +46,6 @@ public class BoardState {
             }
         }
         return false;
-    }
-
-    private boolean updateBoard(byte[] board) {
-        if (board == null) {
-            return false;
-        }
-
-        boolean changed = false;
-        //only update the board if anything has changed
-        for (int i = 0; !changed && i < boardSize; i++) {
-            for (int j = 0; !changed && j < boardSize; j++) {
-                byte newState = board[i * boardSize + j];
-                if (this.board[i][j].getState() != newState) {
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed) {
-            for (int i = 0; i < boardSize; i++) {
-                for (int j = 0; j < boardSize; j++) {
-                    byte newState = board[i * boardSize + j];
-                    this.board[i][j].set(newState); //this also remembers if a flip has happened
-                }
-            }
-        }
-
-        return changed;
-
     }
 
     public void reset() {
@@ -125,20 +96,20 @@ public class BoardState {
 
         boolean changed = false;
         //only update the board if anything has changed
-        for (int i = 0; !changed && i < boardSize; i++) {
-            for (int j = 0; !changed && j < boardSize; j++) {
-                byte newState = board.get(i, j);
-                if (this.board[i][j].getState() != newState) {
+        for (int x = 0; !changed && x < boardSize; x++) {
+            for (int y = 0; !changed && y < boardSize; y++) {
+                byte newState = board.get(x, y);
+                if (this.board[x][y].getState() != newState) {
                     changed = true;
                 }
             }
         }
 
         if (changed) {
-            for (int i = 0; i < boardSize; i++) {
-                for (int j = 0; j < boardSize; j++) {
-                    byte newState = board.get(i, j);
-                    this.board[i][j].set(newState); //this also remembers if a flip has happened
+            for (int x = 0; x < boardSize; x++) {
+                for (int y = 0; y < boardSize; y++) {
+                    byte newState = board.get(x, y);
+                    this.board[x][y].set(newState); //this also remembers if a flip has happened
                 }
             }
         }
@@ -147,8 +118,8 @@ public class BoardState {
 
     }
 
-    public int getBoardRowWidth(int y) {
-        return board[y].length;
+    public int getBoardRowWidth(int x) {
+        return board[x].length;
     }
 
     public int getBoardHeight() {
