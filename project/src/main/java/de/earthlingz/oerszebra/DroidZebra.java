@@ -430,8 +430,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
 
     @Override
     protected void onDestroy() {
-        engine.kill();
-
+        engine.disconnect(gameState);
         gameState.removeHandler();
 
         super.onDestroy();

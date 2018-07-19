@@ -806,7 +806,7 @@ public class ZebraEngine {
         return mEngineState == ZebraEngine.ES_READY2PLAY;
     }
 
-    public void kill() { //TODO remove this, no one should be able to kill the engine
+    private void kill() { //TODO remove this, no one should be able to kill the engine
         boolean retry = true;
         setRunning(false);
         engineThread.interrupt(); // if waiting
@@ -930,6 +930,16 @@ public class ZebraEngine {
             return false; //TODO switch context
         }
         return isThinking();
+    }
+
+    public void disconnect(GameState gameState) {
+        if (gameState != currentGameState) {
+            //already disconnected
+            return;
+        }
+        currentGameState = new GameState(BOARD_SIZE);
+        stopGame();
+        kill();
     }
 
     public interface OnEngineErrorListener {
