@@ -68,7 +68,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private WeakReference<AlertDialog> alert = null;
 
     public SettingsProvider settingsProvider;
-    private DroidZebraHandler handler = new DroidZebraHandler(this);
+    private GameStateHandlerProxy handler = new GameStateHandlerProxy(this);
     private GameState gameState;
     private EngineConfig engineConfig;
 

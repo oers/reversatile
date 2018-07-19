@@ -3,12 +3,15 @@ package de.earthlingz.oerszebra;
 import com.shurik.droidzebra.*;
 
 
-public class DroidZebraHandler implements GameStateListener {
+/**
+ * Uses Android Handler to proxy GameState changes to Thread on which is created
+ */
+public class GameStateHandlerProxy implements GameStateListener {
 
     private GameMessageReceiver receiver;
     private android.os.Handler handler = new android.os.Handler();
 
-    DroidZebraHandler(GameMessageReceiver receiver) {
+    GameStateHandlerProxy(GameMessageReceiver receiver) {
         this.receiver = receiver;
     }
 
