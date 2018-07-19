@@ -18,7 +18,7 @@ public class GameState {
     private int lastMove;
     private int nextMove;
     private ByteBoard byteBoard;
-    private ZebraEngineMessageHandler handler = new ZebraEngineMessageHandler() {
+    private GameStateListener handler = new GameStateListener() {
     };
 
     @Deprecated //Creates insonsistent instance
@@ -43,11 +43,11 @@ public class GameState {
 
 
     public void removeHandler() {
-        handler = new ZebraEngineMessageHandler() {
+        handler = new GameStateListener() {
         };
     }
 
-    public void setHandler(ZebraEngineMessageHandler handler) {
+    public void setHandler(GameStateListener handler) {
         if (handler == null) {
             removeHandler();
         } else {

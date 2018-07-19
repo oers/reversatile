@@ -1,6 +1,6 @@
 package com.shurik.droidzebra;
 
-public interface ZebraEngineMessageHandler {
+public interface GameStateListener {
     default void sendBoard(GameState board) {
     }
 

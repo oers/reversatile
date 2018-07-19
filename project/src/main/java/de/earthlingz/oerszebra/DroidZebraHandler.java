@@ -3,7 +3,7 @@ package de.earthlingz.oerszebra;
 import com.shurik.droidzebra.*;
 
 
-public class DroidZebraHandler implements ZebraEngineMessageHandler {
+public class DroidZebraHandler implements GameStateListener {
 
     private GameMessageReceiver receiver;
     private android.os.Handler handler = new android.os.Handler();
