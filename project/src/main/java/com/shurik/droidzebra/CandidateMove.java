@@ -9,7 +9,7 @@ public class CandidateMove extends Move {
     private final String evalLong;
     public final boolean isBest;
 
-    public CandidateMove(int move) {
+    CandidateMove(int move) {
         super(move);
         hasEval = false;
         evalShort = null;
@@ -17,7 +17,7 @@ public class CandidateMove extends Move {
         evalLong = null;
     }
 
-    public CandidateMove(int move, String evalShort, String evalLong, boolean best) {
+    CandidateMove(int move, String evalShort, String evalLong, boolean best) {
         super(move);
         this.evalShort = evalShort;
         this.evalLong = evalLong;
