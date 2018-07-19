@@ -10,7 +10,7 @@ public class MutableFieldState implements FieldState {
     private byte state;
     private byte flags;
 
-    MutableFieldState(byte state) {
+    public MutableFieldState(byte state) {
         this.state = state;
         flags = 0;
     }

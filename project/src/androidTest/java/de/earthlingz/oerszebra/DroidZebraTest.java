@@ -3,6 +3,7 @@ package de.earthlingz.oerszebra;
 import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
 import com.shurik.droidzebra.ZebraEngine;
+import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 
 /**
  * This is a simple framework for a test of an Application.  See

@@ -1,7 +1,10 @@
-package de.earthlingz.oerszebra;
+package de.earthlingz.oerszebra.BoardView;
 
 import android.support.annotation.Nullable;
 import com.shurik.droidzebra.*;
+import de.earthlingz.oerszebra.BoardView.BoardView;
+import de.earthlingz.oerszebra.FieldState;
+import de.earthlingz.oerszebra.MutableFieldState;
 
 /**
  * Created by stefan on 17.03.2018.
@@ -16,6 +19,8 @@ public class BoardViewModel {
     private int blackScore = 0;
     private final CandidateMoves possibleMoves = new CandidateMoves();
     private Move nextMove;
+    private OnBoardStateChangedListener onBoardStateChangedListener = new OnBoardStateChangedListener() {
+    };
 
     public FieldState getFieldState(int x, int y) {
         return board[x][y];
@@ -87,6 +92,7 @@ public class BoardViewModel {
 
 
         possibleMoves.setMoves(gameState.getCandidateMoves());
+        this.onBoardStateChangedListener.onBoardStateChanged();
 
         return boardChanged;
     }
@@ -113,7 +119,6 @@ public class BoardViewModel {
                 }
             }
         }
-
         return changed;
 
     }
@@ -124,5 +129,14 @@ public class BoardViewModel {
 
     public int getBoardHeight() {
         return board.length;
+    }
+
+    public void setOnBoardStateChangedListener(BoardView onBoardStateChangedListener) {
+        this.onBoardStateChangedListener = onBoardStateChangedListener;
+    }
+
+    public void removeOnBoardStateChangedListener() {
+        this.onBoardStateChangedListener = new OnBoardStateChangedListener() {
+        };
     }
 }

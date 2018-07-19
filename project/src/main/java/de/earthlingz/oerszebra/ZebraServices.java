@@ -3,6 +3,7 @@ package de.earthlingz.oerszebra;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
+import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 import de.earthlingz.oerszebra.parser.GameParser;
 import de.earthlingz.oerszebra.parser.ReversiWarsParser;
 import de.earthlingz.oerszebra.parser.ThorParser;

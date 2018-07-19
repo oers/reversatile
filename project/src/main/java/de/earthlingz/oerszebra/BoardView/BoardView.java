@@ -14,7 +14,7 @@
 	You should have received a copy of the GNU General Public License
 	along with DroidZebra.  If not, see <http://www.gnu.org/licenses/>
 */
-package de.earthlingz.oerszebra;
+package de.earthlingz.oerszebra.BoardView;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -28,6 +28,7 @@ import android.view.View;
 import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.InvalidMove;
 import com.shurik.droidzebra.Move;
+import de.earthlingz.oerszebra.R;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -71,7 +72,11 @@ public class BoardView extends View implements OnBoardStateChangedListener {
     private OnMakeMoveListener onMakeMoveListener = null;
 
     public void setBoardViewModel(BoardViewModel boardViewModel) {
+        if (this.boardViewModel != null) {
+            this.boardViewModel.removeOnBoardStateChangedListener();
+        }
         this.boardViewModel = boardViewModel;
+        boardViewModel.setOnBoardStateChangedListener(this);
     }
 
     private BoardViewModel boardViewModel;
@@ -292,13 +297,13 @@ public class BoardView extends View implements OnBoardStateChangedListener {
         float oval_adjustment = (float) Math.abs(circle_r * Math.cos(Math.PI * mAnimationProgress));
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (getGameState().getFieldState(i,j).isEmpty())
+                if (getGameState().getFieldState(i, j).isEmpty())
                     continue;
-                if (getGameState().getFieldState(i,j).isBlack())
+                if (getGameState().getFieldState(i, j).isBlack())
                     circle_color = Color.BLACK;
                 else
                     circle_color = Color.WHITE;
-                if (mIsAnimationRunning.get() && getGameState().getFieldState(i,j).isFlipped()) {
+                if (mIsAnimationRunning.get() && getGameState().getFieldState(i, j).isFlipped()) {
                     oval_x = mBoardRect.left + i * mSizeCell + mSizeCell / 2;
                     oval_y = mBoardRect.top + j * mSizeCell + mSizeCell / 2;
                     mTempRect.set(

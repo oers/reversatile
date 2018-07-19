@@ -34,6 +34,8 @@ import android.view.*;
 import android.widget.Button;
 import android.widget.TextView;
 import com.shurik.droidzebra.*;
+import de.earthlingz.oerszebra.BoardView.BoardView;
+import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 import de.earthlingz.oerszebra.parser.GameParser;
 
 import java.lang.ref.WeakReference;
@@ -624,11 +626,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
                     gameState.getOpening()
             );
         }
-        if (boardChanged) {
-            Log.v("Handler", "BoardChanged");
-            mBoardView.onBoardStateChanged();
-
-        } else {
+        if (!boardChanged) {
             Log.v("Handler", "invalidate");
             mBoardView.invalidate();
         }

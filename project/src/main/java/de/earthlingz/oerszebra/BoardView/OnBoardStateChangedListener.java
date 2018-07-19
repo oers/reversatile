@@ -1,4 +1,4 @@
-package de.earthlingz.oerszebra;
+package de.earthlingz.oerszebra.BoardView;
 
 interface OnBoardStateChangedListener {
     default void onBoardStateChanged() {

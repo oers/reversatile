@@ -1,6 +1,6 @@
 package de.earthlingz.oerszebra;
 
-interface FieldState {
+public interface FieldState {
     byte getState();
 
     boolean isEmpty();
