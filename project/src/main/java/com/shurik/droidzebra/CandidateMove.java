@@ -6,7 +6,7 @@ package com.shurik.droidzebra;
 public class CandidateMove extends Move {
     public final boolean hasEval;
     public final String evalShort;
-    private String evalLong;
+    private final String evalLong;
     public final boolean isBest;
 
     public CandidateMove(int move) {
@@ -14,6 +14,7 @@ public class CandidateMove extends Move {
         hasEval = false;
         evalShort = null;
         isBest = false;
+        evalLong = null;
     }
 
     public CandidateMove(int move, String evalShort, String evalLong, boolean best) {
