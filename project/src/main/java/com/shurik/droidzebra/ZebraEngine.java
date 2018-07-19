@@ -939,7 +939,6 @@ public class ZebraEngine {
         }
         currentGameState = new GameState(BOARD_SIZE);
         stopGame();
-        kill();
     }
 
     public interface OnEngineErrorListener {
