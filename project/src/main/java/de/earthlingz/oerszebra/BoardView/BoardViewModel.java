@@ -64,7 +64,7 @@ public class BoardViewModel {
 
     public void processGameOver() {
         possibleMoves.setMoves(new CandidateMove[]{});
-        int max = board.length * board.length;
+        int max = currentBoard.size() * currentBoard.size();
         if (getBlackScore() + getWhiteScore() < max) {
             //adjust result
             if (getBlackScore() > getWhiteScore()) {
