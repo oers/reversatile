@@ -3,6 +3,8 @@ package de.earthlingz.oerszebra.BoardView;
 import android.support.annotation.Nullable;
 import com.shurik.droidzebra.*;
 
+import static com.shurik.droidzebra.ZebraEngine.PLAYER_EMPTY;
+
 /**
  * Created by stefan on 17.03.2018.
  */
@@ -20,10 +22,6 @@ public class BoardViewModel {
     };
     private ByteBoard currentBoard = new ByteBoard(8);
     private ByteBoard previousBoard = new ByteBoard(8);
-
-    private FieldState getFieldState(int x, int y) {
-        return board[x][y];
-    }
 
     @Nullable
     public Move getLastMove() {
@@ -57,7 +55,7 @@ public class BoardViewModel {
         whiteScore = blackScore = 0;
         for (int i = 0; i < boardSize; i++)
             for (int j = 0; j < boardSize; j++)
-                board[i][j] = new MutableFieldState(ZebraEngine.PLAYER_EMPTY);
+                board[i][j] = new MutableFieldState(PLAYER_EMPTY);
     }
 
     public Move getNextMove() {
@@ -142,18 +140,19 @@ public class BoardViewModel {
     }
 
     public boolean isFieldFlipped(int x, int y) {
-        return getFieldState(x, y).isFlipped();
+        byte field = currentBoard.get(x, y);
+        return field != PLAYER_EMPTY && field != previousBoard.get(x,y);
     }
 
     public boolean isFieldEmpty(int i, int j) {
-        return getFieldState(i, j).isEmpty();
+        return currentBoard.isEmpty(i,j);
     }
 
     public boolean isFieldBlack(int i, int j) {
-        return getFieldState(i, j).isBlack();
+        return currentBoard.isBlack(i,j);
     }
 
     public byte getStateByte(int x, int y) {
-        return getFieldState(x, y).getStateByte();
+        return currentBoard.get(x,y);
     }
 }

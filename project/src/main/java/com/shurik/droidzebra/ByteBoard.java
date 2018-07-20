@@ -5,6 +5,9 @@ import org.json.JSONException;
 
 import java.util.Arrays;
 
+import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
+import static com.shurik.droidzebra.ZebraEngine.PLAYER_EMPTY;
+
 
 public class ByteBoard {
 
@@ -28,10 +31,18 @@ public class ByteBoard {
     public ByteBoard(int boardSize) {
         this.boardSize = boardSize;
         board = new byte[boardSize * boardSize];
-        Arrays.fill(board, ZebraEngine.PLAYER_EMPTY);
+        Arrays.fill(board, PLAYER_EMPTY);
     }
 
     public byte get(int x, int y) {
         return board[x * boardSize + y];
+    }
+
+    public boolean isEmpty(int i, int j) {
+        return get(i, j) == PLAYER_EMPTY;
+    }
+
+    public boolean isBlack(int i, int j) {
+        return get(i,j) == PLAYER_BLACK;
     }
 }
