@@ -89,7 +89,7 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         BoardViewModel state = this.getActivity().getState();
         int result = 0;
         for (int y = 0, boardLength = state.getBoardHeight(); y < boardLength; y++) {
-            for (int x = 0, rowLength = state.getBoardRowWidth(y); x < rowLength; x++) {
+            for (int x = 0, rowLength = state.getBoardRowWidth(); x < rowLength; x++) {
                 if (color == state.getStateByte(x,y)) {
                     result++;
                 }

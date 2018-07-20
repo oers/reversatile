@@ -45,4 +45,8 @@ public class ByteBoard {
     public boolean isBlack(int i, int j) {
         return get(i,j) == PLAYER_BLACK;
     }
+
+    public int size() {
+        return boardSize;
+    }
 }

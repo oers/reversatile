@@ -122,12 +122,12 @@ public class BoardViewModel {
 
     }
 
-    public int getBoardRowWidth(int x) {
-        return board[x].length;
+    public int getBoardRowWidth() {
+        return currentBoard.size();
     }
 
     public int getBoardHeight() {
-        return board.length;
+        return currentBoard.size();
     }
 
     public void setOnBoardStateChangedListener(BoardView onBoardStateChangedListener) {
