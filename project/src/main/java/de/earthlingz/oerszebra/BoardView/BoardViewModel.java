@@ -53,6 +53,7 @@ public class BoardViewModel {
     public void reset() {
         lastMove = null;
         whiteScore = blackScore = 0;
+        previousBoard = currentBoard = new ByteBoard(8);
         for (int i = 0; i < boardSize; i++)
             for (int j = 0; j < boardSize; j++)
                 board[i][j] = new MutableFieldState(PLAYER_EMPTY);
@@ -141,18 +142,18 @@ public class BoardViewModel {
 
     public boolean isFieldFlipped(int x, int y) {
         byte field = currentBoard.get(x, y);
-        return field != PLAYER_EMPTY && field != previousBoard.get(x,y);
+        return field != PLAYER_EMPTY && field != previousBoard.get(x, y);
     }
 
     public boolean isFieldEmpty(int i, int j) {
-        return currentBoard.isEmpty(i,j);
+        return currentBoard.isEmpty(i, j);
     }
 
     public boolean isFieldBlack(int i, int j) {
-        return currentBoard.isBlack(i,j);
+        return currentBoard.isBlack(i, j);
     }
 
     public byte getStateByte(int x, int y) {
-        return currentBoard.get(x,y);
+        return currentBoard.get(x, y);
     }
 }
