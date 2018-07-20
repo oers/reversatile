@@ -74,8 +74,7 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
         int result = 0;
         for (int y = 0, boardLength = state.getBoardHeight(); y < boardLength; y++) {
             for (int x = 0, rowLength = state.getBoardRowWidth(y); x < rowLength; x++) {
-                FieldState fieldState = state.getFieldState(x,y);
-                if (color == fieldState.getState()) {
+                if (color == state.getStateByte(x,y)) {
                     result++;
                 }
             }

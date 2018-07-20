@@ -19,7 +19,7 @@ public class BoardViewModel {
     private OnBoardStateChangedListener onBoardStateChangedListener = new OnBoardStateChangedListener() {
     };
 
-    public FieldState getFieldState(int x, int y) {
+    private FieldState getFieldState(int x, int y) {
         return board[x][y];
     }
 
@@ -102,7 +102,7 @@ public class BoardViewModel {
         for (int x = 0; !changed && x < boardSize; x++) {
             for (int y = 0; !changed && y < boardSize; y++) {
                 byte newState = board.get(x, y);
-                if (this.board[x][y].getState() != newState) {
+                if (this.board[x][y].getStateByte() != newState) {
                     changed = true;
                 }
             }
@@ -135,5 +135,21 @@ public class BoardViewModel {
     public void removeOnBoardStateChangedListener() {
         this.onBoardStateChangedListener = new OnBoardStateChangedListener() {
         };
+    }
+
+    public boolean isFieldFlipped(int x, int y) {
+        return getFieldState(x, y).isFlipped();
+    }
+
+    public boolean isFieldEmpty(int i, int j) {
+        return getFieldState(i, j).isEmpty();
+    }
+
+    public boolean isFieldBlack(int i, int j) {
+        return getFieldState(i, j).isBlack();
+    }
+
+    public byte getStateByte(int x, int y) {
+        return getFieldState(x, y).getStateByte();
     }
 }

@@ -1,7 +1,7 @@
 package de.earthlingz.oerszebra.BoardView;
 
 public interface FieldState {
-    byte getState();
+    byte getStateByte();
 
     boolean isEmpty();
 

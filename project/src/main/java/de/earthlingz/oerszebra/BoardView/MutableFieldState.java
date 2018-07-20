@@ -24,7 +24,7 @@ class MutableFieldState implements FieldState {
     }
 
     @Override
-    public byte getState() {
+    public byte getStateByte() {
         return state;
     }
 

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
 import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.BoardView.BoardViewModel;
-import de.earthlingz.oerszebra.BoardView.FieldState;
 
 /**
  * This is a simple framework for a test of an Application.  See
@@ -91,8 +90,7 @@ public class DroidZebraTest extends ActivityInstrumentationTestCase2<DroidZebra>
         int result = 0;
         for (int y = 0, boardLength = state.getBoardHeight(); y < boardLength; y++) {
             for (int x = 0, rowLength = state.getBoardRowWidth(y); x < rowLength; x++) {
-                FieldState fieldState = state.getFieldState(x,y);
-                if (color == fieldState.getState()) {
+                if (color == state.getStateByte(x,y)) {
                     result++;
                 }
             }
