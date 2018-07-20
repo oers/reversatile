@@ -18,6 +18,8 @@ public class BoardViewModel {
     private Move nextMove;
     private OnBoardStateChangedListener onBoardStateChangedListener = new OnBoardStateChangedListener() {
     };
+    private ByteBoard currentBoard = new ByteBoard(8);
+    private ByteBoard previousBoard = new ByteBoard(8);
 
     private FieldState getFieldState(int x, int y) {
         return board[x][y];
@@ -89,13 +91,15 @@ public class BoardViewModel {
 
 
         possibleMoves.setMoves(gameState.getCandidateMoves());
-        this.onBoardStateChangedListener.onBoardStateChanged();
+        this.onBoardStateChangedListener.onBoardStateChanged();//TODO f changed
 
         return boardChanged;
     }
 
     private boolean updateBoard(GameState gameState) {
         ByteBoard board = gameState.getByteBoard();
+        this.previousBoard = currentBoard;
+        this.currentBoard = board;
 
         boolean changed = false;
         //only update the board if anything has changed

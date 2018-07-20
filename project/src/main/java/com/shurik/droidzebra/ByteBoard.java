@@ -11,6 +11,9 @@ public class ByteBoard {
     private final byte[] board;
     private final int boardSize;
 
+    /*
+     * This constructor should never be public - only package private
+     */
     ByteBoard(JSONArray jsonByteBoard, int boardSize) throws JSONException {
         board = new byte[boardSize * boardSize];
         for (int i = 0; i < jsonByteBoard.length(); i++) {
@@ -22,7 +25,7 @@ public class ByteBoard {
         this.boardSize = boardSize;
     }
 
-    ByteBoard(int boardSize) {
+    public ByteBoard(int boardSize) {
         this.boardSize = boardSize;
         board = new byte[boardSize * boardSize];
         Arrays.fill(board, ZebraEngine.PLAYER_EMPTY);
