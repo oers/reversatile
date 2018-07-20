@@ -20,7 +20,7 @@ public class BoardViewModel {
     private OnBoardStateChangedListener onBoardStateChangedListener = new OnBoardStateChangedListener() {
     };
     private ByteBoard currentBoard = new ByteBoard(8);
-    private ByteBoard previousBoard = new ByteBoard(8);
+    private ByteBoard previousBoard = currentBoard;
 
     @Nullable
     public Move getLastMove() {
