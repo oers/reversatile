@@ -43,10 +43,30 @@ public class ByteBoard {
     }
 
     public boolean isBlack(int i, int j) {
-        return get(i,j) == PLAYER_BLACK;
+        return get(i, j) == PLAYER_BLACK;
     }
 
     public int size() {
         return boardSize;
+    }
+
+    public byte getSequential(int xTimesBoardSizePlusY) {
+        return board[xTimesBoardSizePlusY];
+    }
+
+    public boolean isSameAs(ByteBoard board) {
+        if (board == this) {
+            return true;
+        }
+        if (this.boardSize != board.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < this.board.length; i++) {
+            if (this.getSequential(i) != board.getSequential(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -119,7 +119,7 @@ public class BoardViewModel {
                 }
             }
         }
-        return changed;
+        return !previousBoard.isSameAs(currentBoard);
 
     }
 
