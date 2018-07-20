@@ -12,7 +12,6 @@ import static com.shurik.droidzebra.ZebraEngine.PLAYER_EMPTY;
 public class BoardViewModel {
     final public static int boardSize = 8;
 
-    private MutableFieldState board[][] = new MutableFieldState[boardSize][boardSize];
     private Move lastMove = null;
     private int whiteScore = 0;
     private int blackScore = 0;
@@ -54,9 +53,6 @@ public class BoardViewModel {
         lastMove = null;
         whiteScore = blackScore = 0;
         previousBoard = currentBoard = new ByteBoard(8);
-        for (int i = 0; i < boardSize; i++)
-            for (int j = 0; j < boardSize; j++)
-                board[i][j] = new MutableFieldState(PLAYER_EMPTY);
     }
 
     public Move getNextMove() {
@@ -100,25 +96,6 @@ public class BoardViewModel {
         this.previousBoard = currentBoard;
         this.currentBoard = board;
 
-        boolean changed = false;
-        //only update the board if anything has changed
-        for (int x = 0; !changed && x < boardSize; x++) {
-            for (int y = 0; !changed && y < boardSize; y++) {
-                byte newState = board.get(x, y);
-                if (this.board[x][y].getStateByte() != newState) {
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed) {
-            for (int x = 0; x < boardSize; x++) {
-                for (int y = 0; y < boardSize; y++) {
-                    byte newState = board.get(x, y);
-                    this.board[x][y].set(newState); //this also remembers if a flip has happened
-                }
-            }
-        }
         return !previousBoard.isSameAs(currentBoard);
 
     }
