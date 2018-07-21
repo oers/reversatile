@@ -1,8 +1,10 @@
 package de.earthlingz.oerszebra.guessmove;
 
-import com.shurik.droidzebra.EngineConfig;
-import com.shurik.droidzebra.ZebraEngine;
+import com.shurik.droidzebra.*;
 import de.earthlingz.oerszebra.GameSettingsConstants;
+
+import java.util.Random;
+
 
 public class GuessMoveModeManager {
 
@@ -10,6 +12,8 @@ public class GuessMoveModeManager {
     private EngineConfig globalSettings;
     private EngineConfig generatorConfig;
     private EngineConfig guesserConfig;
+    private GameState gameState;
+    private Random random = new Random();
 
     GuessMoveModeManager(ZebraEngine engine, EngineConfig globalSettings) {
 
@@ -50,7 +54,33 @@ public class GuessMoveModeManager {
         );
     }
 
-    public void generate() {
+    public void generate(OnGenerated onGenerated) {
+        final int movesPlayed = random.nextInt(58) + 1;
 
+        engine.newGame(generatorConfig, new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState gameState) {
+                GuessMoveModeManager.this.gameState = gameState;
+                gameState.setHandler(new GameStateListener() {
+                    @Override
+                    public void onBoard(GameState state) {
+                        if (movesPlayed == state.getDisksPlayed()) {
+                            engine.updateConfig(gameState, guesserConfig);
+                            onGenerated.onGenerated(state);
+                        }
+                    }
+                });
+
+            }
+        });
+
+    }
+
+    public void guessMove(Move move) {
+
+    }
+
+    public interface OnGenerated {
+        void onGenerated(GameState state);
     }
 }

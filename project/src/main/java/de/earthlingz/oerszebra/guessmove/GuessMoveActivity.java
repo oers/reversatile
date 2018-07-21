@@ -2,6 +2,7 @@ package de.earthlingz.oerszebra.guessmove;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import com.shurik.droidzebra.GameState;
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.AndroidContext;
@@ -31,12 +32,12 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         boardView.setOnMakeMoveListener(this);
         boardView.requestFocus();
 
-        manager.generate();
+        manager.generate(state -> runOnUiThread(() -> boardViewModel.update(state)));
     }
 
 
     @Override
     public void onMakeMove(Move move) {
-
+        manager.guessMove(move);
     }
 }
