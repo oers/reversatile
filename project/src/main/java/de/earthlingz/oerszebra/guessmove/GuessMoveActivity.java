@@ -30,6 +30,8 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         boardView.setBoardViewModel(boardViewModel);
         boardView.setOnMakeMoveListener(this);
         boardView.requestFocus();
+
+        manager.generate();
     }
 
 
