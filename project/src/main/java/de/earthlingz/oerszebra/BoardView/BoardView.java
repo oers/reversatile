@@ -591,17 +591,19 @@ public class BoardView extends View implements OnBoardStateChangedListener {
 
     public void setDisplayAnimations(boolean displayAnimations) {
         this.displayAnimations = displayAnimations;
+        this.invalidate();
     }
 
     public void setAnimationDuration(int animationDuration) {
         this.animationDuration = animationDuration;
         cancelAnimation();
         initCountDowntimer();
+        this.invalidate();
+
     }
 
     public void setOnMakeMoveListener(OnMakeMoveListener listener) {
         this.onMakeMoveListener = listener;
-
     }
 
     public interface OnMakeMoveListener {

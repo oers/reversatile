@@ -76,8 +76,8 @@ public class GuessMoveModeManager {
 
     }
 
-    public void guessMove(Move move) {
-
+    public boolean isBest(Move move) {
+        return move != null && move.getMoveInt() == gameState.getBestMove().getMoveInt();
     }
 
     public interface OnGenerated {

@@ -2,7 +2,7 @@ package de.earthlingz.oerszebra.guessmove;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import com.shurik.droidzebra.GameState;
+import android.widget.Toast;
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.AndroidContext;
@@ -38,6 +38,14 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
 
     @Override
     public void onMakeMove(Move move) {
-        manager.guessMove(move);
+
+
+        if (manager.isBest(move)) {
+            boardView.setDisplayMoves(true);
+            boardView.setDisplayEvals(true);
+            Toast.makeText(this, "Correct!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Not the best move, try again", Toast.LENGTH_SHORT).show();
+        }
     }
 }

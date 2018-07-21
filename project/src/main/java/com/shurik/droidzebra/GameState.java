@@ -21,7 +21,8 @@ public class GameState {
     private GameStateListener handler = new GameStateListener() {
     };
 
-    @Deprecated //Creates insonsistent instance
+    @Deprecated
+        //Creates insonsistent instance
     GameState(int boardSize, List<Move> moves) {
         this.disksPlayed = moves.size();
         this.moveSequence = toBytesWithBoardSize(moves, boardSize);
@@ -34,7 +35,8 @@ public class GameState {
         byteBoard = new ByteBoard(boardSize);
     }
 
-    @Deprecated //Creates insonsistent instance
+    @Deprecated
+        //Creates insonsistent instance
     GameState(int boardSize, byte[] moves, int movesPlayed) {
         this.disksPlayed = movesPlayed;
         this.moveSequence = Arrays.copyOf(moves, boardByteLength(boardSize));
@@ -219,5 +221,14 @@ public class GameState {
 
     public void sendMoveEnd() {
         handler.onMoveEnd();
+    }
+
+    public CandidateMove getBestMove() {
+        for (CandidateMove candidateMove : candidateMoves) {
+            if (candidateMove.isBest) {
+                return candidateMove;
+            }
+        }
+        return null;
     }
 }
