@@ -45,8 +45,10 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         progressDialog.show();
         manager.generate(state -> runOnUiThread(() -> {
             boardView.setOnMakeMoveListener(null);
-            boardViewModel.update(state);
+            boardView.setDisplayMoves(true);
+            boardView.setDisplayEvals(true);
             boardView.setOnMakeMoveListener(this);
+            boardViewModel.update(state);
             progressDialog.hide();
 
         }));
