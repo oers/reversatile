@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/main_frame"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" android:background="@color/board_color">
@@ -13,12 +14,37 @@
             android:visibility="visible"
 
     />
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="66dp"
-            android:layout_alignParentEnd="true"
-            android:layout_below="@+id/guess_move_board"
-            android:id="@+id/new_game_button"
-            android:background="@drawable/ic_menu_play"
-            android:layout_alignParentRight="true"/>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="277dp"
+            android:layout_height="88dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="37dp"
+            android:layout_alignParentEnd="true" android:layout_marginEnd="15dp" android:layout_marginRight="15dp"
+            android:layout_alignParentRight="true">
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_menu_play"
+                android:id="@+id/new_game_button"
+                android:contentDescription="@string/menu_item_new_game"
+
+                android:background="@color/board_color" android:adjustViewBounds="true" android:scaleType="fitCenter"/>
+        <ImageButton
+                android:src="@drawable/ic_menu_undo"
+                android:layout_width="86dp"
+                android:layout_height="match_parent"
+                android:id="@+id/button_undo"
+                android:contentDescription="@string/menu_item_redo"
+                android:background="@color/board_color" android:scaleType="fitCenter"/>
+        <ImageButton
+                android:src="@drawable/ic_menu_redo"
+                android:layout_height="match_parent"
+                android:id="@+id/button_redo"
+                android:contentDescription="@string/menu_item_redo"
+                android:background="@color/board_color" android:layout_width="92dp" android:scaleType="fitCenter"/>
+
+    </LinearLayout>
+
 </RelativeLayout>
