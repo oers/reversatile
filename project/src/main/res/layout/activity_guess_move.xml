@@ -16,42 +16,12 @@
     />
 
 
-    <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="67dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="68dp"
-            android:layout_alignParentEnd="true" android:layout_marginEnd="0dp" android:layout_marginRight="0dp"
-            android:layout_alignParentRight="true">
-        <ImageView
-                android:src="@drawable/black_circle"
+    <ImageView
+            android:src="@drawable/black_circle"
 
-                android:layout_width="79dp"
-                android:layout_height="match_parent"
-                android:id="@+id/side_to_move_circle" android:padding="16dp"/>
-        <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_menu_play"
-                android:id="@+id/new_game_button"
-                android:contentDescription="@string/menu_item_new_game"
-
-                android:background="@color/board_color" android:adjustViewBounds="true" android:scaleType="fitCenter"/>
-        <ImageButton
-                android:src="@drawable/ic_menu_undo"
-                android:layout_width="102dp"
-                android:layout_height="match_parent"
-                android:id="@+id/button_undo"
-                android:contentDescription="@string/menu_item_redo"
-                android:background="@color/board_color" android:scaleType="fitCenter"/>
-        <ImageButton
-                android:src="@drawable/ic_menu_redo"
-                android:layout_height="match_parent"
-                android:id="@+id/button_redo"
-                android:contentDescription="@string/menu_item_redo"
-                android:background="@color/board_color" android:layout_width="85dp" android:scaleType="fitCenter"/>
-
-    </LinearLayout>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/side_to_move_circle" android:padding="16dp" android:layout_alignParentStart="true"
+            android:layout_below="@+id/guess_move_board"/>
 
 </RelativeLayout>
