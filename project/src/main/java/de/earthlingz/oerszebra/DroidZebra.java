@@ -36,6 +36,7 @@ import android.widget.TextView;
 import com.shurik.droidzebra.*;
 import de.earthlingz.oerszebra.BoardView.BoardView;
 import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
 import de.earthlingz.oerszebra.parser.GameParser;
 
 import java.lang.ref.WeakReference;
@@ -132,6 +133,12 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             case R.id.menu_settings: {
                 // Launch Preference activity
                 Intent i = new Intent(this, SettingsPreferences.class);
+                startActivity(i);
+            }
+            return true;
+            case R.id.menu_guess_move: {
+                // Launch GuessMove activity
+                Intent i = new Intent(this, GuessMoveActivity.class);
                 startActivity(i);
             }
             return true;
