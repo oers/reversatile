@@ -54,7 +54,7 @@ public class GuessMoveModeManager {
         );
     }
 
-    public void generate(OnGenerated onGenerated) {
+    public void generate(GuessMoveListener guessMoveListener) {
         final int movesPlayed = random.nextInt(58) + 1;
 
         engine.newGame(generatorConfig, new ZebraEngine.OnGameStateReadyListener() {
@@ -66,9 +66,12 @@ public class GuessMoveModeManager {
                     public void onBoard(GameState state) {
                         if (movesPlayed == state.getDisksPlayed()) {
                             engine.updateConfig(gameState, guesserConfig);
-                            onGenerated.onGenerated(state);
+                            guessMoveListener.onGenerated(state);
+                        }else{
+                            guessMoveListener.onBoard(state);
                         }
                     }
+
                 });
 
             }
@@ -80,7 +83,20 @@ public class GuessMoveModeManager {
         return move != null && move.getMoveInt() == gameState.getBestMove().getMoveInt();
     }
 
-    public interface OnGenerated {
+    public void move(Move move) throws InvalidMove {
+        this.engine.makeMove(gameState, move);
+    }
+
+    public void redoMove() {
+        engine.redoMove(gameState);
+    }
+
+    public void undoMove() {
+        engine.undoMove(gameState);
+    }
+
+    public interface GuessMoveListener {
         void onGenerated(GameState state);
+        void onBoard(GameState state);
     }
 }

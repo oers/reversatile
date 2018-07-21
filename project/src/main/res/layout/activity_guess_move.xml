@@ -22,6 +22,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/side_to_move_circle" android:padding="16dp" android:layout_alignParentStart="true"
-            android:layout_below="@+id/guess_move_board"/>
+            android:layout_below="@+id/guess_move_board" android:layout_alignParentLeft="true"/>
+    <TextView
+            android:text="Guess best move"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_below="@+id/guess_move_board"
+            android:layout_toEndOf="@+id/side_to_move_circle" android:id="@+id/guess_move_text" android:textSize="24sp"
+            android:layout_toRightOf="@+id/side_to_move_circle"/>
+
 
 </RelativeLayout>
