@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
@@ -13,12 +14,15 @@ import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 import de.earthlingz.oerszebra.GlobalSettingsLoader;
 import de.earthlingz.oerszebra.R;
 
+import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
+
 
 public class GuessMoveActivity extends FragmentActivity implements BoardView.OnMakeMoveListener {
 
     private BoardView boardView;
     private BoardViewModel boardViewModel;
     private GuessMoveModeManager manager;
+    private ImageView sideToMoveCircle;
 
 
     @Override
@@ -35,6 +39,7 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         findViewById(R.id.new_game_button).setOnClickListener(view -> {
             newGame();
         });
+        sideToMoveCircle = (ImageView) findViewById(R.id.side_to_move_circle);
 
         newGame();
     }
@@ -48,7 +53,14 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
             boardView.setDisplayMoves(false);
             boardView.setDisplayEvals(false);
             boardView.setOnMakeMoveListener(this);
+
             boardViewModel.update(state);
+            if (state.getSideToMove() == PLAYER_BLACK) {
+                sideToMoveCircle.setImageResource(R.drawable.black_circle);
+            } else {
+                sideToMoveCircle.setImageResource(R.drawable.white_circle);
+            }
+
             progressDialog.hide();
 
         }));

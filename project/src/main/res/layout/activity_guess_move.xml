@@ -19,17 +19,17 @@
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="67dp"
             android:layout_alignParentBottom="true"
-            android:layout_marginBottom="55dp"
+            android:layout_marginBottom="68dp"
             android:layout_alignParentEnd="true" android:layout_marginEnd="0dp" android:layout_marginRight="0dp"
             android:layout_alignParentRight="true">
         <ImageView
-                android:src="@drawable/circle"
+                android:src="@drawable/black_circle"
 
-                android:layout_width="101dp"
+                android:layout_width="79dp"
                 android:layout_height="match_parent"
-                android:id="@+id/side_to_move_circle"/>
+                android:id="@+id/side_to_move_circle" android:padding="16dp"/>
         <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
