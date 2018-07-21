@@ -1,7 +1,9 @@
 package de.earthlingz.oerszebra.guessmove;
 
+import android.app.ProgressDialog;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
@@ -29,10 +31,25 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         boardView = (BoardView) findViewById(R.id.guess_move_board);
         boardViewModel = new BoardViewModel();
         boardView.setBoardViewModel(boardViewModel);
-        boardView.setOnMakeMoveListener(this);
         boardView.requestFocus();
+        findViewById(R.id.new_game_button).setOnClickListener(view -> {
+            newGame();
+        });
 
-        manager.generate(state -> runOnUiThread(() -> boardViewModel.update(state)));
+        newGame();
+    }
+
+    private void newGame() {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Generating game");
+        progressDialog.show();
+        manager.generate(state -> runOnUiThread(() -> {
+            boardView.setOnMakeMoveListener(null);
+            boardViewModel.update(state);
+            boardView.setOnMakeMoveListener(this);
+            progressDialog.hide();
+
+        }));
     }
 
 

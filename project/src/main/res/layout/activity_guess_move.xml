@@ -3,7 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/main_frame"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+        android:layout_height="fill_parent" android:background="@color/board_color">
 
     <de.earthlingz.oerszebra.BoardView.BoardView
             android:id="@+id/guess_move_board"
@@ -13,4 +13,12 @@
             android:visibility="visible"
 
     />
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="66dp"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/guess_move_board"
+            android:id="@+id/new_game_button"
+            android:background="@drawable/ic_menu_play"
+            android:layout_alignParentRight="true"/>
 </RelativeLayout>
