@@ -61,7 +61,16 @@
                 android:noHistory="false"
                 android:screenOrientation="portrait"
                 android:stateNotNeeded="true"/>
-        <activity android:name=".guessmove.GuessMoveActivity">
+        <activity
+                android:name=".guessmove.GuessMoveActivity"
+                android:parentActivityName=".DroidZebra"
+                android:label="@string/guess_best_title"
+        >
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="de.earthlingz.oerszebra.DroidZebra" />
+
         </activity>
     </application>
 

@@ -79,4 +79,5 @@
     <string name="somebody_wins"></string>
     <string name="_00_00"></string>
     <string name="menu_item_guess_move">Guess Move Mode</string>
+    <string name="guess_best_title">Guess Best Move</string>
 </resources>
