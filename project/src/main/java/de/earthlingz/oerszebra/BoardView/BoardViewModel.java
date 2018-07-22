@@ -25,9 +25,8 @@ public interface BoardViewModel {
 
     boolean isFieldFlipped(int x, int y);
 
-    boolean isFieldEmpty(int i, int j);
+    boolean isFieldEmpty(int x, int y);
 
-    boolean isFieldBlack(int i, int j);
+    boolean isFieldBlack(int x, int y);
 
-    byte getStateByte(int x, int y);
 }

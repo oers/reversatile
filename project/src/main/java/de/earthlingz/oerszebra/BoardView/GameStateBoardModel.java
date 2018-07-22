@@ -143,17 +143,16 @@ public class GameStateBoardModel implements BoardViewModel {
     }
 
     @Override
-    public boolean isFieldEmpty(int i, int j) {
-        return currentBoard.isEmpty(i, j);
+    public boolean isFieldEmpty(int x, int y) {
+        return currentBoard.isEmpty(x, y);
     }
 
     @Override
-    public boolean isFieldBlack(int i, int j) {
-        return currentBoard.isBlack(i, j);
+    public boolean isFieldBlack(int x, int y) {
+        return currentBoard.isBlack(x, y);
     }
 
-    @Override
-    public byte getStateByte(int x, int y) {
+    public byte getFieldByte(int x, int y) {
         return currentBoard.get(x, y);
     }
 }
