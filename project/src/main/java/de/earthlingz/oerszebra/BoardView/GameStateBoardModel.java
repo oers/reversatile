@@ -16,7 +16,7 @@ public class GameStateBoardModel implements BoardViewModel {
     private int blackScore = 0;
     private final CandidateMoves possibleMoves = new CandidateMoves();
     private Move nextMove;
-    private BoardModelListener boardModelListener = new BoardModelListener() {
+    private BoardViewModelListener boardViewModelListener = new BoardViewModelListener() {
     };
     private ByteBoard currentBoard = new ByteBoard(8);
     private ByteBoard previousBoard = currentBoard;
@@ -95,9 +95,9 @@ public class GameStateBoardModel implements BoardViewModel {
 
         possibleMoves.setMoves(gameState.getCandidateMoves());
         if (boardChanged) {
-            this.boardModelListener.onBoardStateChanged();
+            this.boardViewModelListener.onBoardStateChanged();
         }
-        this.boardModelListener.onCandidateMovesChanged();
+        this.boardViewModelListener.onCandidateMovesChanged();
 
 
         return boardChanged;
@@ -125,13 +125,13 @@ public class GameStateBoardModel implements BoardViewModel {
     }
 
     @Override
-    public void setBoardModelListener(BoardModelListener boardModelListener) {
-        this.boardModelListener = boardModelListener;
+    public void setBoardViewModelListener(BoardViewModelListener boardViewModelListener) {
+        this.boardViewModelListener = boardViewModelListener;
     }
 
     @Override
     public void removeOnBoardStateChangedListener() {
-        this.boardModelListener = new BoardModelListener() {
+        this.boardViewModelListener = new BoardViewModelListener() {
         };
     }
 

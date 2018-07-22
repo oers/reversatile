@@ -32,7 +32,7 @@ import de.earthlingz.oerszebra.R;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BoardView extends View implements BoardModelListener {
+public class BoardView extends View implements BoardViewModel.BoardViewModelListener {
 
     private float lineWidth = 1;
     private float gridCirclesRadius = 3;
@@ -76,7 +76,7 @@ public class BoardView extends View implements BoardModelListener {
             this.boardViewModel.removeOnBoardStateChangedListener();
         }
         this.boardViewModel = boardViewModel;
-        boardViewModel.setBoardModelListener(this);
+        boardViewModel.setBoardViewModelListener(this);
     }
 
     private BoardViewModel boardViewModel;

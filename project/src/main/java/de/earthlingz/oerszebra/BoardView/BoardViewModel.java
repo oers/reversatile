@@ -19,7 +19,7 @@ public interface BoardViewModel {
 
     Move getNextMove();
 
-    void setBoardModelListener(BoardModelListener boardModelListener);
+    void setBoardViewModelListener(BoardViewModelListener boardViewModelListener);
 
     void removeOnBoardStateChangedListener();
 
@@ -29,4 +29,17 @@ public interface BoardViewModel {
 
     boolean isFieldBlack(int x, int y);
 
+    interface BoardViewModelListener {
+        default void onBoardStateChanged() {
+        }
+        default void onCandidateMovesChanged() {
+        }
+        default void onBoardSizeChanged() {
+        }
+        default void onNextMoveChanged() {
+        }
+        default void onLastMoveChanged(){
+
+        }
+    }
 }
