@@ -62,11 +62,13 @@ public class GuessMoveModeManager {
             public void onGameStateReady(GameState gameState) {
                 GuessMoveModeManager.this.gameState = gameState;
                 gameState.setHandler(new GameStateListener() {
+                    private boolean generated = false;
                     @Override
                     public void onBoard(GameState state) {
-                        if (movesPlayed == state.getDisksPlayed()) {
+                        if (!generated && movesPlayed == state.getDisksPlayed()) {
                             engine.updateConfig(gameState, guesserConfig);
                             guessMoveListener.onGenerated(state);
+                            generated = true;
                         }else{
                             guessMoveListener.onBoard(state);
                         }
