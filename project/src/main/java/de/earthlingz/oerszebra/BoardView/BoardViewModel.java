@@ -36,7 +36,7 @@ public class BoardViewModel {
     }
 
     //TODO encapsulation leak
-    public CandidateMove[] getMoves() {
+    public CandidateMove[] getCandidateMoves() {
         return possibleMoves.getMoves();
     }
 

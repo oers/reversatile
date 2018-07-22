@@ -334,10 +334,10 @@ public class BoardView extends View implements OnBoardStateChangedListener {
 
         // draw evals if in practive mode
         if ((shouldDisplayMoves() || shouldDisplayEvals())
-                && getGameState().getMoves() != null) {
+                && getGameState().getCandidateMoves() != null) {
             mPaint.setStrokeWidth(lineWidth * 2);
             float lineLength = mSizeCell / 4;
-            for (CandidateMove move : getGameState().getMoves()) {
+            for (CandidateMove move : getGameState().getCandidateMoves()) {
                 RectF cr = getCellRect(move.getX(), move.getY());
                 if (move.hasEval && shouldDisplayEvals()) {
                     if (move.isBest)
