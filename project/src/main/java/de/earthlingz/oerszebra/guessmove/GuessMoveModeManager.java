@@ -63,13 +63,14 @@ public class GuessMoveModeManager {
                 GuessMoveModeManager.this.gameState = gameState;
                 gameState.setHandler(new GameStateListener() {
                     private boolean generated = false;
+
                     @Override
                     public void onBoard(GameState state) {
                         if (!generated && movesPlayed == state.getDisksPlayed()) {
                             engine.updateConfig(gameState, guesserConfig);
                             guessMoveListener.onGenerated(state);
                             generated = true;
-                        }else{
+                        } else {
                             guessMoveListener.onBoard(state);
                         }
                     }
@@ -82,7 +83,15 @@ public class GuessMoveModeManager {
     }
 
     public boolean isBest(Move move) {
-        return move != null && move.getMoveInt() == gameState.getBestMove().getMoveInt();//TODO error on multiple best moves
+        if (move == null) {
+            return false;
+        }
+        for (CandidateMove candidateMove : gameState.getCandidateMoves()) {
+            if(move.getMoveInt() == candidateMove.getMoveInt() && candidateMove.isBest){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void move(Move move) throws InvalidMove {
@@ -99,6 +108,7 @@ public class GuessMoveModeManager {
 
     public interface GuessMoveListener {
         void onGenerated(GameState state);
+
         void onBoard(GameState state);
     }
 }
