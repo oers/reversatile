@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.shurik.droidzebra.ZebraEngine;
-import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
 
 import java.lang.ref.WeakReference;
 
@@ -69,7 +69,7 @@ public class InvalidmoveTest extends ActivityInstrumentationTestCase2<DroidZebra
     }
 
     private int countSquares(byte color) {
-        BoardViewModel state = this.getActivity().getState();
+        GameStateBoardModel state = this.getActivity().getState();
         int result = 0;
         for (int y = 0, boardLength = state.getBoardHeight(); y < boardLength; y++) {
             for (int x = 0, rowLength = state.getBoardRowWidth(); x < rowLength; x++) {

@@ -35,7 +35,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import com.shurik.droidzebra.*;
 import de.earthlingz.oerszebra.BoardView.BoardView;
-import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
 import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
 import de.earthlingz.oerszebra.parser.GameParser;
 
@@ -63,7 +63,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     private BoardView mBoardView;
     private StatusView mStatusView;
 
-    private BoardViewModel state = ZebraServices.getBoardState();
+    private GameStateBoardModel state = ZebraServices.getBoardState();
 
     private GameParser parser = ZebraServices.getGameParser();
     private WeakReference<AlertDialog> alert = null;
@@ -544,7 +544,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
         }
     }
 
-    public BoardViewModel getState() {
+    public GameStateBoardModel getState() {
         return state;
     }
 

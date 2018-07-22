@@ -17,7 +17,7 @@ import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.AndroidContext;
 import de.earthlingz.oerszebra.BoardView.BoardView;
-import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
 import de.earthlingz.oerszebra.GlobalSettingsLoader;
 import de.earthlingz.oerszebra.R;
 import de.earthlingz.oerszebra.SettingsPreferences;
@@ -28,7 +28,7 @@ import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
 public class GuessMoveActivity extends FragmentActivity implements BoardView.OnMakeMoveListener {
 
     private BoardView boardView;
-    private BoardViewModel boardViewModel;
+    private GameStateBoardModel boardViewModel;
     private GuessMoveModeManager manager;
     private ImageView sideToMoveCircle;
     private TextView hintText;
@@ -43,7 +43,7 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
                 new GlobalSettingsLoader(getApplicationContext()).createEngineConfig());
         setContentView(R.layout.activity_guess_move);
         boardView = (BoardView) findViewById(R.id.guess_move_board);
-        boardViewModel = new BoardViewModel();
+        boardViewModel = new GameStateBoardModel();
         boardView.setBoardViewModel(boardViewModel);
         boardView.requestFocus();
         sideToMoveCircle = (ImageView) findViewById(R.id.side_to_move_circle);

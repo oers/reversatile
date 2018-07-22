@@ -1,6 +1,6 @@
 package de.earthlingz.oerszebra.BoardView;
 
-interface OnBoardStateChangedListener {
+interface BoardModelListener {
     default void onBoardStateChanged() {
     }
     default void onCandidateMovesChanged() {
