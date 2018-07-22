@@ -97,8 +97,7 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         if (guessed) {
             try {
                 manager.move(move);
-            } catch (InvalidMove invalidMove) {
-                Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show();
+            } catch (InvalidMove ignored) {
             }
             return;
         }
