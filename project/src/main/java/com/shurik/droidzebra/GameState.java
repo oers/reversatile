@@ -223,7 +223,7 @@ public class GameState {
         handler.onMoveEnd();
     }
 
-    public CandidateMove getBestMove() {
+    public CandidateMove getBestMove() { //TODO what if multiple best moves?
         for (CandidateMove candidateMove : candidateMoves) {
             if (candidateMove.isBest) {
                 return candidateMove;
