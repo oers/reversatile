@@ -73,7 +73,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
 
     public void setBoardViewModel(BoardViewModel boardViewModel) {
         if (this.boardViewModel != null) {
-            this.boardViewModel.removeOnBoardStateChangedListener();
+            this.boardViewModel.removeBoardViewModeListener();
         }
         this.boardViewModel = boardViewModel;
         boardViewModel.setBoardViewModelListener(this);

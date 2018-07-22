@@ -21,7 +21,7 @@ public interface BoardViewModel {
 
     void setBoardViewModelListener(BoardViewModelListener boardViewModelListener);
 
-    void removeOnBoardStateChangedListener();
+    void removeBoardViewModeListener();
 
     boolean isFieldFlipped(int x, int y);
 

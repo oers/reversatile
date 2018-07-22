@@ -1,5 +1,6 @@
 package de.earthlingz.oerszebra.BoardView;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.shurik.droidzebra.*;
 
@@ -125,12 +126,12 @@ public class GameStateBoardModel implements BoardViewModel {
     }
 
     @Override
-    public void setBoardViewModelListener(BoardViewModelListener boardViewModelListener) {
+    public void setBoardViewModelListener(@NonNull BoardViewModelListener boardViewModelListener) {
         this.boardViewModelListener = boardViewModelListener;
     }
 
     @Override
-    public void removeOnBoardStateChangedListener() {
+    public void removeBoardViewModeListener() {
         this.boardViewModelListener = new BoardViewModelListener() {
         };
     }
