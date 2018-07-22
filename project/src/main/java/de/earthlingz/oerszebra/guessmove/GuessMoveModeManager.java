@@ -82,7 +82,7 @@ public class GuessMoveModeManager {
     }
 
     public boolean isBest(Move move) {
-        return move != null && move.getMoveInt() == gameState.getBestMove().getMoveInt();
+        return move != null && move.getMoveInt() == gameState.getBestMove().getMoveInt();//TODO error on multiple best moves
     }
 
     public void move(Move move) throws InvalidMove {
