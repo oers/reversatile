@@ -86,7 +86,10 @@ public class BoardViewModel {
 
 
         possibleMoves.setMoves(gameState.getCandidateMoves());
-        this.onBoardStateChangedListener.onBoardStateChanged();
+        if (boardChanged) {
+            this.onBoardStateChangedListener.onBoardStateChanged();
+        }
+        this.onBoardStateChangedListener.onCandidateMovesChanged();
 
 
         return boardChanged;

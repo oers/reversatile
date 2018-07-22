@@ -571,6 +571,11 @@ public class BoardView extends View implements OnBoardStateChangedListener {
     }
 
     @Override
+    public void onCandidateMovesChanged() {
+        invalidate();
+    }
+
+    @Override
     public void onBoardStateChanged() {
         mMoveSelection = null;
         if (shouldDisplayAnimations()) {
