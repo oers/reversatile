@@ -10,40 +10,38 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-import com.shurik.droidzebra.GameState;
-import com.shurik.droidzebra.InvalidMove;
-import com.shurik.droidzebra.Move;
-import com.shurik.droidzebra.ZebraEngine;
-import de.earthlingz.oerszebra.AndroidContext;
+import com.shurik.droidzebra.*;
+import de.earthlingz.oerszebra.*;
 import de.earthlingz.oerszebra.BoardView.BoardView;
-import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
-import de.earthlingz.oerszebra.GlobalSettingsLoader;
-import de.earthlingz.oerszebra.R;
-import de.earthlingz.oerszebra.SettingsPreferences;
+import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 
 import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
 
 
-public class GuessMoveActivity extends FragmentActivity implements BoardView.OnMakeMoveListener {
+public class GuessMoveActivity extends FragmentActivity  {
 
     private BoardView boardView;
-    private GameStateBoardModel boardViewModel;
+    private BoardViewModel boardViewModel;
     private GuessMoveModeManager manager;
     private ImageView sideToMoveCircle;
     private TextView hintText;
 
-    private Boolean guessed = false;
+    private EngineConfig engineConfig;
+    private GlobalSettingsLoader globalSettingsLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        globalSettingsLoader = new GlobalSettingsLoader(getApplicationContext());
+        engineConfig = globalSettingsLoader.createEngineConfig();
+
+
         this.manager = new GuessMoveModeManager(ZebraEngine.get(
                 new AndroidContext(getApplicationContext())),
-                new GlobalSettingsLoader(getApplicationContext()).createEngineConfig());
+                engineConfig);
         setContentView(R.layout.activity_guess_move);
         boardView = (BoardView) findViewById(R.id.guess_move_board);
-        boardViewModel = new GameStateBoardModel();
+        boardViewModel = manager;
         boardView.setBoardViewModel(boardViewModel);
         boardView.requestFocus();
         sideToMoveCircle = (ImageView) findViewById(R.id.side_to_move_circle);
@@ -51,32 +49,56 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
         newGame();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        globalSettingsLoader.setOnSettingsChangedListener(() -> {
+            this.engineConfig = globalSettingsLoader.createEngineConfig();
+            this.manager.updateGlobalConfig(engineConfig);
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        globalSettingsLoader.setOnSettingsChangedListener(null);
+
+    }
+
     private void newGame() {
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Generating game");
         progressDialog.show();
+        boardView.setOnMakeMoveListener(null);
+
+        boardView.setDisplayMoves(false);
+        boardView.setDisplayEvals(true);
+
         manager.generate(new GuessMoveModeManager.GuessMoveListener() {
             @Override
             public void onGenerated(GameState state) {
 
                 runOnUiThread(() -> {
-                    boardView.setOnMakeMoveListener(null);
-                    boardView.setDisplayMoves(false);
-                    boardView.setDisplayEvals(false);
-                    boardView.setOnMakeMoveListener(GuessMoveActivity.this);
-
-                    boardViewModel.update(state);
-                    if (state.getSideToMove() == PLAYER_BLACK) {
-                        sideToMoveCircle.setImageResource(R.drawable.black_circle);
-                        hintText.setText(R.string.guess_black_move_hint);
-                        hintText.setTextColor(Color.BLACK);
-
-                    } else {
-                        sideToMoveCircle.setImageResource(R.drawable.white_circle);
-                        hintText.setText(R.string.guess_white_move_hint);
-                        hintText.setTextColor(Color.WHITE);
-                    }
-                    guessed = false;
+                    boardView.setOnMakeMoveListener(move -> {
+                        if (manager.isBest(move)) {
+                            boardView.setDisplayMoves(true);
+                            boardView.setDisplayEvals(true);
+                            hintText.setTextColor(Color.CYAN);
+                            hintText.setText(R.string.guess_move_correct);
+                            manager.showAllMoves();
+                            boardView.setOnMakeMoveListener(move1 -> {
+                                try {
+                                    manager.move(move1);
+                                } catch (InvalidMove ignored) {
+                                }
+                            });
+                        } else {
+                            manager.showMove(move);
+                            hintText.setTextColor(Color.RED);
+                            hintText.setText(R.string.guess_move_incorrect);
+                        }
+                    });
+                    updateSideToMove(state);
                     progressDialog.hide();
 
                 });
@@ -84,34 +106,38 @@ public class GuessMoveActivity extends FragmentActivity implements BoardView.OnM
             }
 
             @Override
-            public void onBoard(GameState state) {
-                runOnUiThread(() -> boardViewModel.update(state));
+            public void onSideToMoveChanged(GameState state) {
+                runOnUiThread(() -> updateSideToMove(state));
+            }
+
+            @Override
+            public void onCorrectGuess() {
 
             }
+
+            @Override
+            public void onBadGuess() {
+
+            }
+
         });
     }
 
+    private void updateSideToMove(GameState state) {
+        if (state.getSideToMove() == PLAYER_BLACK) {
+            sideToMoveCircle.setImageResource(R.drawable.black_circle);
+            hintText.setText(R.string.guess_black_move_hint);
+            hintText.setTextColor(Color.BLACK);
 
-    @Override
-    public void onMakeMove(Move move) {
-        if (guessed) {
-            try {
-                manager.move(move);
-            } catch (InvalidMove ignored) {
-            }
-            return;
-        }
-        if (manager.isBest(move)) {
-            boardView.setDisplayMoves(true);
-            boardView.setDisplayEvals(true);
-            hintText.setTextColor(Color.CYAN);
-            hintText.setText(R.string.guess_move_correct);
-            guessed = true;
         } else {
-            hintText.setTextColor(Color.RED);
-            hintText.setText(R.string.guess_move_incorrect);
+            sideToMoveCircle.setImageResource(R.drawable.white_circle);
+            hintText.setText(R.string.guess_white_move_hint);
+            hintText.setTextColor(Color.WHITE);
         }
     }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

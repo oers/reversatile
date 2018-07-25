@@ -44,14 +44,14 @@ public class GameState {
     }
 
 
-    public void removeHandler() {
+    public void removeGameStateListener() {
         handler = new GameStateListener() {
         };
     }
 
-    public void setHandler(GameStateListener handler) {
+    public void setGameStateListener(GameStateListener handler) {
         if (handler == null) {
-            removeHandler();
+            removeGameStateListener();
         } else {
             this.handler = handler;
         }

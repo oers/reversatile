@@ -97,7 +97,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             @Override
             public void onGameStateReady(GameState gameState) {
                 DroidZebra.this.gameState = gameState;
-                gameState.setHandler(handler);
+                gameState.setGameStateListener(handler);
             }
         });
     }
@@ -248,7 +248,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             @Override
             public void onGameStateReady(GameState gameState1) {
                 DroidZebra.this.gameState = gameState1;
-                gameState1.setHandler(handler);
+                gameState1.setGameStateListener(handler);
             }
         });
 
@@ -262,7 +262,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
             @Override
             public void onGameStateReady(GameState gameState1) {
                 DroidZebra.this.gameState = gameState1;
-                gameState1.setHandler(handler);
+                gameState1.setGameStateListener(handler);
             }
         });
 
@@ -440,7 +440,7 @@ public class DroidZebra extends FragmentActivity implements MoveStringConsumer,
     @Override
     protected void onDestroy() {
         engine.disconnect(gameState);
-        gameState.removeHandler();
+        gameState.removeGameStateListener();
 
         super.onDestroy();
     }
