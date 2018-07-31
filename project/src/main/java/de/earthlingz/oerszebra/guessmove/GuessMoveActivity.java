@@ -69,10 +69,7 @@ public class GuessMoveActivity extends FragmentActivity {
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Generating game");
         progressDialog.show();
-        boardView.setOnMakeMoveListener(null);
-
-        boardView.setDisplayMoves(false);
-        boardView.setDisplayEvals(true);
+        setBoardViewUnplayable();
 
         manager.generate(new GuessMoveModeManager.GuessMoveListener() {
             @Override
@@ -114,6 +111,13 @@ public class GuessMoveActivity extends FragmentActivity {
             }
 
         });
+    }
+
+    private void setBoardViewUnplayable() {
+        boardView.setOnMakeMoveListener(null);
+
+        boardView.setDisplayMoves(false);
+        boardView.setDisplayEvals(true);
     }
 
     private void setBoardViewPlayable() {
