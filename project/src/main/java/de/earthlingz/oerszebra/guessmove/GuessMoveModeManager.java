@@ -173,7 +173,7 @@ public class GuessMoveModeManager implements BoardViewModel {
 
     }
 
-    public void showMove(Move move) {
+    private void showMove(Move move) {
         for (CandidateMove candidateMove : this.candidateMoves) {
             if (candidateMove.getMoveInt() == move.getMoveInt()) {
                 return;
@@ -192,7 +192,7 @@ public class GuessMoveModeManager implements BoardViewModel {
 
     }
 
-    public void showAllMoves() {
+    private void showAllMoves() {
         this.candidateMoves = gameState.getCandidateMoves();
         listener.onCandidateMovesChanged();
     }

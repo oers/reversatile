@@ -101,7 +101,6 @@ public class GuessMoveActivity extends FragmentActivity {
             @Override
             public void onBadGuess() {
                 setHintText(Color.RED, R.string.guess_move_incorrect);
-
             }
 
         });
