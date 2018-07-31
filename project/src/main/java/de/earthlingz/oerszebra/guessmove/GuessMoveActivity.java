@@ -18,7 +18,7 @@ import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
 
 
-public class GuessMoveActivity extends FragmentActivity  {
+public class GuessMoveActivity extends FragmentActivity {
 
     private BoardView boardView;
     private BoardViewModel boardViewModel;
@@ -79,25 +79,7 @@ public class GuessMoveActivity extends FragmentActivity  {
             public void onGenerated(GameState state) {
 
                 runOnUiThread(() -> {
-                    boardView.setOnMakeMoveListener(move -> {
-                        if (manager.isBest(move)) {
-                            boardView.setDisplayMoves(true);
-                            boardView.setDisplayEvals(true);
-                            hintText.setTextColor(Color.CYAN);
-                            hintText.setText(R.string.guess_move_correct);
-                            manager.showAllMoves();
-                            boardView.setOnMakeMoveListener(move1 -> {
-                                try {
-                                    manager.move(move1);
-                                } catch (InvalidMove ignored) {
-                                }
-                            });
-                        } else {
-                            manager.showMove(move);
-                            hintText.setTextColor(Color.RED);
-                            hintText.setText(R.string.guess_move_incorrect);
-                        }
-                    });
+                    boardView.setOnMakeMoveListener(move -> manager.guess(move));
                     updateSideToMove(state);
                     progressDialog.hide();
 
@@ -112,15 +94,33 @@ public class GuessMoveActivity extends FragmentActivity  {
 
             @Override
             public void onCorrectGuess() {
-
+                setHintText(Color.CYAN, R.string.guess_move_correct);
+                setBoardViewPlayable();
             }
 
             @Override
             public void onBadGuess() {
+                setHintText(Color.RED, R.string.guess_move_incorrect);
 
             }
 
         });
+    }
+
+    private void setBoardViewPlayable() {
+        boardView.setDisplayMoves(true);
+        boardView.setDisplayEvals(true);
+        boardView.setOnMakeMoveListener(move1 -> {
+            try {
+                manager.move(move1);
+            } catch (InvalidMove ignored) {
+            }
+        });
+    }
+
+    private void setHintText(int cyan, int guess_move_correct) {
+        hintText.setTextColor(cyan);
+        hintText.setText(guess_move_correct);
     }
 
     private void updateSideToMove(GameState state) {
@@ -135,8 +135,6 @@ public class GuessMoveActivity extends FragmentActivity  {
             hintText.setTextColor(Color.WHITE);
         }
     }
-
-
 
 
     @Override

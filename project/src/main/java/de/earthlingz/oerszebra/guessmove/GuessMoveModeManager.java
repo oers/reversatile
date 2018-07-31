@@ -20,6 +20,7 @@ public class GuessMoveModeManager implements BoardViewModel {
     private CandidateMove[] candidateMoves = new CandidateMove[0];
     private BoardViewModelListener listener = new BoardViewModelListener() {
     };
+    private GuessMoveListener guessMoveListener;
 
     GuessMoveModeManager(ZebraEngine engine, EngineConfig globalSettings) {
 
@@ -65,6 +66,7 @@ public class GuessMoveModeManager implements BoardViewModel {
     }
 
     public void generate(GuessMoveListener guessMoveListener) {
+        this.guessMoveListener = guessMoveListener;
         final int movesPlayed = random.nextInt(58) + 1;
         this.candidateMoves = new CandidateMove[0];
         new GameGenerator(engine).generate(generatorConfig, guesserConfig, movesPlayed, gameState -> {
@@ -77,16 +79,22 @@ public class GuessMoveModeManager implements BoardViewModel {
 
     }
 
-    public boolean isBest(Move move) {
+    public void guess(Move move) {
         if (move == null) {
-            return false;
+            guessMoveListener.onBadGuess();
+            return;
         }
+
         for (CandidateMove candidateMove : gameState.getCandidateMoves()) {
             if (move.getMoveInt() == candidateMove.getMoveInt() && candidateMove.isBest) {
-                return true;
+                showAllMoves();
+                this.guessMoveListener.onCorrectGuess();
+
             }
         }
-        return false;
+        showMove(move);
+
+        guessMoveListener.onBadGuess();
     }
 
     public void move(Move move) throws InvalidMove {
