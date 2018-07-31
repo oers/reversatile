@@ -73,12 +73,12 @@ public class GuessMoveActivity extends FragmentActivity {
 
         manager.generate(new GuessMoveModeManager.GuessMoveListener() {
             @Override
-            public void onGenerated(GameState state) {
+            public void onGenerated(int sideToMove) {
 
                 runOnUiThread(() -> {
                     boardView.setOnMakeMoveListener(move -> manager.guess(move));
-                    updateSideToMoveCircle(state.getSideToMove());
-                    setGuessText(state.getSideToMove());
+                    updateSideToMoveCircle(sideToMove);
+                    setGuessText(sideToMove);
                     progressDialog.hide();
 
                 });
@@ -86,11 +86,11 @@ public class GuessMoveActivity extends FragmentActivity {
             }
 
             @Override
-            public void onSideToMoveChanged(GameState state) {
+            public void onSideToMoveChanged(int sideToMove) {
                 runOnUiThread(() -> {
-                    updateSideToMoveCircle(state.getSideToMove());
+                    updateSideToMoveCircle(sideToMove);
                     if (!guessed) {
-                        setGuessText(state.getSideToMove());
+                        setGuessText(sideToMove);
                     }
                 });
             }

@@ -29,7 +29,7 @@ public class GameState {
         byteBoard = new ByteBoard(boardSize);
     }
 
-    GameState(int boardSize) {
+    public GameState(int boardSize) {
         this.disksPlayed = 0;
         this.moveSequence = new byte[2 * boardSize * boardSize];
         byteBoard = new ByteBoard(boardSize);

@@ -15,7 +15,7 @@ public class GuessMoveModeManager implements BoardViewModel {
     private EngineConfig globalSettings;
     private EngineConfig generatorConfig;
     private EngineConfig guesserConfig;
-    private GameState gameState;
+    private GameState gameState = new GameState(8);
     private Random random = new Random();
     private CandidateMove[] candidateMoves = new CandidateMove[0];
     private BoardViewModelListener listener = new BoardViewModelListener() {
@@ -71,7 +71,14 @@ public class GuessMoveModeManager implements BoardViewModel {
         this.candidateMoves = new CandidateMove[0];
         new GameGenerator(engine).generate(generatorConfig, guesserConfig, movesPlayed, gameState -> {
             GuessMoveModeManager.this.gameState = gameState;
-            guessMoveListener.onGenerated(gameState);
+            gameState.setGameStateListener(new GameStateListener() {
+                @Override
+                public void onBoard(GameState board) {
+                    listener.onBoardStateChanged();
+                    guessMoveListener.onSideToMoveChanged(board.getSideToMove());
+                }
+            });
+            guessMoveListener.onGenerated(gameState.getSideToMove());
             listener.onBoardStateChanged();
 
         });
@@ -198,9 +205,9 @@ public class GuessMoveModeManager implements BoardViewModel {
     }
 
     public interface GuessMoveListener {
-        void onGenerated(GameState state);
+        void onGenerated(int sideToMove);
 
-        void onSideToMoveChanged(GameState state);
+        void onSideToMoveChanged(int sideToMove);
 
         void onCorrectGuess();
 
