@@ -67,31 +67,16 @@ public class GuessMoveModeManager implements BoardViewModel {
     public void generate(GuessMoveListener guessMoveListener) {
         final int movesPlayed = random.nextInt(58) + 1;
         this.candidateMoves = new CandidateMove[0];
-        engine.newGame(generatorConfig, new ZebraEngine.OnGameStateReadyListener() {
+        new GameGenerator(engine).generate(generatorConfig, guesserConfig, movesPlayed, new GameGenerator.OnGenerated() {
             @Override
-            public void onGameStateReady(GameState gameState) {
+            public void onGenerated(GameState gameState) {
                 GuessMoveModeManager.this.gameState = gameState;
-                gameState.setGameStateListener(new GameStateListener() {
-                    private boolean generated = false;
-
-                    @Override
-                    public void onBoard(GameState state) {
-                        if ((!generated && movesPlayed == state.getDisksPlayed()) || state.getDisksPlayed() > movesPlayed) {
-                            engine.updateConfig(gameState, guesserConfig);
-                            guessMoveListener.onGenerated(state);
-
-                            generated = true;
-                        } else {
-//                            guessMoveListener.onSideToMoveChanged(state);
-                        }
-                        listener.onBoardStateChanged();
-
-                    }
-
-                });
+                guessMoveListener.onGenerated(gameState);
+                listener.onBoardStateChanged();
 
             }
         });
+
 
     }
 
