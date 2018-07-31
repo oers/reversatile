@@ -80,7 +80,8 @@ public class GuessMoveActivity extends FragmentActivity {
 
                 runOnUiThread(() -> {
                     boardView.setOnMakeMoveListener(move -> manager.guess(move));
-                    updateSideToMove(state);
+                    updateSideToMoveCircle(state.getSideToMove());
+                    setGuessText(state.getSideToMove());
                     progressDialog.hide();
 
                 });
@@ -89,17 +90,26 @@ public class GuessMoveActivity extends FragmentActivity {
 
             @Override
             public void onSideToMoveChanged(GameState state) {
-                runOnUiThread(() -> updateSideToMove(state));
+                runOnUiThread(() -> {
+                    updateSideToMoveCircle(state.getSideToMove());
+                    if (!guessed) {
+                        setGuessText(state.getSideToMove());
+                    }
+                });
             }
+
+            private boolean guessed = false;
 
             @Override
             public void onCorrectGuess() {
+                guessed = true;
                 setHintText(Color.CYAN, R.string.guess_move_correct);
                 setBoardViewPlayable();
             }
 
             @Override
             public void onBadGuess() {
+                guessed = true;
                 setHintText(Color.RED, R.string.guess_move_incorrect);
             }
 
@@ -122,16 +132,22 @@ public class GuessMoveActivity extends FragmentActivity {
         hintText.setText(guess_move_correct);
     }
 
-    private void updateSideToMove(GameState state) {
-        if (state.getSideToMove() == PLAYER_BLACK) {
-            sideToMoveCircle.setImageResource(R.drawable.black_circle);
+    private void setGuessText(int sideToMove) {
+        if (sideToMove == PLAYER_BLACK) {
             hintText.setText(R.string.guess_black_move_hint);
             hintText.setTextColor(Color.BLACK);
-
         } else {
-            sideToMoveCircle.setImageResource(R.drawable.white_circle);
             hintText.setText(R.string.guess_white_move_hint);
             hintText.setTextColor(Color.WHITE);
+        }
+
+    }
+
+    private void updateSideToMoveCircle(int sideToMove) {
+        if (sideToMove == PLAYER_BLACK) {
+            sideToMoveCircle.setImageResource(R.drawable.black_circle);
+        } else {
+            sideToMoveCircle.setImageResource(R.drawable.white_circle);
         }
     }
 
