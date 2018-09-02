@@ -5,6 +5,7 @@ import com.shurik.droidzebra.*;
 import de.earthlingz.oerszebra.BoardView.BoardViewModel;
 import de.earthlingz.oerszebra.GameSettingsConstants;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -73,6 +74,7 @@ public class GuessMoveModeManager implements BoardViewModel {
                 @Override
                 public void onBoard(GameState board) {
                     listener.onBoardStateChanged();
+                    updateCandidateMoves(board.getCandidateMoves());
                     guessMoveListener.onSideToMoveChanged(board.getSideToMove());
                 }
             });
@@ -84,6 +86,22 @@ public class GuessMoveModeManager implements BoardViewModel {
 
     }
 
+    private void updateCandidateMoves(CandidateMove[] newCandidates) {
+        ArrayList<CandidateMove> replacement = new ArrayList<>(this.candidateMoves.length);
+        for (CandidateMove newCandidate : newCandidates) {
+            for (CandidateMove oldCandidates : this.candidateMoves) {
+                if (oldCandidates.getMoveInt() == newCandidate.getMoveInt()) {
+                    replacement.add(newCandidate);
+                }
+            }
+        }
+        if (this.candidateMoves.length == replacement.size()) {
+            this.candidateMoves = replacement.toArray(this.candidateMoves);
+        } else {
+            this.candidateMoves = replacement.toArray(new CandidateMove[replacement.size()]);
+        }
+    }
+
     public void guess(Move move) {
         if (move == null) {
             guessMoveListener.onBadGuess();
@@ -93,6 +111,15 @@ public class GuessMoveModeManager implements BoardViewModel {
         for (CandidateMove candidateMove : gameState.getCandidateMoves()) {
             if (move.getMoveInt() == candidateMove.getMoveInt() && candidateMove.isBest) {
                 showAllMoves();
+                gameState.setGameStateListener(new GameStateListener() {
+                    @Override
+                    public void onBoard(GameState board) {
+                        candidateMoves = board.getCandidateMoves();
+                        listener.onBoardStateChanged();
+                        guessMoveListener.onSideToMoveChanged(board.getSideToMove());
+                    }
+                });
+
                 this.guessMoveListener.onCorrectGuess();
                 return;
             }
