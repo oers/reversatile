@@ -94,7 +94,7 @@ public class GuessMoveModeManager implements BoardViewModel {
             if (move.getMoveInt() == candidateMove.getMoveInt() && candidateMove.isBest) {
                 showAllMoves();
                 this.guessMoveListener.onCorrectGuess();
-
+                return;
             }
         }
         showMove(move);
