@@ -12,7 +12,6 @@ import java.util.Random;
 public class GuessMoveModeManager implements BoardViewModel {
 
     private final ZebraEngine engine;
-    private EngineConfig globalSettings;
     private EngineConfig generatorConfig;
     private EngineConfig guesserConfig;
     private GameState gameState = new GameState(8);
@@ -25,7 +24,6 @@ public class GuessMoveModeManager implements BoardViewModel {
     GuessMoveModeManager(ZebraEngine engine, EngineConfig globalSettings) {
 
         this.engine = engine;
-        this.globalSettings = globalSettings;
         initConfigs(globalSettings);
     }
 
@@ -174,7 +172,6 @@ public class GuessMoveModeManager implements BoardViewModel {
     }
 
     public void updateGlobalConfig(EngineConfig engineConfig) {
-        globalSettings = engineConfig;
         initConfigs(engineConfig);
         //TODO update config for current game
 
