@@ -4,6 +4,9 @@ import com.shurik.droidzebra.GameState;
 import de.earthlingz.oerszebra.parser.ReversiWarsParser;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
 public class RotateTest {
 
     @Test
@@ -12,6 +15,7 @@ public class RotateTest {
         byte[] rotate = gameState.rotate();
         gameState = new GameState(8, rotate, rotate.length);
         String result = gameState.getMoveSequenceAsString();
-        System.out.println(result);
+        assertEquals(result.trim(), "c4e3f5e6f6c5c6d6d3f4c3b4a5d2f3c2b1c7b8d7c1a3c8e8e7e1e2f1f2g1b5f8f7a6b3a4b6a7b7g4h4a8g3a2g2h1h2h3b2d1a1h5g5d8g6h6g8");
+
     }
 }
