@@ -29,7 +29,7 @@ public class BoardRotateTest extends BasicTest {
 
         zebra.runOnUiThread(() -> zebra.rotate());
 
-        Thread.sleep(10000);
+        Thread.sleep(1000);
 
         assertSame(3, countSquares(ZebraEngine.PLAYER_EMPTY));
         assertSame(58, countSquares(ZebraEngine.PLAYER_WHITE));

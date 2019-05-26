@@ -553,8 +553,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         super.onSaveInstanceState(outState);
         GameState gs = gameState;
         if (gs != null) {
-            outState.putByteArray("moves_played", gs.exportMoveSequence());
-            outState.putInt("moves_played_count", gs.getDisksPlayed());
+            byte[] moves = gs.exportMoveSequence();
+            outState.putByteArray("moves_played", moves);
+            outState.putInt("moves_played_count", moves.length);
             outState.putInt("version", 1);
         }
     }

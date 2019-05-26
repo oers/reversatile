@@ -98,8 +98,23 @@ public class GameState {
         return disksPlayed;
     }
 
+    /**
+     * Removes all skips
+     * @return the mve seqence without skips
+     */
     public byte[] exportMoveSequence() {
-        return moveSequence.clone();
+        List<Byte> list= new ArrayList<>();
+        for(int i = 0; i < disksPlayed; i++) {
+            //filter passes
+            if(moveSequence[i] > 0) {
+                list.add(moveSequence[i]);
+            }
+        }
+        byte[] asBytes = new byte[list.size()];
+        for(int i = 0; i < list.size(); i++)  {
+            asBytes[i] = list.get(i);
+        }
+        return asBytes;
     }
 
     void setCandidateMoves(CandidateMove[] candidateMoves) {
@@ -185,18 +200,11 @@ public class GameState {
     }
 
     private byte[] rotateSequence(byte[] moveSequence) {
-        List<Byte> list= new ArrayList<>();
+        byte[] result = new byte[disksPlayed];
         for(int i = 0; i < disksPlayed; i++) {
-            //filter passes
-            if(moveSequence[i] > 0) {
-                list.add(rotateBoardField(moveSequence[i]));
-            }
+            result[i] = rotateBoardField(moveSequence[i]);
         }
-        byte[] asBytes = new byte[list.size()];
-        for(int i = 0; i < list.size(); i++)  {
-            asBytes[i] = list.get(i);
-        }
-        return asBytes;
+        return result;
     }
 
     private byte rotateBoardField(byte field) {
