@@ -67,8 +67,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private boolean mActivityActive = false;
 
     private BoardView mBoardView;
-    private StatusView mStatusView;
-
     private GameStateBoardModel state = ZebraServices.getBoardState();
 
     private GameParser parser = ZebraServices.getGameParser();
@@ -83,8 +81,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     public void resetStateAndStatusView() {
         getState().reset();
-        if (mStatusView != null)
-            mStatusView.clear();
+        //TODO Clear view
     }
 
     public boolean evalsDisplayEnabled() {
@@ -332,7 +329,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             setContentView(R.layout.board_layout);
             showActionBar();
             mBoardView = findViewById(R.id.board);
-            mStatusView = findViewById(R.id.status_panel);
             mBoardView.setBoardViewModel(getState());
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
@@ -433,16 +429,18 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         int depthExact = settingsProvider.getSettingZebraDepthExact();
         int depthWLD = settingsProvider.getSettingZebraDepthWLD();
 
-        mStatusView.setTextForID(
-                StatusView.ID_SCORE_SKILL,
-                String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
-        );
+        //TODO skill
+//        mStatusView.setTextForID(
+//                StatusView.ID_SCORE_SKILL,
+//                String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
+//        );
 
 
-        if (!settingsProvider.isSettingDisplayPv()) {
-            mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
-            mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
-        }
+        //TODO PV
+//        if (!settingsProvider.isSettingDisplayPv()) {
+//            mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
+//            mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
+//        }
     }
 
 
@@ -719,55 +717,13 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
         setStatusViewScores(sideToMove);
 
-        int iStart, iEnd;
-        MoveList black_moves = gameState.getBlackPlayer().getMoveList();
-        MoveList white_moves = gameState.getWhitePlayer().getMoveList();
-
-        iEnd = black_moves.length();
-        iStart = Math.max(0, iEnd - 4);
-        for (int i = 0; i < 4; i++) {
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_NUM_1 + i,
-                    String.format(Locale.getDefault(), "%d", i + iStart + 1)
-            );
-        }
-
-        for (int i = 0; i < 4; i++) {
-            String move_text;
-            if (i + iStart < iEnd) {
-                move_text = black_moves.getMoveText(i + iStart);
-            } else {
-                move_text = "";
-            }
-
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_BLACK_1 + i,
-                    move_text
-            );
-        }
-
-        iEnd = white_moves.length();
-        iStart = Math.max(0, iEnd - 4);
-        for (int i = 0; i < 4; i++) {
-            String move_text;
-            if (i + iStart < iEnd) {
-                move_text = white_moves.getMoveText(i + iStart);
-            } else {
-                move_text = "";
-            }
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_WHITE_1 + i,
-                    move_text
-            );
-        }
-
-
-        if (mStatusView != null && gameState.getOpening() != null) {
-            mStatusView.setTextForID(
-                    StatusView.ID_STATUS_OPENING,
-                    gameState.getOpening()
-            );
-        }
+        //TODO opening
+//        if (mStatusView != null && gameState.getOpening() != null) {
+//            mStatusView.setTextForID(
+//                    StatusView.ID_STATUS_OPENING,
+//                    gameState.getOpening()
+//            );
+//        }
         if (!boardChanged) {
             Log.v("Handler", "invalidate");
             mBoardView.invalidate();
@@ -782,10 +738,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         } else {
             scoreText = String.format(Locale.getDefault(), "%d", state.getBlackScore());
         }
-        mStatusView.setTextForID(
-                StatusView.ID_SCORE_BLACK,
-                scoreText
-        );
+        TextView black = findViewById(R.id.blackscore);
+        black.setText(scoreText);
 
         if (sideToMove == ZebraEngine.PLAYER_WHITE) {
             //with dot behind
@@ -793,10 +747,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         } else {
             scoreText = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
         }
-        mStatusView.setTextForID(
-                StatusView.ID_SCORE_WHITE,
-                scoreText
-        );
+
+        TextView white = findViewById(R.id.whitescore);
+        white.setText(scoreText);
     }
 
     @Override
@@ -823,33 +776,49 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onEval(String eval) {
-        if (settingsProvider.isSettingDisplayPv()) {
-            mStatusView.setTextForID(
-                    StatusView.ID_STATUS_EVAL,
-                    eval
-            );
-        }
+//        if (settingsProvider.isSettingDisplayPv()) {
+//            mStatusView.setTextForID(
+//                    StatusView.ID_STATUS_EVAL,
+//                    eval
+//            );
+//        }
     }
 
     @Override
     public void onPv(byte[] pv) {
-        if (settingsProvider.isSettingDisplayPv() && pv != null) {
-            StringBuilder pvText = new StringBuilder();
-            for (byte move : pv) {
-                pvText.append(new Move(move).getText());
-                pvText.append(" ");
-            }
-            mStatusView.setTextForID(
-                    StatusView.ID_STATUS_PV,
-                    pvText.toString()
-            );
-        }
+//        if (settingsProvider.isSettingDisplayPv() && pv != null) {
+//            StringBuilder pvText = new StringBuilder();
+//            for (byte move : pv) {
+//                pvText.append(new Move(move).getText());
+//                pvText.append(" ");
+//            }
+//            mStatusView.setTextForID(
+//                    StatusView.ID_STATUS_PV,
+//                    pvText.toString()
+//            );
+//        }
 
     }
 
     public void rotate() {
         byte[] rotate = gameState.rotate();
         startNewGameAndResetUI(gameState.getDisksPlayed(), rotate);
+    }
+
+    public void undo(View view) {
+        undo();
+    }
+
+    public void undoAll(View view) {
+        undoAll();
+    }
+
+    public void redo(View view) {
+        redo();
+    }
+
+    public void rotate(View view) {
+        rotate();
     }
 
 
