@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
+import com.innovattic.rangeseekbar.RangeSeekBar;
 import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
@@ -30,7 +31,7 @@ import de.earthlingz.oerszebra.SettingsPreferences;
 import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
 
 
-public class GuessMoveActivity extends AppCompatActivity {
+public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar.SeekBarChangeListener {
 
     private BoardView boardView;
     private BoardViewModel boardViewModel;
@@ -64,6 +65,9 @@ public class GuessMoveActivity extends AppCompatActivity {
         Button button = findViewById(R.id.guess_move_new);
         button.setOnClickListener((a) -> newGame());
         newGame();
+
+        RangeSeekBar range = findViewById(R.id.rangeSeekBar);
+        range.setSeekBarChangeListener(this);
     }
 
     @Override
@@ -85,12 +89,16 @@ public class GuessMoveActivity extends AppCompatActivity {
 
 
     private void newGame() {
+        TextView minText = findViewById(R.id.minText);
+        int min = Integer.valueOf(minText.getText().toString());
+        TextView maxText = findViewById(R.id.maxText);
+        int max = Integer.valueOf(maxText.getText().toString());
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Generating game");
         progressDialog.show();
         setBoardViewUnplayable();
 
-        manager.generate(new GuessMoveModeManager.GuessMoveListener() {
+        manager.generate(min, max, new GuessMoveModeManager.GuessMoveListener() {
             @Override
             public void onGenerated(int sideToMove) {
 
@@ -237,4 +245,21 @@ public class GuessMoveActivity extends AppCompatActivity {
         return false;
     }
 
+    @Override
+    public void onStartedSeeking() {
+        return;
+    }
+
+    @Override
+    public void onStoppedSeeking() {
+        return;
+    }
+
+    @Override
+    public void onValueChanged(int min, int max) {
+        TextView minText = findViewById(R.id.minText);
+        minText.setText(String.valueOf(min));
+        TextView maxText = findViewById(R.id.maxText);
+        maxText.setText(String.valueOf(max));
+    }
 }

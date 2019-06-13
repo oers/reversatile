@@ -64,9 +64,9 @@ public class GuessMoveModeManager implements BoardViewModel {
         );
     }
 
-    public void generate(GuessMoveListener guessMoveListener) {
+    public void generate(int min, int max, GuessMoveListener guessMoveListener) {
         this.guessMoveListener = guessMoveListener;
-        final int movesPlayed = random.nextInt(58) + 1;
+        final int movesPlayed = random.nextInt(max - min) + min;
         this.candidateMoves = new CandidateMove[0];
         new GameGenerator(engine).generate(generatorConfig, guesserConfig, movesPlayed, gameState -> {
             GuessMoveModeManager.this.gameState = gameState;
