@@ -3,9 +3,9 @@ Reversatile - Zebra Reversi for Android
 
 [![Build Status](https://travis-ci.org/oers/oerszebra.svg?branch=master)](https://travis-ci.org/oers/oerszebra)
 
-This is a fork of Droidzebra: https://github.com/alkom/droidzebra
+This app continues the work of the discontinued Droidzebra: https://github.com/alkom/droidzebra
 
-DroidZebra is a graphical front-end for well-known Zebra Othello
+Reversatile is a graphical front-end for well-known Zebra Othello
 Engine written by Gunnar Andersson. It is one of the strongest
 othello-playing programs in the world. More info on Zebra engine
 can be found here: http://radagast.se/othello/
@@ -22,7 +22,7 @@ jni/ - C code Zebra + mods
 src/ - Java code
 res/ - resource files
 
-Differences in this fork:
+Differences from droidzebra:
 - will start in practise mode with highest difficulty
 - can read games via intents/copy and paste
 
