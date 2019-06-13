@@ -19,11 +19,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:width="120dp"
+            android:gravity="end"
             android:text="32"
-            android:width="80dp"
             android:textColor="@color/black"
-            android:textSize="40sp"
-            android:gravity="right"
+            android:textSize="60sp"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -34,7 +34,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:text=":"
-            android:textSize="40sp"
+            android:textSize="60sp"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -42,11 +42,62 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:width="80dp"
+            android:width="120dp"
+            android:gravity="start"
             android:text="32"
-            android:textSize="40sp"
-            android:gravity="left"
+            android:textSize="60sp"
             tools:ignore="HardcodedText" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/status_moves"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingStart="15dp"
+            android:text="TextView"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:gravity="bottom|start"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/status_opening"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:gravity="start"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="Opening"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/status_settings"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:paddingStart="15dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="settings"
+            tools:ignore="HardcodedText" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -56,36 +107,55 @@
         android:layout_weight="1"
         android:gravity="bottom|center_horizontal"
         android:orientation="horizontal"
-        android:paddingBottom="10dp">
+        android:paddingBottom="15dp">
 
-        <Button
-            android:id="@+id/status_undo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="undo"
-            android:text="@string/menu_item_undo" />
-
-        <Button
+        <ImageButton
             android:id="@+id/status_first_move"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="@string/menu_item_first_move"
+            android:background="@color/board_color"
+            android:contentDescription="@string/menu_item_first_move"
             android:onClick="undoAll"
-            />
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:src="@android:drawable/ic_delete" />
 
-        <Button
+        <ImageButton
+            android:id="@+id/status_undo"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:background="@color/board_color"
+            android:contentDescription="@string/menu_item_undo"
+            android:onClick="undo"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:src="@android:drawable/ic_delete" />
+
+        <ImageButton
             android:id="@+id/status_redo"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="@string/menu_item_redo"
+            android:background="@color/board_color"
+            android:contentDescription="@string/menu_item_redo"
             android:onClick="redo"
-            />
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:src="@android:drawable/ic_input_delete" />
 
-        <Button
+        <ImageButton
             android:id="@+id/status_rotate"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="@string/gameover_choices_rotate"
-            android:onClick="rotate"/>
+            android:background="@color/board_color"
+            android:contentDescription="@string/gameover_choices_rotate"
+            android:onClick="rotate"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:src="@android:drawable/ic_delete" />
     </LinearLayout>
+
 </LinearLayout>

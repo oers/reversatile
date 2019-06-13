@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -81,7 +82,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     public void resetStateAndStatusView() {
         getState().reset();
-        //TODO Clear view
+        ((TextView)findViewById(R.id.status_opening)).setText("");
+        ((TextView)findViewById(R.id.status_moves)).setText("");
     }
 
     public boolean evalsDisplayEnabled() {
@@ -297,7 +299,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         super.onCreate(savedInstanceState);
         Analytics.setApp(this);
         Analytics.build();
-        resetStateAndStatusView();
 
         Iconify
                 .with(new FontAwesomeModule());
@@ -327,12 +328,28 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
         engine.onReady(() -> {
             setContentView(R.layout.board_layout);
+            resetStateAndStatusView();
             showActionBar();
             mBoardView = findViewById(R.id.board);
             mBoardView.setBoardViewModel(getState());
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
 
+            ((ImageButton)findViewById(R.id.status_undo)).setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_undo)
+                    .colorRes(R.color.white)
+                    .sizeDp(30));
+
+            ((ImageButton)findViewById(R.id.status_redo)).setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_repeat)
+                    .colorRes(R.color.white)
+                    .sizeDp(30));
+
+            ((ImageButton)findViewById(R.id.status_rotate)).setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_refresh)
+                    .colorRes(R.color.white)
+                    .sizeDp(30));
+
+            ((ImageButton)findViewById(R.id.status_first_move)).setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_fast_backward)
+                    .colorRes(R.color.white)
+                    .sizeDp(30));
 
             if (Intent.ACTION_SEND.equals(action) && type != null) {
                 if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
@@ -429,18 +446,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         int depthExact = settingsProvider.getSettingZebraDepthExact();
         int depthWLD = settingsProvider.getSettingZebraDepthWLD();
 
-        //TODO skill
-//        mStatusView.setTextForID(
-//                StatusView.ID_SCORE_SKILL,
-//                String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
-//        );
-
-
-        //TODO PV
-//        if (!settingsProvider.isSettingDisplayPv()) {
-//            mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
-//            mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
-//        }
+        ((TextView)findViewById(R.id.status_settings)).setText(
+                String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
+        );
     }
 
 
@@ -717,13 +725,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
         setStatusViewScores(sideToMove);
 
-        //TODO opening
-//        if (mStatusView != null && gameState.getOpening() != null) {
-//            mStatusView.setTextForID(
-//                    StatusView.ID_STATUS_OPENING,
-//                    gameState.getOpening()
-//            );
-//        }
+        if (gameState.getOpening() != null) {
+            ((TextView)findViewById(R.id.status_opening)).setText(gameState.getOpening());
+        }
+
         if (!boardChanged) {
             Log.v("Handler", "invalidate");
             mBoardView.invalidate();
@@ -776,28 +781,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onEval(String eval) {
-//        if (settingsProvider.isSettingDisplayPv()) {
-//            mStatusView.setTextForID(
-//                    StatusView.ID_STATUS_EVAL,
-//                    eval
-//            );
-//        }
+        //do nothing
     }
 
     @Override
     public void onPv(byte[] pv) {
-//        if (settingsProvider.isSettingDisplayPv() && pv != null) {
-//            StringBuilder pvText = new StringBuilder();
-//            for (byte move : pv) {
-//                pvText.append(new Move(move).getText());
-//                pvText.append(" ");
-//            }
-//            mStatusView.setTextForID(
-//                    StatusView.ID_STATUS_PV,
-//                    pvText.toString()
-//            );
-//        }
-
+        //do nothing, happens too fast
     }
 
     public void rotate() {
