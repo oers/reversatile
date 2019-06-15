@@ -97,7 +97,8 @@ repositories {
 
 dependencies {
 
-    implementation 'com.joanzapata.iconify:android-iconify-fontawesome:2.2.2' // (v4.5)
+    implementation 'com.joanzapata.iconify:android-iconify-material:2.2.2' // (v2.0.0)
+    implementation 'com.joanzapata.iconify:android-iconify-material-community:2.2.2' // (v1.4.57)
 
     api 'com.google.guava:guava:27.1-android'
 

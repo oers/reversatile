@@ -15,8 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.Iconify;
-import com.joanzapata.iconify.fonts.FontAwesomeIcons;
-import com.joanzapata.iconify.fonts.FontAwesomeModule;
+import com.joanzapata.iconify.fonts.MaterialIcons;
+import com.joanzapata.iconify.fonts.MaterialModule;
 import com.shurik.droidzebra.EngineConfig;
 import com.shurik.droidzebra.InvalidMove;
 import com.shurik.droidzebra.ZebraEngine;
@@ -48,7 +48,7 @@ public class GuessMoveActivity extends AppCompatActivity {
         engineConfig = globalSettingsLoader.createEngineConfig();
 
         Iconify
-                .with(new FontAwesomeModule());
+                .with(new MaterialModule());
 
 
         this.manager = new GuessMoveModeManager(ZebraEngine.get(
@@ -188,27 +188,27 @@ public class GuessMoveActivity extends AppCompatActivity {
         }
 
         menu.findItem(R.id.menu_take_back).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_undo)
+                new IconDrawable(this, MaterialIcons.md_undo)
                         .colorRes(R.color.white)
                         .sizeDp(12));
 
         menu.findItem(R.id.menu_take_redo).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_repeat)
+                new IconDrawable(this, MaterialIcons.md_redo)
                         .colorRes(R.color.white)
                         .sizeDp(12));
 
         menu.findItem(R.id.menu_new_game).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_play)
+                new IconDrawable(this, MaterialIcons.md_play_arrow)
                         .colorRes(R.color.white)
                         .sizeDp(12));
 
         menu.findItem(R.id.menu_hint).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_info)
+                new IconDrawable(this, MaterialIcons.md_alarm)
                         .colorRes(R.color.white)
                         .sizeDp(12));
 
         menu.findItem(R.id.menu_settings).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_cog)
+                new IconDrawable(this, MaterialIcons.md_settings)
                         .colorRes(R.color.white)
                         .sizeDp(12));
 
