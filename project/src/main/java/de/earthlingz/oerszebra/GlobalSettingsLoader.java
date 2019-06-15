@@ -305,7 +305,6 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
                 settingZebraDepthExact,
                 settingZebraDepthWLD,
                 settingAutoMakeForcedMoves,
-                settingRandomness,
                 settingForceOpening,
                 settingHumanOpenings,
                 settingPracticeMode,

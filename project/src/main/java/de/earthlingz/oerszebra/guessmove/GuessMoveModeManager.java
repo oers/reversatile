@@ -36,14 +36,12 @@ public class GuessMoveModeManager implements BoardViewModel {
     private static EngineConfig createGuesserConfig(EngineConfig gs) {
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN,
-                20, 22, 1, false,
-                gs.randomness,
-                gs.forcedOpening,
-                gs.humanOpenings,
+                20, 22, 1, false, "",
+                false,
                 true,
-                gs.useBook,
-                gs.slack,
-                gs.perturbation,
+                false,
+                1,
+                1,
                 0
         );
     }
@@ -53,13 +51,12 @@ public class GuessMoveModeManager implements BoardViewModel {
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA,
                 8, 12, 1, true,
-                gs.randomness,
                 gs.forcedOpening,
-                gs.humanOpenings,
+                false,
                 false,
                 gs.useBook,
-                gs.slack,
-                gs.perturbation,
+                1,
+                1,
                 0
         );
     }
