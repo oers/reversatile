@@ -80,6 +80,6 @@ deploy:
   file: "./project/build/outputs/apk/release/reversatile-release-*-signed.apk"
   skip_cleanup: true
   on:
-    repo: oers/oerszebra
+    repo: oers/reversatile
     tags: true
 
