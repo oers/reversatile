@@ -61,7 +61,8 @@ public class GuessMoveModeManager implements BoardViewModel {
         );
     }
 
-    public void generate(int min, int max, GuessMoveListener guessMoveListener) {
+    public void generate(int minIn, int max, GuessMoveListener guessMoveListener) {
+        int min = Math.max(minIn, 4);
         this.guessMoveListener = guessMoveListener;
         final int movesPlayed = random.nextInt(max - min) + min;
         this.candidateMoves = new CandidateMove[0];

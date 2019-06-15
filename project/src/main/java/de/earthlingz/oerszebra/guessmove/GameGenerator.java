@@ -1,5 +1,6 @@
 package de.earthlingz.oerszebra.guessmove;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 import com.shurik.droidzebra.*;
 
@@ -21,6 +22,7 @@ public class GameGenerator {
             @Override
             public void onGameStateReady(GameState gameState) {
                 GameStateListener waitForSettle = new GameStateListener() {
+
                     @Override
                     public void onBoard(GameState state) {
 
@@ -57,7 +59,9 @@ public class GameGenerator {
 
                     @Override
                     public void onBoard(GameState state) {
-                        if (state.getBlackPlayer().getDiscCount() + state.getWhitePlayer().getDiscCount() == movesCountInput + 4){
+                        int discCount = state.getBlackPlayer().getDiscCount() + state.getWhitePlayer().getDiscCount();
+                        if (discCount == movesCountInput){
+                            Log.i("disccount", String.valueOf(discCount));
                             gameState.setGameStateListener(waitForSettle);
                         }
                     }
