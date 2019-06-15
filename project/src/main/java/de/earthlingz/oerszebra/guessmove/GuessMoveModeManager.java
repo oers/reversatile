@@ -36,14 +36,12 @@ public class GuessMoveModeManager implements BoardViewModel {
     private static EngineConfig createGuesserConfig(EngineConfig gs) {
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN,
-                20, 22, 1, false,
-                gs.randomness,
-                gs.forcedOpening,
-                gs.humanOpenings,
+                20, 22, 1, false, "",
+                false,
                 true,
-                gs.useBook,
-                gs.slack,
-                gs.perturbation,
+                false,
+                1,
+                1,
                 0
         );
     }
@@ -52,21 +50,21 @@ public class GuessMoveModeManager implements BoardViewModel {
 
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA,
-                6, 6, 1, true,
-                gs.randomness,
+                8, 12, 1, true,
                 gs.forcedOpening,
-                gs.humanOpenings,
+                false,
                 false,
                 gs.useBook,
-                gs.slack,
-                gs.perturbation,
+                1,
+                1,
                 0
         );
     }
 
-    public void generate(GuessMoveListener guessMoveListener) {
+    public void generate(int minIn, int max, GuessMoveListener guessMoveListener) {
+        int min = Math.max(minIn, 4);
         this.guessMoveListener = guessMoveListener;
-        final int movesPlayed = random.nextInt(58) + 1;
+        final int movesPlayed = random.nextInt(max - min) + min;
         this.candidateMoves = new CandidateMove[0];
         new GameGenerator(engine).generate(generatorConfig, guesserConfig, movesPlayed, gameState -> {
             GuessMoveModeManager.this.gameState = gameState;

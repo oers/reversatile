@@ -8,7 +8,6 @@ public class EngineConfig {
     public final int depthWLD;
 
     public final boolean autoForcedMoves;
-    public final int randomness;
     public final String forcedOpening;
     public final boolean humanOpenings;
     public final boolean practiceMode;
@@ -17,13 +16,12 @@ public class EngineConfig {
     public final int perturbation;
     public final int computerMoveDelay;
 
-    public EngineConfig(int engineFunction, int depth, int depthExact, int depthWLD, boolean autoForcedMoves, int randomness, String forcedOpening, boolean humanOpenings, boolean practiceMode, boolean useBook, int slack, int perturbation, int computerMoveDelay) {
+    public EngineConfig(int engineFunction, int depth, int depthExact, int depthWLD, boolean autoForcedMoves, String forcedOpening, boolean humanOpenings, boolean practiceMode, boolean useBook, int slack, int perturbation, int computerMoveDelay) {
         this.engineFunction = engineFunction;
         this.depth = depth;
         this.depthExact = depthExact;
         this.depthWLD = depthWLD;
         this.autoForcedMoves = autoForcedMoves;
-        this.randomness = randomness;
         this.forcedOpening = forcedOpening;
         this.humanOpenings = humanOpenings;
         this.practiceMode = practiceMode;
@@ -34,6 +32,6 @@ public class EngineConfig {
     }
 
     public EngineConfig alterPracticeMode(boolean practiceMode) {
-        return new EngineConfig(engineFunction, depth, depthExact, depthWLD, autoForcedMoves, randomness, forcedOpening, humanOpenings, practiceMode, useBook, slack, perturbation, computerMoveDelay);
+        return new EngineConfig(engineFunction, depth, depthExact, depthWLD, autoForcedMoves, forcedOpening, humanOpenings, practiceMode, useBook, slack, perturbation, computerMoveDelay);
     }
 }

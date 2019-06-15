@@ -92,6 +92,8 @@ android {
 repositories {
     mavenCentral()
     maven { url 'https://maven.fabric.io/public' }
+    maven { url "https://jitpack.io" }
+
 
 }
 
@@ -106,6 +108,8 @@ dependencies {
     implementation 'com.android.support:support-compat:28.0.0'
     implementation 'com.android.support:animated-vector-drawable:28.0.0'
     implementation 'com.android.support:support-v4:28.0.0'
+
+    implementation 'com.github.Innovattic:range-seek-bar:v1.0.6'
 
     if(!project.hasProperty("noAnalytics")) {
 
