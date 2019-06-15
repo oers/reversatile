@@ -52,7 +52,7 @@ public class GuessMoveModeManager implements BoardViewModel {
 
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA,
-                6, 6, 1, true,
+                8, 12, 1, true,
                 gs.randomness,
                 gs.forcedOpening,
                 gs.humanOpenings,

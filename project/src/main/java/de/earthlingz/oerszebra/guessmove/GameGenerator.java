@@ -16,7 +16,7 @@ public class GameGenerator {
         engine.newGame(generatorConfig, onGameStateReadyListener(postConfig, movesCount, listener));
     }
 
-    private ZebraEngine.OnGameStateReadyListener onGameStateReadyListener(EngineConfig postConfig, int movesCount, OnGenerated listener) {
+    private ZebraEngine.OnGameStateReadyListener onGameStateReadyListener(EngineConfig postConfig, int movesCountInput, OnGenerated listener) {
         return new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState) {
@@ -33,6 +33,7 @@ public class GameGenerator {
                             }
                         }
                         if (candidateMoves.length <= 1) {
+                            //skip needs to be counted as a move
                             return; //this move is forced or pass - let zebra play until some unforced move
                         }
 
@@ -56,7 +57,7 @@ public class GameGenerator {
 
                     @Override
                     public void onBoard(GameState state) {
-                        if (movesCount == state.getDisksPlayed()) {
+                        if (state.getBlackPlayer().getDiscCount() + state.getWhitePlayer().getDiscCount() == movesCountInput + 4){
                             gameState.setGameStateListener(waitForSettle);
                         }
                     }
