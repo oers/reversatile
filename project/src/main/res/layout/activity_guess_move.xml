@@ -12,10 +12,10 @@
         android:id="@+id/guess_move_board"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:background="@color/board_color"
-        android:visibility="visible"
 
-        />
+        android:visibility="visible" />
 
     <LinearLayout
         android:layout_width="match_parent"
