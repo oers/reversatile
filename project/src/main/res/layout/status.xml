@@ -12,7 +12,7 @@
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
-        android:paddingTop="10dp">
+        android:paddingTop="5dp">
 
         <TextView
             android:id="@+id/blackscore"
@@ -23,7 +23,7 @@
             android:gravity="end"
             android:text="32"
             android:textColor="@color/black"
-            android:textSize="60sp"
+            android:textSize="30sp"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -34,7 +34,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:text=":"
-            android:textSize="60sp"
+            android:textSize="30sp"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -45,7 +45,7 @@
             android:width="120dp"
             android:gravity="start"
             android:text="32"
-            android:textSize="60sp"
+            android:textSize="30sp"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
@@ -67,6 +67,7 @@
             android:paddingStart="15dp"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
+            android:textSize="12sp"
             android:text="Opening"
             tools:ignore="HardcodedText" />
 
@@ -79,6 +80,7 @@
             android:paddingStart="15dp"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
+            android:textSize="12sp"
             android:text="Mid: 20 Exakt: 22 G/V: 0"
             tools:ignore="HardcodedText" />
 
@@ -91,13 +93,13 @@
         android:layout_weight="1"
         android:gravity="bottom|center_horizontal"
         android:orientation="horizontal"
-        android:paddingBottom="15dp">
+        android:paddingBottom="5dp">
 
         <ImageButton
             android:id="@+id/status_first_move"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:background="@color/board_color"
             android:contentDescription="@string/menu_item_first_move"
             android:onClick="undoAll"
@@ -109,7 +111,7 @@
             android:id="@+id/status_undo"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:background="@color/board_color"
             android:contentDescription="@string/menu_item_undo"
             android:onClick="undo"
@@ -121,7 +123,7 @@
             android:id="@+id/status_redo"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:background="@color/board_color"
             android:contentDescription="@string/menu_item_redo"
             android:onClick="redo"
@@ -133,7 +135,7 @@
             android:id="@+id/status_rotate"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:background="@color/board_color"
             android:contentDescription="@string/gameover_choices_rotate"
             android:onClick="rotate"
