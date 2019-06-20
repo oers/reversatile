@@ -6,10 +6,12 @@
         </item>
         <item android:id="@+id/menu_take_back"
               android:title="@string/menu_item_undo"
+              app:showAsAction="ifRoom|withText"
               tools:ignore="AppCompatResource">
         </item>
         <item android:id="@+id/menu_take_redo"
               android:title="@string/menu_item_redo"
+              app:showAsAction="ifRoom|withText"
               tools:ignore="AppCompatResource">
         </item>
     <item android:id="@+id/menu_goto_beginning"

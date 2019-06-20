@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-  android:id="@+id/main_frame"
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/main_frame"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:background="@color/board_color">
 
 	<de.earthlingz.oerszebra.BoardView.BoardView
 		android:id="@+id/board"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
+		android:layout_centerHorizontal="true"
 		android:background="@color/board_color"
 		android:contentDescription="@string/board_description"
 		android:visibility="visible" />
 
-<FrameLayout 
-    android:id="@+id/board_info_layout" 
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:focusable="false"
-	android:layout_below="@+id/board"
-	android:background="@color/board_color" 
-	android:orientation="vertical" 
-	android:gravity="bottom"
-    android:visibility="visible"
-> 
+	<FrameLayout
+		android:id="@+id/board_info_layout"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_below="@+id/board"
+		android:background="@color/board_color"
+		android:focusable="false"
+		android:gravity="bottom"
+		android:orientation="vertical"
+		android:visibility="visible">
 
-	<include layout="@layout/status"/>
-	
-</FrameLayout>
+		<include layout="@layout/status" />
+
+	</FrameLayout>
 </RelativeLayout>

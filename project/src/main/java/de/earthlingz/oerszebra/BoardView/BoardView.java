@@ -350,7 +350,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
                         mPaintEvalText.setColor(mColorEvals);
                     canvas.drawText(move.evalShort, cr.centerX(), cr.centerY() - (mEvalFontMetrics.ascent + mEvalFontMetrics.descent) / 2, mPaintEvalText);
                 } else {
-                    float pts[] =
+                    float[] pts =
                             {
                                     cr.centerX() - lineLength / 2,
                                     cr.centerY() - lineLength / 2,
@@ -396,7 +396,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         //for the android designer
         int boardSize = boardViewModel != null?boardViewModel.getBoardSize():8;
 
-        mSizeX = mSizeY = Math.min(getMeasuredWidth(), getMeasuredHeight());
+        mSizeX = mSizeY = Math.min(getMeasuredWidth(), getMeasuredHeight() /2);
         mSizeCell = Math.min(mSizeX / (boardSize + 1), mSizeY / (boardSize + 1));
         lineWidth = Math.max(1f, mSizeCell / 40f);
         gridCirclesRadius = Math.max(3f, mSizeCell / 13f);

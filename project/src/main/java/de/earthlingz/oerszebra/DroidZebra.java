@@ -83,7 +83,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     public void resetStateAndStatusView() {
         getState().reset();
         ((TextView)findViewById(R.id.status_opening)).setText("");
-        ((TextView)findViewById(R.id.status_moves)).setText("");
+        //((TextView)findViewById(R.id.status_moves)).setText("");
     }
 
     public boolean evalsDisplayEnabled() {
