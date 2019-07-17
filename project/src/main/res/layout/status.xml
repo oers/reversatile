@@ -98,50 +98,50 @@
         <ImageButton
             android:id="@+id/status_first_move"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="48dp"
+            android:layout_weight="1"
             android:background="@color/board_color"
             android:contentDescription="@string/menu_item_first_move"
             android:onClick="undoAll"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:src="@android:drawable/ic_delete" />
+            android:src="@drawable/ic_fast_rewind_white_24dp" />
 
         <ImageButton
             android:id="@+id/status_undo"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="48dp"
+            android:layout_weight="1"
             android:background="@color/board_color"
             android:contentDescription="@string/menu_item_undo"
             android:onClick="undo"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:src="@android:drawable/ic_delete" />
+            android:src="@drawable/ic_undo_white_24dp" />
 
         <ImageButton
             android:id="@+id/status_redo"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="48dp"
+            android:layout_weight="1"
             android:background="@color/board_color"
             android:contentDescription="@string/menu_item_redo"
             android:onClick="redo"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:src="@android:drawable/ic_input_delete" />
+            android:src="@drawable/ic_redo_white_24dp" />
 
         <ImageButton
             android:id="@+id/status_rotate"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="48dp"
+            android:layout_weight="1"
             android:background="@color/board_color"
             android:contentDescription="@string/gameover_choices_rotate"
             android:onClick="rotate"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:src="@android:drawable/ic_delete" />
+            android:src="@drawable/ic_rotate_right_white_24dp" />
     </LinearLayout>
 
 </LinearLayout>
