@@ -32,6 +32,7 @@
         android:gravity="end|center_vertical"
         android:text="32"
         android:textColor="@color/black"
+        app:autoSizeMaxTextSize="80sp"
         app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toTopOf="@id/status_opening"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -64,6 +65,7 @@
         android:gravity="start|center_vertical"
 
         android:text="32"
+        app:autoSizeMaxTextSize="80sp"
         app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toTopOf="@id/status_opening"
         app:layout_constraintLeft_toRightOf="@id/doubledot"
