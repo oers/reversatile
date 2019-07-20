@@ -32,7 +32,7 @@ android:
     - android-21
     - extra
     - ndk-bundle
-    - sys-img-armeabi-v7a-android-21
+    - sys-img-armeabi-v7a-android-22
 env:
   global:
     - ADB_INSTALL_TIMEOUT=8
