@@ -42,7 +42,7 @@ android:
     - sys-img-armeabi-v7a-android-$EMULATOR_ANDROID_VERSION
 
 before_script:
-  - echo no | android create avd -f -n test -t "system-images;$EMULATOR_ANDROID_VERSION;default;armeabi-v7a"
+  - echo no | android create avd -f -n test -t "sys-img-armeabi-v7a-android-$EMULATOR_ANDROID_VERSION"
   - emulator -avd test -no-skin -no-audio -no-window &
 
 script:
