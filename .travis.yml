@@ -26,7 +26,13 @@ install: true
 android:
   components:
     - tools
+    - platform-tools
+    - tools
     - ndk-bundle
+  licenses:
+    - 'android-sdk-preview-license-.*'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
