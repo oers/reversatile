@@ -16,8 +16,17 @@ before_install:
     ls -ltr $ANDROID_NDK_HOME/platforms;
     rm android-ndk-r20-linux-x86_64.zip;
   fi'
-  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/platform-tools/bin:${ANDROID_NDK_HOME}
+  - mkdir "$ANDROID_HOME/licenses" || true
+  - echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
+  - echo -e "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
   - yes | sdkmanager "platforms;android-28"
+
+install: true
+
+android:
+  components:
+    - tools
+    - ndk-bundle
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -28,17 +37,12 @@ cache:
     - $HOME/.gradle/wrapper
     - $HOME/.gradle/caches/
     - $HOME/.m2
-android:
-  components:
-    - tools
-    - extra
-    - ndk-bundle
 
 before_script:
-  - $ANDROID_HOME/tools/bin/sdkmanager --channel=0 "tools" "platform-tools" "build-tools;28.0.3" "platforms;android-$EMULATOR_ANDROID_VERSION" "platforms;android-$EMULATOR_ANDROID_VERSION" "system-images;android-$EMULATOR_ANDROID_VERSION;default;armeabi-v7a"
-  - android list targets
-  - echo no | android create avd -f -n test -t "android-24"
-  - emulator -avd test -no-skin -no-audio -no-window &
+  - $ANDROID_HOME/tools/bin/sdkmanager --channel=0 "tools" "platform-tools" "build-tools;28.0.1" "platforms;android-28" "platforms;android-$EMULATOR_ANDROID_VERSION" "system-images;android-$EMULATOR_ANDROID_VERSION;default;armeabi-v7a"
+  - echo no | $ANDROID_HOME/tools/bin/avdmanager create avd -f -n test -k "system-images;android-$EMULATOR_ANDROID_VERSION;default;armeabi-v7a"
+  - echo 'disk.dataPartition.size=512M' >> ~/.android/avd/test.avd/config.ini
+  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window -verbose -show-kernel &
 
 script:
   - ./gradlew build assembleDebug
