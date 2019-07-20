@@ -1,5 +1,10 @@
 language: android
 jdk: oraclejdk8
+
+env:
+  global:
+    - EMULATOR_ANDROID_VERSION=24
+    - ADB_INSTALL_TIMEOUT=8
 before_install:
   - export ANDROID_NDK_HOME=./android-ndk-r20
   - 'if [[ ! -d "$ANDROID_NDK_HOME" ]] ;
@@ -34,12 +39,10 @@ android:
     - android-21
     - extra
     - ndk-bundle
-    - sys-img-armeabi-v7a-android-23
-env:
-  global:
-    - ADB_INSTALL_TIMEOUT=8
+    - sys-img-armeabi-v7a-android-$EMULATOR_ANDROID_VERSION
+
 before_script:
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+  - echo no | android create avd -f -n test -k "system-images;$EMULATOR_ANDROID_VERSION;default;armeabi-v7a"
   - emulator -avd test -no-skin -no-audio -no-window &
 
 script:
