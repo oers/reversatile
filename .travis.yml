@@ -43,7 +43,7 @@ android:
 
 before_script:
   - android list targets
-  - echo no | android create avd -f -n test -t "system-images;android-24;default;armeabi-v7a"
+  - echo no | android create avd -f -n test -t "android-24"
   - emulator -avd test -no-skin -no-audio -no-window &
 
 script:
