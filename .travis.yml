@@ -2,6 +2,12 @@ language: android
 dist: trusty
 jdk: oraclejdk8
 
+branches:
+  only:
+    - master
+    - development
+    - /^[0-9].*/
+
 env:
   global:
     - ADB_INSTALL_TIMEOUT=8
