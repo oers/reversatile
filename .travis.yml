@@ -36,17 +36,10 @@ android:
 env:
   global:
     - ADB_INSTALL_TIMEOUT=8
-before_script:
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
 
 script:
   - ./gradlew build assembleDebug
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
-  - adb logcat ActivityManager:I Reversatile:D *:S | tee logcat.log > /dev/null 2>&1 &
-  - cat logcat.log | $ANDROID_NDK_HOME/ndk-stack -sym project/build/intermediates/ndkBuild/debug/obj/local > ndk-error.log
-  - ./gradlew connectedCheck
+  - ./gradlew test
 
 after_success:
 
@@ -58,10 +51,6 @@ after_failure:
   - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
   - ./send.sh failure $WEBHOOK_URL
-  - ls -ltr
-  - find . -name logcat.log
-  - cat logcat.log
-  - cat ndk-error.log
 
 before_deploy:
   - echo building signed release
