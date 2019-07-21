@@ -37,7 +37,7 @@ android:
   components:
     # installing tools to start, then use `sdkmanager` below to get the rest
     - tools
-
+    
 licenses:
   - 'android-sdk-preview-license-.+'
   - 'android-sdk-license-.+'
