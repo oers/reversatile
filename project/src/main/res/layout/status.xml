@@ -30,6 +30,7 @@
 
 
         android:gravity="end|center_vertical"
+        android:maxLines="1"
         android:text="32"
         android:textColor="@color/black"
         app:autoSizeMaxTextSize="80sp"
@@ -64,6 +65,7 @@
         android:layout_height="0dp"
         android:gravity="start|center_vertical"
 
+        android:maxLines="1"
         android:text="32"
         app:autoSizeMaxTextSize="80sp"
         app:autoSizeTextType="uniform"
