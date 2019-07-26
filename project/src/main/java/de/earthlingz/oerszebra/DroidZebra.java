@@ -335,22 +335,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
 
-            ((ImageButton)findViewById(R.id.status_undo)).setImageDrawable(new IconDrawable(this, MaterialIcons.md_undo)
-                    .colorRes(R.color.white)
-                    .sizeDp(30));
-
-            ((ImageButton)findViewById(R.id.status_redo)).setImageDrawable(new IconDrawable(this, MaterialIcons.md_redo)
-                    .colorRes(R.color.white)
-                    .sizeDp(30));
-
-            ((ImageButton)findViewById(R.id.status_rotate)).setImageDrawable(new IconDrawable(this, MaterialIcons.md_rotate_right)
-                    .colorRes(R.color.white)
-                    .sizeDp(30));
-
-            ((ImageButton)findViewById(R.id.status_first_move)).setImageDrawable(new IconDrawable(this, MaterialIcons.md_fast_rewind)
-                    .colorRes(R.color.white)
-                    .sizeDp(30));
-
             if (Intent.ACTION_SEND.equals(action) && type != null) {
                 if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
                     String input = intent.getStringExtra(Intent.EXTRA_TEXT);

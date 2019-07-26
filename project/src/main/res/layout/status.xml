@@ -1,147 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_status"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/board_color"
-    android:orientation="vertical">
+    android:padding="8dp">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+
+    <TextView
+        android:id="@+id/status_settings"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:paddingTop="5dp">
 
-        <TextView
-            android:id="@+id/blackscore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:width="120dp"
-            android:gravity="end"
-            android:text="32"
-            android:textColor="@color/black"
-            android:textSize="30sp"
-            tools:ignore="HardcodedText" />
+        android:gravity="center"
+        android:text="Mid: 20 Exakt: 22 G/V: 0"
 
-        <TextView
-            android:id="@+id/doubledot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:text=":"
-            android:textSize="30sp"
-            tools:ignore="HardcodedText" />
+        app:layout_constraintBottom_toTopOf="@id/doubledot"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
 
-        <TextView
-            android:id="@+id/whitescore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:width="120dp"
-            android:gravity="start"
-            android:text="32"
-            android:textSize="30sp"
-            tools:ignore="HardcodedText" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/blackscore"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_gravity="bottom"
-        android:layout_weight="2"
-        android:gravity="bottom|end"
-        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/status_opening"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:gravity="start"
-            android:paddingStart="15dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:textSize="12sp"
-            android:text="Opening"
-            tools:ignore="HardcodedText" />
 
-        <TextView
-            android:id="@+id/status_settings"
-            android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:gravity="end"
-            android:paddingStart="15dp"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
-            android:textSize="12sp"
-            android:text="Mid: 20 Exakt: 22 G/V: 0"
-            tools:ignore="HardcodedText" />
+        android:gravity="end|center_vertical"
+        android:maxLines="1"
+        android:text="32"
+        android:textColor="@color/black"
+        app:autoSizeMaxTextSize="80sp"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toTopOf="@id/status_opening"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/doubledot"
+        app:layout_constraintTop_toBottomOf="@id/status_settings"
+        tools:ignore="HardcodedText" />
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/doubledot"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_weight="1"
-        android:gravity="bottom|center_horizontal"
-        android:orientation="horizontal"
-        android:paddingBottom="5dp">
+        android:gravity="center"
+        android:text=":"
 
-        <ImageButton
-            android:id="@+id/status_first_move"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="48dp"
-            android:background="@color/board_color"
-            android:contentDescription="@string/menu_item_first_move"
-            android:onClick="undoAll"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:src="@android:drawable/ic_delete" />
 
-        <ImageButton
-            android:id="@+id/status_undo"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="48dp"
-            android:background="@color/board_color"
-            android:contentDescription="@string/menu_item_undo"
-            android:onClick="undo"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:src="@android:drawable/ic_delete" />
+        android:textColor="#58FFFF"
+        android:visibility="visible"
+        app:autoSizeMaxTextSize="48sp"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toTopOf="@id/status_opening"
+        app:layout_constraintLeft_toRightOf="@id/blackscore"
+        app:layout_constraintRight_toLeftOf="@id/whitescore"
+        app:layout_constraintTop_toBottomOf="@id/status_settings"
+        tools:ignore="HardcodedText" />
 
-        <ImageButton
-            android:id="@+id/status_redo"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="48dp"
-            android:background="@color/board_color"
-            android:contentDescription="@string/menu_item_redo"
-            android:onClick="redo"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:src="@android:drawable/ic_input_delete" />
+    <TextView
+        android:id="@+id/whitescore"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="start|center_vertical"
 
-        <ImageButton
-            android:id="@+id/status_rotate"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="48dp"
-            android:background="@color/board_color"
-            android:contentDescription="@string/gameover_choices_rotate"
-            android:onClick="rotate"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:src="@android:drawable/ic_delete" />
-    </LinearLayout>
+        android:maxLines="1"
+        android:text="32"
+        app:autoSizeMaxTextSize="80sp"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toTopOf="@id/status_opening"
+        app:layout_constraintLeft_toRightOf="@id/doubledot"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/status_settings"
+        tools:ignore="HardcodedText" />
 
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/status_opening"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="Opening"
+
+        app:layout_constraintBottom_toTopOf="@id/status_undo"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/doubledot"
+        tools:ignore="HardcodedText" />
+
+
+    <ImageButton
+        android:id="@+id/status_first_move"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+
+
+        android:background="@color/board_color"
+
+        android:contentDescription="@string/menu_item_first_move"
+        android:onClick="undoAll"
+        android:src="@drawable/ic_fast_rewind_white_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/group_navigation"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+
+        app:layout_constraintLeft_toLeftOf="@id/group_navigation"
+        app:layout_constraintRight_toLeftOf="@id/status_undo"
+       />
+
+    <ImageButton
+        android:id="@+id/status_undo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/board_color"
+        android:contentDescription="@string/menu_item_undo"
+        android:onClick="undo"
+
+        android:src="@drawable/ic_undo_white_24dp"
+
+        app:layout_constraintBottom_toBottomOf="@id/group_navigation"
+        app:layout_constraintLeft_toRightOf="@id/status_first_move"
+        app:layout_constraintRight_toLeftOf="@id/status_redo" />
+
+
+    <ImageButton
+        android:id="@+id/status_redo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/board_color"
+        android:contentDescription="@string/menu_item_redo"
+        android:onClick="redo"
+
+        android:src="@drawable/ic_redo_white_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/group_navigation"
+        app:layout_constraintLeft_toRightOf="@id/status_undo"
+        app:layout_constraintRight_toLeftOf="@id/status_rotate" />
+
+    <ImageButton
+        android:id="@+id/status_rotate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/board_color"
+
+        android:contentDescription="@string/gameover_choices_rotate"
+
+        android:onClick="rotate"
+        android:src="@drawable/ic_rotate_right_white_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/group_navigation"
+        app:layout_constraintLeft_toRightOf="@id/status_redo"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_navigation"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:constraint_referenced_ids="status_first_move,status_undo,status_redo,status_rotate"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+ />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
