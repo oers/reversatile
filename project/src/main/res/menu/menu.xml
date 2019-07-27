@@ -3,42 +3,39 @@
     <item
         android:id="@+id/menu_hint"
         android:icon="@drawable/ic_wb_incandescent_white_24dp"
-        android:title="@string/menu_item_hint"></item>
+        android:title="@string/menu_item_hint" />
     <item
         android:id="@+id/menu_take_back"
         android:icon="@drawable/ic_undo_white_24dp"
         android:title="@string/menu_item_undo"
-        app:showAsAction="ifRoom|withText"
-        tools:ignore="AppCompatResource"></item>
+        app:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/menu_take_redo"
         android:icon="@drawable/ic_redo_white_24dp"
         android:title="@string/menu_item_redo"
-        app:showAsAction="ifRoom|withText"
-        tools:ignore="AppCompatResource"></item>
+        app:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/menu_goto_beginning"
         android:icon="@drawable/ic_fast_rewind_white_24dp"
-        android:title="@string/menu_item_first_move"
-        tools:ignore="AppCompatResource"></item>
+        android:title="@string/menu_item_first_move" />
     <item
         android:id="@+id/menu_rotate"
         android:icon="@drawable/ic_rotate_right_white_24dp"
-        android:title="@string/gameover_choices_rotate"></item>
+        android:title="@string/gameover_choices_rotate" />
     <item
         android:id="@+id/menu_new_game"
         android:icon="@drawable/ic_play_arrow_white_24dp"
         android:title="@string/menu_item_new_game"
         app:showAsAction="ifRoom|withText"
-        tools:ignore="AppCompatResource"></item>
+        tools:ignore="AppCompatResource" />
     <item
         android:id="@+id/menu_settings"
         android:icon="@drawable/ic_settings_white_24dp"
-        android:title="@string/menu_item_settings"></item>
+        android:title="@string/menu_item_settings" />
     <item
         android:id="@+id/menu_switch_sides"
         android:icon="@drawable/ic_swap_horiz_white_24dp"
-        android:title="@string/menu_item_switch_sides"></item>
+        android:title="@string/menu_item_switch_sides" />
     <item
         android:id="@+id/menu_enter_moves"
         android:icon="@drawable/ic_edit_white_24dp"
@@ -46,13 +43,13 @@
     <item
         android:id="@+id/menu_mail"
         android:icon="@drawable/ic_email_white_24dp"
-        android:title="@string/menu_item_mail"></item>
+        android:title="@string/menu_item_mail" />
     <item
         android:id="@+id/menu_guess_move"
         android:icon="@drawable/ic_question_answer_white_24dp"
-        android:title="@string/menu_item_guess_move"></item>
+        android:title="@string/menu_item_guess_move" />
     <item
         android:id="@+id/menu_quit"
         android:icon="@drawable/ic_exit_to_app_exit_24dp"
-        android:title="@string/menu_item_quit"></item>
+        android:title="@string/menu_item_quit" />
      </menu>

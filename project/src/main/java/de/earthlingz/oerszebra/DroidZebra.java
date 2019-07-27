@@ -17,7 +17,6 @@
 
 package de.earthlingz.oerszebra;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -109,9 +108,11 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     /* Creates the menu items */
     @Override
-    @SuppressLint("RestrictedApi")
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
 
         return super.onCreateOptionsMenu(menu);
     }
