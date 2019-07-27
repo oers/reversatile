@@ -23,11 +23,11 @@
             android:theme="@style/CustomActionBarTheme">
         <activity
                 android:name=".DroidZebra"
-                android:configChanges="keyboardHidden|orientation"
+                android:configChanges="keyboardHidden"
                 android:label="@string/app_name"
                 android:launchMode="singleTask"
                 android:multiprocess="false"
-                android:screenOrientation="portrait">
+                android:screenOrientation="unspecified">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
