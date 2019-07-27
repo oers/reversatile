@@ -1,11 +1,11 @@
 Reversatile - Zebra Reversi for Android 
 ---------------------------------------------------------------
 
-[![Build Status Development](https://travis-ci.org/oers/reversatile.svg?branch=development)](https://travis-ci.org/oers/revrsatile)
+Development: [![Build Status Development](https://travis-ci.org/oers/reversatile.svg?branch=development)](https://travis-ci.org/oers/reversatile)
 
-[![Build Status Master](https://travis-ci.org/oers/reversatile.svg?branch=master)](https://travis-ci.org/oers/revrsatile)
+Master: [![Build Status Master](https://travis-ci.org/oers/reversatile.svg?branch=master)](https://travis-ci.org/oers/reversatile)
 
-[![Build Status Foss](https://travis-ci.org/oers/reversatile.svg?branch=foss)](https://travis-ci.org/oers/revrsatile)
+FOSS-branch [![Build Status Foss](https://travis-ci.org/oers/reversatile.svg?branch=foss)](https://travis-ci.org/oers/reversatile)
 
 This app continues the work of the discontinued Droidzebra: https://github.com/alkom/droidzebra
 
