@@ -1,4 +1,1 @@
-Guess Move Mode
-Rotate Board Option
-New Logo / Better Icons
-Replay Feature
+Better Layout for the status view
