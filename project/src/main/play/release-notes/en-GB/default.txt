@@ -1,1 +1,2 @@
-Better Layout for the status view
+better Layout for the status view
+landscape mode

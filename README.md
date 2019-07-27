@@ -54,3 +54,4 @@ Version 1.3.x.
 Version 1.4.X.
   - Better Status View
   - Minimum Android 5
+  - landscape mode
