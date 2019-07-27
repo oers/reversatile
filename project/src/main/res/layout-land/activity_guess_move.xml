@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_frame"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" android:background="@color/board_color">
+
+
+    <de.earthlingz.oerszebra.BoardView.BoardView
+        android:id="@+id/guess_move_board"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="false"
+        android:background="@color/board_color"
+
+        android:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_toEndOf="@id/guess_move_board"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/side_to_move_circle"
+
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginLeft="4dp"
+                android:contentDescription="@string/menu_item_guess_move"
+                android:padding="16dp"
+                app:srcCompat="@drawable/black_circle" />
+
+            <TextView
+                android:id="@+id/guess_move_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_toEndOf="@id/side_to_move_circle"
+                android:layout_toRightOf="@id/side_to_move_circle"
+                android:text="@string/menu_item_guess_move"
+                android:textSize="24sp" />
+
+        </RelativeLayout>
+
+        <com.innovattic.rangeseekbar.RangeSeekBar
+            android:id="@+id/rangeSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/board_color"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            app:rsb_initialMaxThumbValue="40"
+            app:rsb_initialMinThumbValue="20"
+            app:rsb_max="58"
+            app:rsb_minRange="5" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp">
+
+            <TextView
+                android:id="@+id/minText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="20"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/maxText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="40"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/guess_move_new"
+            android:layout_width="182dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|top"
+            android:background="@color/black"
+            android:text="@string/menu_item_new_game" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>

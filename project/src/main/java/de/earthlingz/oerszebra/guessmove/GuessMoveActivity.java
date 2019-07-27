@@ -1,23 +1,15 @@
 package de.earthlingz.oerszebra.guessmove;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.MenuBuilder;
 import com.innovattic.rangeseekbar.RangeSeekBar;
-import com.joanzapata.iconify.IconDrawable;
-import com.joanzapata.iconify.Iconify;
-import com.joanzapata.iconify.fonts.MaterialIcons;
-import com.joanzapata.iconify.fonts.MaterialModule;
 import com.shurik.droidzebra.EngineConfig;
 import com.shurik.droidzebra.InvalidMove;
 import com.shurik.droidzebra.ZebraEngine;
@@ -47,10 +39,6 @@ public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar
         super.onCreate(savedInstanceState);
         globalSettingsLoader = new GlobalSettingsLoader(getApplicationContext());
         engineConfig = globalSettingsLoader.createEngineConfig();
-
-        Iconify
-                .with(new MaterialModule());
-
 
         this.manager = new GuessMoveModeManager(ZebraEngine.get(
                 new AndroidContext(getApplicationContext())),
@@ -180,47 +168,6 @@ public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar
         } else {
             sideToMoveCircle.setImageResource(R.drawable.white_circle);
         }
-    }
-
-
-    /* Creates the menu items */
-    @Override
-    @SuppressLint("RestrictedApi")
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.guess_move_context_menu, menu);
-
-        if(menu instanceof MenuBuilder){
-            MenuBuilder m = (MenuBuilder) menu;
-            m.setOptionalIconsVisible(true);
-        }
-
-        menu.findItem(R.id.menu_take_back).setIcon(
-                new IconDrawable(this, MaterialIcons.md_undo)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_take_redo).setIcon(
-                new IconDrawable(this, MaterialIcons.md_redo)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_new_game).setIcon(
-                new IconDrawable(this, MaterialIcons.md_play_arrow)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_hint).setIcon(
-                new IconDrawable(this, MaterialIcons.md_alarm)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_settings).setIcon(
-                new IconDrawable(this, MaterialIcons.md_settings)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        return super.onCreateOptionsMenu(menu);
     }
 
     @Override

@@ -17,7 +17,6 @@
 
 package de.earthlingz.oerszebra;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -28,17 +27,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import com.joanzapata.iconify.IconDrawable;
-import com.joanzapata.iconify.Iconify;
-import com.joanzapata.iconify.fonts.MaterialIcons;
-import com.joanzapata.iconify.fonts.MaterialModule;
 import com.shurik.droidzebra.*;
 import de.earthlingz.oerszebra.BoardView.BoardView;
 import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
@@ -115,76 +108,11 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     /* Creates the menu items */
     @Override
-    @SuppressLint("RestrictedApi")
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
-
-        if(menu instanceof MenuBuilder){
-            MenuBuilder m = (MenuBuilder) menu;
-            m.setOptionalIconsVisible(true);
-        }
-
-        menu.findItem(R.id.menu_take_back).setIcon(
-                new IconDrawable(this, MaterialIcons.md_undo)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_take_redo).setIcon(
-                new IconDrawable(this, MaterialIcons.md_redo)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_new_game).setIcon(
-                new IconDrawable(this, MaterialIcons.md_play_arrow)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_goto_beginning).setIcon(
-                new IconDrawable(this, MaterialIcons.md_fast_rewind)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_rotate).setIcon(
-                new IconDrawable(this, MaterialIcons.md_rotate_right)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_switch_sides).setIcon(
-                new IconDrawable(this, MaterialIcons.md_swap_horiz)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_hint).setIcon(
-                new IconDrawable(this, MaterialIcons.md_wb_incandescent)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_settings).setIcon(
-                new IconDrawable(this, MaterialIcons.md_settings)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_enter_moves).setIcon(
-                new IconDrawable(this, MaterialIcons.md_edit)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_guess_move).setIcon(
-                new IconDrawable(this, MaterialIcons.md_question_answer)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_quit).setIcon(
-                new IconDrawable(this, MaterialIcons.md_exit_to_app)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
-
-        menu.findItem(R.id.menu_mail).setIcon(
-                new IconDrawable(this, MaterialIcons.md_forward)
-                        .colorRes(R.color.white)
-                        .sizeDp(20));
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -299,9 +227,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         super.onCreate(savedInstanceState);
         Analytics.setApp(this);
         Analytics.build();
-
-        Iconify
-                .with(new MaterialModule());
 
         clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
