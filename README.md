@@ -1,11 +1,11 @@
 Reversatile - Zebra Reversi for Android 
 ---------------------------------------------------------------
 
-[![Build Status Development](https://travis-ci.org/oers/revrsatile.svg?branch=development)](https://travis-ci.org/oers/oerszebra)
+[![Build Status Development](https://travis-ci.org/oers/reversatile.svg?branch=development)](https://travis-ci.org/oers/revrsatile)
 
-[![Build Status Master](https://travis-ci.org/oers/revrsatile.svg?branch=development)](https://travis-ci.org/oers/oerszebra)
+[![Build Status Master](https://travis-ci.org/oers/reversatile.svg?branch=master)](https://travis-ci.org/oers/revrsatile)
 
-[![Build Status Foss](https://travis-ci.org/oers/revrsatile.svg?branch=development)](https://travis-ci.org/oers/oerszebra)
+[![Build Status Foss](https://travis-ci.org/oers/reversatile.svg?branch=dfoss)](https://travis-ci.org/oers/revrsatile)
 
 This app continues the work of the discontinued Droidzebra: https://github.com/alkom/droidzebra
 
@@ -29,11 +29,11 @@ jni/ - C code Zebra + mods
 src/ - Java code
 res/ - resource files
 
-Differences from droidzebra:
+##Differences from droidzebra:
 - will start in practise mode with highest difficulty
 - can read games via intents/copy and paste
 
-Current features:
+##Current features:
 - Zebra engine
 - play human vs human, hunam vs computer, computer vs computer
 - multiple levels of play
@@ -43,14 +43,14 @@ Current features:
 The Development/Master Branch uses play store apis. The foss branch is free vom closed source software.
 
 
-Version 1.0.0
+###Version 1.0.0
 
 - added functionality to enter games (via copy and paste or manually)
 - added functionality to listen to intent from Reversi Wars
 
-Version 1.3.x.
+###Version 1.3.x.
  - guess the best move mode
 
- Version 1.4.0.
+###Version 1.4.X.
   - Better Status View
   - Minimum Android 5
