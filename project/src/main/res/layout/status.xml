@@ -12,10 +12,13 @@
     <TextView
         android:id="@+id/status_settings"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
 
         android:gravity="center"
         android:text="Mid: 20 Exakt: 22 G/V: 0"
+        app:autoSizeMaxTextSize="15sp"
+        app:autoSizeTextType="uniform"
+        app:autoSizeMinTextSize="5sp"
 
         app:layout_constraintBottom_toTopOf="@id/doubledot"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -33,6 +36,7 @@
         android:maxLines="1"
         android:text="32"
         android:textColor="@color/black"
+        app:autoSizeMinTextSize="15sp"
         app:autoSizeMaxTextSize="80sp"
         app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toTopOf="@id/status_opening"
@@ -51,6 +55,7 @@
 
         android:textColor="#58FFFF"
         android:visibility="visible"
+        app:autoSizeMinTextSize="15sp"
         app:autoSizeMaxTextSize="48sp"
         app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toTopOf="@id/status_opening"
@@ -67,6 +72,7 @@
 
         android:maxLines="1"
         android:text="32"
+        app:autoSizeMinTextSize="15sp"
         app:autoSizeMaxTextSize="80sp"
         app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toTopOf="@id/status_opening"
@@ -79,10 +85,13 @@
     <TextView
         android:id="@+id/status_opening"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="5dp"
         android:gravity="center"
         android:text="Opening"
+        app:autoSizeMaxTextSize="15sp"
+        app:autoSizeTextType="uniform"
+        app:autoSizeMinTextSize="5sp"
 
         app:layout_constraintBottom_toTopOf="@id/status_undo"
 
@@ -156,8 +165,8 @@
         android:id="@+id/group_navigation"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="10dp"
         app:constraint_referenced_ids="status_first_move,status_undo,status_redo,status_rotate"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
