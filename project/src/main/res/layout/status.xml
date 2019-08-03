@@ -92,11 +92,11 @@
         tools:ignore="HardcodedText" />
 
 
+
     <ImageButton
         android:id="@+id/status_first_move"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-
+        android:layout_height="48dp"
 
 
         android:background="@color/board_color"
@@ -108,13 +108,12 @@
         app:layout_constraintHorizontal_chainStyle="spread_inside"
 
         app:layout_constraintLeft_toLeftOf="@id/group_navigation"
-        app:layout_constraintRight_toLeftOf="@id/status_undo"
-       />
+        app:layout_constraintRight_toLeftOf="@id/status_undo" />
 
     <ImageButton
         android:id="@+id/status_undo"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:background="@color/board_color"
         android:contentDescription="@string/menu_item_undo"
         android:onClick="undo"
@@ -129,7 +128,7 @@
     <ImageButton
         android:id="@+id/status_redo"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:background="@color/board_color"
         android:contentDescription="@string/menu_item_redo"
         android:onClick="redo"
@@ -142,7 +141,7 @@
     <ImageButton
         android:id="@+id/status_rotate"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:background="@color/board_color"
 
         android:contentDescription="@string/gameover_choices_rotate"
@@ -158,6 +157,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="15dp"
         app:constraint_referenced_ids="status_first_move,status_undo,status_redo,status_rotate"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
