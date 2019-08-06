@@ -75,7 +75,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private Menu menu;
 
 
-    public void resetStateAndStatusView() {
+    public void resetStatusView() {
         runOnUiThread(() -> {
             TextView viewById = findViewById(R.id.status_opening);
             if (viewById != null) {
@@ -271,7 +271,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
 
-            resetStateAndStatusView();
+            resetStatusView();
 
             if (Intent.ACTION_SEND.equals(action) && type != null) {
                 if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
@@ -327,7 +327,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     private void resetAndLoadOnGuiThread() {
         runOnUiThread(() -> {
-            resetStateAndStatusView();
+            getState().reset();
+            resetStatusView();
             loadUISettings();
         });
     }
