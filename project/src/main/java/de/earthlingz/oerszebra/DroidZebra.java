@@ -76,11 +76,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
 
     public void resetStateAndStatusView() {
-        getState().reset();
-        TextView viewById = findViewById(R.id.status_opening);
-        if(viewById != null) {
-            viewById.setText("");
-        }
+        runOnUiThread(() -> {
+            TextView viewById = findViewById(R.id.status_opening);
+            if (viewById != null) {
+                viewById.setText("");
+            }
+        });
     }
 
     public boolean evalsDisplayEnabled() {
@@ -264,6 +265,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         engine.onReady(() -> {
             setContentView(R.layout.board_layout);
             showActionBar();
+            getState().reset();
             mBoardView = findViewById(R.id.board);
             mBoardView.setBoardViewModel(getState());
             mBoardView.setOnMakeMoveListener(this);
