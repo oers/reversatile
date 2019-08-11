@@ -361,16 +361,21 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setDisplayLastMove(settingsProvider.isSettingDisplayLastMove());
             mBoardView.setDisplayMoves(settingsProvider.isSettingDisplayMoves());
             mBoardView.setDisplayEvals(evalsDisplayEnabled());
+
+
+
+            TextView viewById = findViewById(R.id.status_settings);
+
+            if(viewById != null) {
+                int depth = settingsProvider.getSettingZebraDepth();
+                int depthExact = settingsProvider.getSettingZebraDepthExact();
+                int depthWLD = settingsProvider.getSettingZebraDepthWLD();
+                viewById.setText(
+                        String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
+                );
+            }
         }
 
-
-        int depth = settingsProvider.getSettingZebraDepth();
-        int depthExact = settingsProvider.getSettingZebraDepthExact();
-        int depthWLD = settingsProvider.getSettingZebraDepthWLD();
-
-        ((TextView)findViewById(R.id.status_settings)).setText(
-                String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
-        );
     }
 
 
