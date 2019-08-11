@@ -2,6 +2,7 @@ package de.earthlingz.oerszebra.BoardView;
 
 import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.Move;
+import de.earthlingz.oerszebra.Player;
 
 import javax.annotation.Nullable;
 
@@ -26,9 +27,9 @@ public interface BoardViewModel {
 
     boolean isFieldFlipped(int x, int y);
 
-    boolean isFieldEmpty(int x, int y);
+    Disc discAt(int x, int y);
 
-    boolean isFieldBlack(int x, int y);
+    Player playerAt(int x, int y);
 
     interface BoardViewModelListener {
         default void onBoardStateChanged() {

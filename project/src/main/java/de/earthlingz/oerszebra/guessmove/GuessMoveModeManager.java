@@ -2,15 +2,16 @@ package de.earthlingz.oerszebra.guessmove;
 
 import androidx.annotation.Nullable;
 import com.shurik.droidzebra.*;
-import de.earthlingz.oerszebra.BoardView.BoardViewModel;
+import de.earthlingz.oerszebra.BoardView.AbstractBoardViewModel;
 import de.earthlingz.oerszebra.GameSettingsConstants;
+import de.earthlingz.oerszebra.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
 
-public class GuessMoveModeManager implements BoardViewModel {
+public class GuessMoveModeManager extends AbstractBoardViewModel {
 
     private final ZebraEngine engine;
     private EngineConfig generatorConfig;
@@ -187,13 +188,10 @@ public class GuessMoveModeManager implements BoardViewModel {
     }
 
     @Override
-    public boolean isFieldEmpty(int x, int y) {
-        return this.gameState.getByteBoard().isEmpty(x, y);
-    }
-
-    @Override
-    public boolean isFieldBlack(int x, int y) {
-        return this.gameState.getByteBoard().isBlack(x, y);
+    public Player playerAt(int x, int y)
+    {
+        int player = gameState.getByteBoard().get(x,y);
+        return Player.values()[player];
     }
 
     public void updateGlobalConfig(EngineConfig engineConfig) {
