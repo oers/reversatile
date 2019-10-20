@@ -26,29 +26,52 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.*;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import com.shurik.droidzebra.*;
-import de.earthlingz.oerszebra.BoardView.BoardView;
-import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
-import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
-import de.earthlingz.oerszebra.parser.GameParser;
 
-import javax.annotation.Nonnull;
+import com.shurik.droidzebra.EngineConfig;
+import com.shurik.droidzebra.GameState;
+import com.shurik.droidzebra.GameStateListener;
+import com.shurik.droidzebra.InvalidMove;
+import com.shurik.droidzebra.Move;
+import com.shurik.droidzebra.ZebraEngine;
+
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
 
-import static de.earthlingz.oerszebra.GameSettingsConstants.*;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
+import javax.annotation.Nonnull;
+
+import de.earthlingz.oerszebra.BoardView.BoardView;
+import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
+import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
+import de.earthlingz.oerszebra.parser.GameParser;
+
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_BLACK;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_WHITE;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.DEFAULT_SETTING_SENDMAIL;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.OnSettingsChangedListener;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_FUNCTION;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_SENDMAIL;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 
 
 public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
@@ -198,6 +221,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
 
         String action = intent.getAction();
         String type = intent.getType();
