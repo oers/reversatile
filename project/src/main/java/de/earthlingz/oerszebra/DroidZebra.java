@@ -741,8 +741,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     public void rotate() {
-        byte[] rotate = gameState.rotate();
-        startNewGameAndResetUI(gameState.getDisksPlayed(), rotate);
+        engine.rotate(gameState);
     }
 
     public void undo(View view) {

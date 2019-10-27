@@ -86,7 +86,8 @@ public class ZebraEngine {
             UI_EVENT_UNDO = 2,
             UI_EVENT_SETTINGS_CHANGE = 3,
             UI_EVENT_REDO = 4,
-            UI_EVENT_UNDO_ALL = 5;
+            UI_EVENT_UNDO_ALL = 5,
+            UI_EVENT_UNDO_ROTATE = 6;
 
     private PlayerInfo blackPlayerInfo = new PlayerInfo(0, 0, 0);
     private PlayerInfo zebraPlayerInfo = new PlayerInfo(4, 12, 12);
@@ -372,13 +373,27 @@ public class ZebraEngine {
         }
     }
 
-    private void sendReplayMoves(List<Move> moves) {
-        if (mEngineState != ZebraEngine.ES_READY2PLAY) {
-            stopGame();
-            waitForEngineState(ZebraEngine.ES_READY2PLAY);
+    public void rotate(GameState gameState) {
+        if (currentGameState != gameState) {
+            //TODO switch context and undo on that board - later we might do it completely without engine -
+            // TODO why would you need it here right?
+            return;
         }
-        initialGameState = new GameState(BOARD_SIZE, moves);
+        // if thinking on human time - stop
+        stopIfThinkingOnHumanTime();
 
+        if (mEngineState != ES_USER_INPUT_WAIT) {
+            // Log.d("ZebraEngine", "Invalid Engine State");
+            return;
+        }
+
+        // create pending event and tell zebra to pick it up
+        mPendingEvent = new JSONObject();
+        try {
+            mPendingEvent.put("type", UI_EVENT_UNDO_ROTATE);
+        } catch (JSONException e) {
+            // Log.getStackTraceString(e);
+        }
         setEngineState(ES_PLAY);
     }
 

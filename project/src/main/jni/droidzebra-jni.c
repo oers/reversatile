@@ -657,6 +657,38 @@ JNIFn(droidzebra, ZebraEngine, zeGameInProgress)(JNIEnv *env, jobject instance) 
     return (jboolean) (game_in_progress() ? JNI_TRUE : JNI_FALSE);
 }
 
+int _rotateBoardField(int field) {
+	if(field <= 0) { //pass and empty
+		return field;
+	}
+
+	int column = field / 10;
+	int row = field % 10;
+
+	int toRow = 8 +1 - row;
+	int toColumn = 8 +1 - column;
+	return (toColumn * 10 + toRow);
+}
+
+void _rotateSequence(int moveSequence[])
+{
+	for(int i = 0; i < sizeof(moveSequence); i++) {
+		moveSequence[i] = _rotateBoardField(moveSequence[i]);
+	}
+}
+
+
+
+// undo moves until player is a human and he can make a move
+void _droidzebra_rotate(int* side_to_move)
+{
+	_rotateSequence(&board);
+	_rotateSequence(&black_moves);
+	_rotateSequence(&white_moves);
+	//_rotateSequence(last_move);
+	_rotateSequence(&s_undo_stack);
+}
+
 JNIEXPORT void
 JNIFn(droidzebra,ZebraEngine,zePlay)( JNIEnv* env, jobject thiz, jint providedMoveCount, jbyteArray providedMoves )
 {
@@ -834,6 +866,11 @@ AGAIN:
                                 score_sheet_row--;
                             continue;
                         }
+						else if( evt.type==UI_EVENT_ROTATE ) {
+							_droidzebra_rotate(&side_to_move);
+							// adjust for increment at the beginning of the game loop
+							continue;
+						}
                         else if( evt.type==UI_EVENT_REDO ) {
 							_droidzebra_redo_turn(&side_to_move);
 							// adjust for increment at the beginning of the game loop
@@ -963,6 +1000,11 @@ AGAIN:
 			// adjust for increment at the beginning of the game loop
 			if ( side_to_move == BLACKSQ )
 				score_sheet_row--;
+			goto AGAIN;
+		}
+		else if( evt.type==UI_EVENT_ROTATE) {
+			_droidzebra_rotate(&side_to_move);
+			// adjust for increment at the beginning of the game loop
 			goto AGAIN;
 		}
 		else if( evt.type==UI_EVENT_SETTINGS_CHANGE ) {

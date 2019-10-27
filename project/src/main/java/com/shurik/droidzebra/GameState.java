@@ -195,30 +195,6 @@ public class GameState {
         return sbMoves.toString();
     }
 
-    public byte[] rotate() {
-        return rotateSequence(moveSequence);
-    }
-
-    private byte[] rotateSequence(byte[] moveSequence) {
-        byte[] result = new byte[disksPlayed];
-        for(int i = 0; i < disksPlayed; i++) {
-            result[i] = rotateBoardField(moveSequence[i]);
-        }
-        return result;
-    }
-
-    private byte rotateBoardField(byte field) {
-        if(field <= 0) { //pass and empty
-            return field;
-        }
-        int column = field / 10;
-        int row = field % 10;
-
-        int toRow = byteBoard.size() +1 - row;
-        int toColumn = byteBoard.size() +1 - column;
-        return (byte)(toColumn*10 + toRow);
-    }
-
     void updateGameState(int sideToMove, int disksPlayed, String blackTime, float blackEval, int blackDiscCount, String whiteTime, float whiteEval, int whiteDiscCOunt, MoveList blackMoveList, MoveList whiteMoveList, ByteBoard byteBoard) {
         this.byteBoard = byteBoard;
         this.sideToMove = sideToMove;
