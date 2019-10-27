@@ -223,6 +223,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
         String action = intent.getAction();
         String type = intent.getType();
 
@@ -249,6 +253,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                     Log.e("intent", "unknown intent");
                     break;
             }
+            getIntent().removeExtra("key");
         } else {
             Log.e("intent", "unknown intent");
         }
@@ -298,12 +303,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             resetStatusView();
 
             if (Intent.ACTION_SEND.equals(action) && type != null) {
-                if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
-                    String input = intent.getStringExtra(Intent.EXTRA_TEXT);
-                    if(input != null) {
-                        startNewGameAndResetUI(parser.makeMoveList(input));
-                    }
-                }
+                handleIntent(intent);
             } else if (savedInstanceState != null
                     && savedInstanceState.containsKey("moves_played_count")
                     && savedInstanceState.getInt("moves_played_count") > 0) {
@@ -315,7 +315,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mIsInitCompleted = true;
         });
     }
-
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
         Analytics.log("new_game", new GameState(8, moves).getMoveSequenceAsString());
@@ -624,8 +623,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(@Nonnull Bundle outState) {
         GameState gs = gameState;
         if (gs != null) {
             byte[] moves = gs.exportMoveSequence();
@@ -633,6 +631,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             outState.putInt("moves_played_count", moves.length);
             outState.putInt("version", 1);
         }
+
+        super.onSaveInstanceState(outState);
     }
 
     public GameStateBoardModel getState() {
@@ -781,6 +781,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.dialog_pass_text)
                     .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
+                    .setOnCancelListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
+                    .setOnDismissListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
                     .create();
         }
     }
