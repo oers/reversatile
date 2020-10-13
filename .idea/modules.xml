@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/project/project.iml" filepath="$PROJECT_DIR$/project/project.iml" />
       <module fileurl="file://$PROJECT_DIR$/reversatile.iml" filepath="$PROJECT_DIR$/reversatile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/project/reversatile.project.iml" filepath="$PROJECT_DIR$/.idea/modules/project/reversatile.project.iml" />
     </modules>
   </component>
 </project>
