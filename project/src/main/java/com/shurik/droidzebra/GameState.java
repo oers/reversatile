@@ -200,7 +200,10 @@ public class GameState {
         this.sideToMove = sideToMove;
         this.disksPlayed = disksPlayed;
         updateMoveSequence(blackMoveList, whiteMoveList);
-        this.blackPlayer = new ZebraPlayerStatus(
+        if(disksPlayed > 0) {
+            lastMove = moveSequence[disksPlayed - 1];
+        }
+       this.blackPlayer = new ZebraPlayerStatus(
                 blackTime,
                 blackEval,
                 blackDiscCount,

@@ -670,23 +670,52 @@ int _rotateBoardField(int field) {
 	return (toColumn * 10 + toRow);
 }
 
-void _rotateSequence(int moveSequence[])
+void _rotateSequence(int moveSequence[], int size)
 {
-	for(int i = 0; i < sizeof(moveSequence); i++) {
-		moveSequence[i] = _rotateBoardField(moveSequence[i]);
+    int result[100];
+	for(int i = 0; i < size; i++) {
+		result[i] = _rotateBoardField(moveSequence[i]);
 	}
+
+    for(int i = 0; i < size; i++) {
+        moveSequence[i] = result[i];
+    }
+}
+
+int _rotateBoardIndex(int field) {
+	if(field < 10 || field > 88 || field % 10 == 9 || field % 10 == 0) { //pass and empty
+		return field;
+	}
+
+	int column = field / 10;
+	int row = field % 10;
+
+	int toRow = 8 +1 - row;
+	int toColumn = 8 +1 - column;
+	return (toColumn * 10 + toRow);
 }
 
 
+void _rotateBoard(Board board)
+{
+    Board result;
+    for(int i = 0; i < 128; i++) {
+        int index = _rotateBoardIndex(i);
+        result[index] = board[i];
+    }
+
+    for(int i = 0; i < 128; i++) {
+        board[i] = result[i];
+    }
+}
 
 // undo moves until player is a human and he can make a move
 void _droidzebra_rotate(int* side_to_move)
 {
-	_rotateSequence(&board);
-	_rotateSequence(&black_moves);
-	_rotateSequence(&white_moves);
-	//_rotateSequence(last_move);
-	_rotateSequence(&s_undo_stack);
+	_rotateBoard(&board);
+	_rotateSequence(&black_moves, 60);
+	_rotateSequence(&white_moves, 60);
+	_rotateSequence(&s_undo_stack, 64);
 }
 
 JNIEXPORT void
