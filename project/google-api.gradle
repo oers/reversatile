@@ -1,5 +1,8 @@
 apply plugin: 'com.github.triplet.play' //google play publisher
 apply plugin: 'com.google.gms.google-services'
+// Add the Firebase Crashlytics plugin.
+apply plugin: 'com.google.firebase.crashlytics'
+
 
 repositories {
     google()
