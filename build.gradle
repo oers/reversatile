@@ -32,6 +32,9 @@ buildscript {
         classpath 'com.github.triplet.gradle:play-publisher:2.3.0'
         classpath 'com.android.tools.build:gradle:4.1.0'
         classpath 'com.google.gms:google-services:4.3.4'
+        // Add the Crashlytics Gradle plugin (use v2.0.0+ if you built
+        // your app with Android Studio 4.1).
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.3.0'
     }
 }
 
