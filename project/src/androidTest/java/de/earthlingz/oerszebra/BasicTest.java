@@ -4,10 +4,10 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.test.core.app.ActivityScenario;
+import androidx.test.rule.ActivityTestRule;
 import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
-
-import org.awaitility.Awaitility;
 import org.junit.Before;
+import org.junit.Rule;
 
 import java.util.List;
 
@@ -18,11 +18,15 @@ class BasicTest {
     public void init() throws InterruptedException {
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
-        Awaitility.await().until(() -> zebra != null && zebra.initialized());
+        while (zebra == null && !zebra.initialized()) {
+            Thread.sleep(100);
+        }
     }
 
     void waitForOpenendDialogs(boolean dismiss) throws InterruptedException {
-        Awaitility.await().until(() -> hasOpenedDialogs(zebra, dismiss));
+        while(!hasOpenedDialogs(zebra, dismiss)) {
+            Thread.sleep(100);
+        }
     }
 
    private boolean hasOpenedDialogs(FragmentActivity activity, boolean dismiss) {
