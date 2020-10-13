@@ -8,6 +8,17 @@ repositories {
     google()
 }
 
+
+android {
+    buildTypes {
+        getByName("release") {
+            firebaseCrashlytics {
+                nativeSymbolUploadEnabled = true
+            }
+        }
+    }
+}
+
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:25.12.0')
     implementation 'com.google.firebase:firebase-crashlytics'
