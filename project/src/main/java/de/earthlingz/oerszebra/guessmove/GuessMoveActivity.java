@@ -1,22 +1,15 @@
 package de.earthlingz.oerszebra.guessmove;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.MenuBuilder;
-import com.joanzapata.iconify.IconDrawable;
-import com.joanzapata.iconify.Iconify;
-import com.joanzapata.iconify.fonts.FontAwesomeIcons;
-import com.joanzapata.iconify.fonts.FontAwesomeModule;
+import com.innovattic.rangeseekbar.RangeSeekBar;
 import com.shurik.droidzebra.EngineConfig;
 import com.shurik.droidzebra.InvalidMove;
 import com.shurik.droidzebra.ZebraEngine;
@@ -30,7 +23,7 @@ import de.earthlingz.oerszebra.SettingsPreferences;
 import static com.shurik.droidzebra.ZebraEngine.PLAYER_BLACK;
 
 
-public class GuessMoveActivity extends AppCompatActivity {
+public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar.SeekBarChangeListener {
 
     private BoardView boardView;
     private BoardViewModel boardViewModel;
@@ -47,10 +40,6 @@ public class GuessMoveActivity extends AppCompatActivity {
         globalSettingsLoader = new GlobalSettingsLoader(getApplicationContext());
         engineConfig = globalSettingsLoader.createEngineConfig();
 
-        Iconify
-                .with(new FontAwesomeModule());
-
-
         this.manager = new GuessMoveModeManager(ZebraEngine.get(
                 new AndroidContext(getApplicationContext())),
                 engineConfig);
@@ -64,6 +53,9 @@ public class GuessMoveActivity extends AppCompatActivity {
         Button button = findViewById(R.id.guess_move_new);
         button.setOnClickListener((a) -> newGame());
         newGame();
+
+        RangeSeekBar range = findViewById(R.id.rangeSeekBar);
+        range.setSeekBarChangeListener(this);
     }
 
     @Override
@@ -85,12 +77,16 @@ public class GuessMoveActivity extends AppCompatActivity {
 
 
     private void newGame() {
+        TextView minText = findViewById(R.id.minText);
+        int min = Integer.valueOf(minText.getText().toString());
+        TextView maxText = findViewById(R.id.maxText);
+        int max = Integer.valueOf(maxText.getText().toString());
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Generating game");
         progressDialog.show();
         setBoardViewUnplayable();
 
-        manager.generate(new GuessMoveModeManager.GuessMoveListener() {
+        manager.generate(min, max, new GuessMoveModeManager.GuessMoveListener() {
             @Override
             public void onGenerated(int sideToMove) {
 
@@ -174,47 +170,6 @@ public class GuessMoveActivity extends AppCompatActivity {
         }
     }
 
-
-    /* Creates the menu items */
-    @Override
-    @SuppressLint("RestrictedApi")
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.guess_move_context_menu, menu);
-
-        if(menu instanceof MenuBuilder){
-            MenuBuilder m = (MenuBuilder) menu;
-            m.setOptionalIconsVisible(true);
-        }
-
-        menu.findItem(R.id.menu_take_back).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_undo)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_take_redo).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_repeat)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_new_game).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_play)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_hint).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_info)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_settings).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_cog)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        return super.onCreateOptionsMenu(menu);
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -237,4 +192,21 @@ public class GuessMoveActivity extends AppCompatActivity {
         return false;
     }
 
+    @Override
+    public void onStartedSeeking() {
+        return;
+    }
+
+    @Override
+    public void onStoppedSeeking() {
+        return;
+    }
+
+    @Override
+    public void onValueChanged(int min, int max) {
+        TextView minText = findViewById(R.id.minText);
+        minText.setText(String.valueOf(min));
+        TextView maxText = findViewById(R.id.maxText);
+        maxText.setText(String.valueOf(max));
+    }
 }

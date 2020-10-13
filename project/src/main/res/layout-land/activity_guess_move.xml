@@ -12,7 +12,7 @@
         android:id="@+id/guess_move_board"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_centerHorizontal="false"
         android:background="@color/board_color"
 
         android:visibility="visible" />
@@ -20,9 +20,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/guess_move_board"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
+        android:layout_toEndOf="@id/guess_move_board"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -60,19 +60,18 @@
             android:background="@color/board_color"
             android:paddingLeft="30dp"
             android:paddingRight="30dp"
-            app:rsb_max="58"
-            app:rsb_initialMinThumbValue="20"
             app:rsb_initialMaxThumbValue="40"
-            app:rsb_minRange="5"
-            />
+            app:rsb_initialMinThumbValue="20"
+            app:rsb_max="58"
+            app:rsb_minRange="5" />
 
         <LinearLayout
-            android:paddingLeft="30dp"
-            android:paddingRight="30dp"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp">
 
             <TextView
                 android:id="@+id/minText"

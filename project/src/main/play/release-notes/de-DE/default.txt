@@ -1,4 +1,2 @@
-"Zug raten" Modus
-"Brett umdrehen" - Option
-Neues Logo/Icons
-"Erster Zug" Option
+Besseres Layout für die Brettansicht
+Landscape-Ansicht

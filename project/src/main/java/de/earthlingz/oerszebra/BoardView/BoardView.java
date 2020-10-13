@@ -18,8 +18,18 @@ package de.earthlingz.oerszebra.BoardView;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
+import android.graphics.Path;
+import android.graphics.PointF;
+import android.graphics.RectF;
+import android.graphics.Shader;
+import android.graphics.Typeface;
 import android.os.CountDownTimer;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -29,7 +39,6 @@ import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.InvalidMove;
 import com.shurik.droidzebra.Move;
 import de.earthlingz.oerszebra.R;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BoardView extends View implements BoardViewModel.BoardViewModelListener {
@@ -37,21 +46,14 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     private float lineWidth = 1;
     private float gridCirclesRadius = 3;
 
-    private int mColorHelpersValid;
-    private int mColorHelpersInvalid;
-    private int mColorSelectionValid;
-    private int mColorSelectionInvalid;
-    private int mColorLine;
-    private int mColorNumbers;
-    private int mColorEvals;
-    private int mColorEvalsBest;
+    private final BoardViewColors mColors = new BoardViewColors(this.getResources());
 
     private float mSizeX = 0;
     private float mSizeY = 0;
     private float mSizeCell = 0;
+    private float mDiscRadius;
     private RectF mBoardRect = null;
     private Paint mPaint = null;
-    private RectF mTempRect = null;
     private FontMetrics mFontMetrics = null;
     private Paint mPaintEvalText = null;
     private FontMetrics mEvalFontMetrics = null;
@@ -112,14 +114,6 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         Resources r = getResources();
         setFocusable(true); // make sure we get key events
 
-        mColorHelpersValid = r.getColor(R.color.board_color_helpers_valid);
-        mColorHelpersInvalid = r.getColor(R.color.board_color_helpers_invalid);
-        mColorSelectionValid = r.getColor(R.color.board_color_selection_valid);
-        mColorSelectionInvalid = r.getColor(R.color.board_color_selection_invalid);
-        mColorEvals = Color.YELLOW;
-        mColorEvalsBest = Color.CYAN;
-        mColorLine = r.getColor(R.color.board_line);
-        mColorNumbers = r.getColor(R.color.board_numbers);
 
         Bitmap woodtrim = BitmapFactory.decodeResource(r, R.drawable.woodtrim);
         mShaderV = new BitmapShader(woodtrim, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
@@ -132,7 +126,6 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         mPaint = new Paint();
         mPaintEvalText = new Paint();
         mBoardRect = new RectF();
-        mTempRect = new RectF();
 
 
         initCountDowntimer();
@@ -222,7 +215,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         mPaint.setStrokeWidth(lineWidth);
         int boardSize = boardViewModel !=null ? boardViewModel.getBoardSize():8;
         for (int i = 0; i <= boardSize; i++) {
-            mPaint.setColor(mColorLine);
+            mPaint.setColor(mColors.Line);
             canvas.drawLine(mBoardRect.left + i * mSizeCell, mBoardRect.top, mBoardRect.left + i * mSizeCell, mBoardRect.top + mSizeCell * boardSize, mPaint);
             canvas.drawLine(mBoardRect.left, mBoardRect.top + i * mSizeCell, mBoardRect.left + mSizeCell * boardSize, mBoardRect.top + i * mSizeCell, mPaint);
         }
@@ -234,10 +227,10 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         // draw guides
         for (int i = 0; i < boardSize; i++) {
             mPaint.setTextSize(mSizeCell * 0.3f);
-            mPaint.setColor(Color.BLACK);
+            mPaint.setColor(mColors.Line);
             canvas.drawText(String.valueOf(i + 1), mBoardRect.left / 2 + 1, mBoardRect.top + i * mSizeCell + mSizeCell / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2 + 1, mPaint);
             canvas.drawText(Character.toString((char) ('A' + i)), mBoardRect.left + i * mSizeCell + mSizeCell / 2 + 1, mBoardRect.top / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2 + 1, mPaint);
-            mPaint.setColor(mColorNumbers);
+            mPaint.setColor(mColors.Numbers);
             canvas.drawText(String.valueOf(i + 1), mBoardRect.left / 2, mBoardRect.top + i * mSizeCell + mSizeCell / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2, mPaint);
             canvas.drawText(Character.toString((char) ('A' + i)), mBoardRect.left + i * mSizeCell + mSizeCell / 2, mBoardRect.top / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2, mPaint);
         }
@@ -247,9 +240,9 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
             Move selection = mMoveSelection;
             if (mShowSelectionHelpers) {
                 if (this.boardViewModel.isValidMove(selection))
-                    mPaint.setColor(mColorHelpersValid);
+                    mPaint.setColor(mColors.HelpersValid);
                 else
-                    mPaint.setColor(mColorHelpersInvalid);
+                    mPaint.setColor(mColors.HelpersInvalid);
 
                 canvas.drawRect(
                         mBoardRect.left + selection.getX() * mSizeCell,
@@ -267,9 +260,9 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
                 );
             } else if (mShowSelection) {
                 if (this.boardViewModel.isValidMove(selection))
-                    mPaint.setColor(mColorSelectionValid);
+                    mPaint.setColor(mColors.SelectionValid);
                 else
-                    mPaint.setColor(mColorSelectionInvalid);
+                    mPaint.setColor(mColors.SelectionInvalid);
 
                 canvas.drawRect(
                         mBoardRect.left + selection.getX() * mSizeCell,
@@ -286,7 +279,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
             Move nextMove = this.boardViewModel.getNextMove();
             mMoveSelection = nextMove;
             RectF cellRT = getCellRect(nextMove.getX(), nextMove.getY());
-            mPaint.setColor(mColorSelectionValid);
+            mPaint.setColor(mColors.SelectionValid);
 
             canvas.drawRect(cellRT, mPaint);
         }
@@ -295,46 +288,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         }
 
         // draw moves
-        float oval_x, oval_y;
-        float circle_r = mSizeCell / 2 - lineWidth * 2;
-        int circle_color;
-        float oval_adjustment = (float) Math.abs(circle_r * Math.cos(Math.PI * mAnimationProgress));
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                if (this.boardViewModel.isFieldEmpty(i, j))
-                    continue;
-                if (this.boardViewModel.isFieldBlack(i, j))
-                    circle_color = Color.BLACK;
-                else
-                    circle_color = Color.WHITE;
-                if (mIsAnimationRunning.get() && this.boardViewModel.isFieldFlipped(i, j)) {
-                    oval_x = mBoardRect.left + i * mSizeCell + mSizeCell / 2;
-                    oval_y = mBoardRect.top + j * mSizeCell + mSizeCell / 2;
-                    mTempRect.set(
-                            oval_x - oval_adjustment,
-                            oval_y - circle_r,
-                            oval_x + oval_adjustment,
-                            oval_y + circle_r
-                    );
-                    // swap circle color if in animation is less than 50% done (flipping black->white and vice versa)
-                    if (mAnimationProgress < 0.5)
-                        if (circle_color == Color.BLACK)
-                            circle_color = Color.WHITE;
-                        else
-                            circle_color = Color.BLACK;
-                    mPaint.setColor(circle_color);
-                    canvas.drawOval(mTempRect, mPaint);
-                } else {
-                    mPaint.setColor(circle_color);
-                    canvas.drawCircle(
-                            mBoardRect.left + i * mSizeCell + mSizeCell / 2,
-                            mBoardRect.top + j * mSizeCell + mSizeCell / 2,
-                            circle_r,
-                            mPaint
-                    );
-                }
-            }
-        }
+        drawDiscs(canvas, boardViewModel);
 
         // draw evals if in practive mode
         if ((shouldDisplayMoves() || shouldDisplayEvals())
@@ -345,12 +299,12 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
                 RectF cr = getCellRect(move.getX(), move.getY());
                 if (move.hasEval && shouldDisplayEvals()) {
                     if (move.isBest)
-                        mPaintEvalText.setColor(mColorEvalsBest);
+                        mPaintEvalText.setColor(mColors.EvalsBest);
                     else
-                        mPaintEvalText.setColor(mColorEvals);
+                        mPaintEvalText.setColor(mColors.Evals);
                     canvas.drawText(move.evalShort, cr.centerX(), cr.centerY() - (mEvalFontMetrics.ascent + mEvalFontMetrics.descent) / 2, mPaintEvalText);
                 } else {
-                    float pts[] =
+                    float[] pts =
                             {
                                     cr.centerX() - lineLength / 2,
                                     cr.centerY() - lineLength / 2,
@@ -361,7 +315,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
                                     cr.centerX() - lineLength / 2,
                                     cr.centerY() + lineLength / 2,
                             };
-                    mPaint.setColor(Color.RED);
+                    mPaint.setColor(mColors.ValidMoveIndicator);
                     canvas.drawLines(pts, 0, 8, mPaint);
                 }
             }
@@ -371,11 +325,55 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         if (shouldDisplayLastMove() && this.boardViewModel.getLastMove() != null) {
             Move lm = this.boardViewModel.getLastMove();
             RectF cellRT = getCellRect(lm.getX(), lm.getY());
-            mPaint.setColor(Color.BLUE);
+            mPaint.setColor(mColors.LastMoveMarker);
             canvas.drawCircle(cellRT.left + mSizeCell / 10, cellRT.bottom - mSizeCell / 10, mSizeCell / 10, mPaint);
         }
     }
 
+    private void drawDiscs(Canvas canvas, BoardViewModel board_view) {
+        int boardSize = board_view.getBoardSize();
+        Disc disc;
+
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                disc = board_view.discAt(i, j);
+                if (!disc.isEmpty()) {
+                    drawDisc(canvas, disc);
+                }
+           }
+        }
+    }
+
+    private void drawDisc(Canvas canvas, Disc disc) {
+        // flip_angle: 0.0 == opponent side up, 1.0 == our side up
+        double flip_angle = 1.0;
+        if (disc.wasFlipped() && mIsAnimationRunning.get()) {
+            flip_angle = mAnimationProgress;
+        }
+        PointF center = new PointF(
+                mBoardRect.left + (disc.col() * mSizeCell) + (mSizeCell / 2),
+                mBoardRect.top + (disc.row() * mSizeCell) + (mSizeCell / 2)
+        );
+
+        float oval_adjustment = (float) Math.abs(mDiscRadius * Math.cos(Math.PI * flip_angle));
+        RectF oval_bounds = new RectF(
+                center.x - oval_adjustment,
+                center.y - mDiscRadius,
+                center.x + oval_adjustment,
+                center.y + mDiscRadius
+        );
+
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setColor(mColors.playerColor(disc.getPlayer()));
+
+        // swap circle color if in animation is less than 50% done (flipping black->white and vice versa)
+        if (flip_angle < 0.5) {
+            paint.setColor(mColors.playerColor(disc.getOpponent()));
+        }
+
+        canvas.drawOval(oval_bounds, paint);
+    }
 
     private boolean shouldDisplayEvals() {
         return displayEvals;
@@ -399,6 +397,8 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         mSizeX = mSizeY = Math.min(getMeasuredWidth(), getMeasuredHeight());
         mSizeCell = Math.min(mSizeX / (boardSize + 1), mSizeY / (boardSize + 1));
         lineWidth = Math.max(1f, mSizeCell / 40f);
+        mDiscRadius = (mSizeCell / 2) - (lineWidth * 2);
+
         gridCirclesRadius = Math.max(3f, mSizeCell / 13f);
         mBoardRect.set(
                 mSizeX - mSizeCell / 2 - mSizeCell * boardSize,

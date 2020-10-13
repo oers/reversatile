@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="menu_enter_moves">Enter Moves</string>
+    <string name="dialog_cancel">Отмена</string>
+    <string name="menu_enter_moves">Ввести ходы</string>
     <string name="settings_engine_use_book_summary">Библиотека дебютов</string>
     <string name="settings_engine_use_book_title">Использовать библиотеку дебютов (book.bin)</string>
     <string name="gameover_choices_options">Изменить настройки</string>
-    <string name="settings_engine_practice_mode_summary">Показывать предсказаннй программой "вес" для каждого возможного хода</string>
+    <string name="settings_engine_practice_mode_summary">Показывать предсказанный программой "вес" для каждого возможного хода</string>
     <string name="settings_engine_practice_mode_title">Тренировочный режим</string>
-    <string name="settings_engine_human_openings_summary">Играть дебюты привычные людям</string>
+    <string name="settings_engine_human_openings_summary">Играть дебюты, привычные людям</string>
     <string name="settings_engine_human_openings_title">Дебюты по-человечески</string>
     <string name="settings_engine_force_opening_summary">Выбрать название предпочитаемого дебютного начала</string>
     <string name="settings_engine_force_opening_title">Дебютное начало</string>
     <string name="settings_engine_randomness_dialog_message">Разрешить программе делать неоптимальные ходы. Более разнообразная игра с ошибками как в игре с людьми.</string>
     <string name="settings_engine_randomness_summary">Разрешить неоптимальные ходы</string>
     <string name="settings_engine_randomness_title">Оптимизация</string>
-    <string name="spash_layout_message">Reversatile загружается</string>
+    <string name="spash_layout_message">Reversatile загружается&#8230;</string>
     <string name="settings_engine_auto_make_moves_summary">Делать вынужденные ходы автоматически (без подтверждения)</string>
     <string name="settings_engine_auto_make_moves_title">Вынужденные ходы</string>
     <string name="settings_ui_display_last_move_summary">Отмечать последний сделанный ход на доске</string>
@@ -25,17 +25,17 @@
     <string name="gameover_choices_switch">Поменять цвет</string>
     <string name="gameover_choices_new_game">Новая игра</string>
     <string name="gameover_choices_email">e-Mail</string>
-    <string name="settings_ui_display_pv_summary">Показывать оптимальную последовательность ходов, просчитанную программой для указанной глубины поиска.</string>
-    <string name="settings_ui_display_pv_title">Строка главного изменение (PV)</string>
+    <string name="settings_ui_display_pv_summary">Показывать оптимальную последовательность ходов, просчитанную программой для указанной глубины поиска</string>
+    <string name="settings_ui_display_pv_title">Строка главного изменения (PV)</string>
     <string name="settings_ui_display_enable_animations_summary">Включить анимационные эффекты</string>
     <string name="settings_ui_display_enable_animations_title">Включить анимацию</string>
     <string name="settings_ui_preferences">Интерфейс пользователя</string>
-    <string name="settings_engine_function_summary">Выбрать кто играет каким цветом</string>
+    <string name="settings_engine_function_summary">Выбрать, кто каким цветом играет</string>
     <string name="settings_engine_function_title">Выбор цвета</string>
     <string name="settings_engine_function_dialog_title">Выбор цвета</string>
     <string name="settings_sendmail_title">e-mail адрес</string>
     <string name="settings_sendmail_summary">e-mail адрес для экспорта игр</string>
-    <string name="setting_strength_preference_summary">Максимальная глубина поиска при анализе позиции. Определяет силу игры программы. </string>
+    <string name="setting_strength_preference_summary">Максимальная глубина поиска при анализе позиции. Определяет силу игры программы.</string>
     <string name="settings_strength_preference_title">Глубина поиска</string>
     <string name="settings_strength_dialog_title">Глубина поиска</string>
     <string name="app_name">Reversatile</string>
@@ -67,21 +67,21 @@
     <string name="mail_generated">Сгенерировано с помощью Reversatile (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">Дата:</string>
     <string name="mail_move">Последовательность ходов:</string>
-    <string name="somebody_wins">Somebody wins</string>
+    <string name="somebody_wins"></string>
     <string name="_00_00">00:00</string>
-    <string name="guess_best_title">Guess Best Move</string>
-    <string name="guess_black_move_hint">Guess best black move.</string>
-    <string name="guess_move_correct">Correct!</string>
-    <string name="guess_move_incorrect">Not the best move, try again</string>
-    <string name="guess_white_move_hint">Guess best white move.</string>
-    <string name="menu_item_guess_move">Guess Move Mode</string>
-    <string name="gameover_choices_rotate">Rotate the Board</string>
-    <string name="menu_item_first_move">Replay</string>
-    <string name="gameover_beginning">Go to first Move</string>
-    <string name="board_description">The Board</string>
-    <string name="ask.analytics">Analytics</string>
-    <string name="ask_analytics_deny">Deny</string>
-    <string name="ask_analytics_accept">Accept</string>
-    <string name="ask.analytics.help">To improve the app I need some anonymous usage statistics and error logs Please allow the collection and transmision of these statistics. The app uses Google Analytics for Firebase and Firebase Crashlytics. DeviceIds and Ad-Ids are not transmitted. You can change your this in the settings later.</string>
+    <string name="guess_best_title">Найдите лучший ход</string>
+    <string name="guess_black_move_hint">Ход чёрных</string>
+    <string name="guess_move_correct">Правильно!</string>
+    <string name="guess_move_incorrect">Не лучший ход, попробуйте снова</string>
+    <string name="guess_white_move_hint">Ход белых</string>
+    <string name="menu_item_guess_move">Найти лучший ход</string>
+    <string name="gameover_choices_rotate">Повернуть доску</string>
+    <string name="menu_item_first_move">Переиграть</string>
+    <string name="gameover_beginning">Анализ игры</string>
+    <string name="board_description">Игровое поле</string>
+    <string name="ask.analytics">Сбор статистики</string>
+    <string name="ask_analytics_deny">Запретить</string>
+    <string name="ask_analytics_accept">Разрешить</string>
+    <string name="ask.analytics.help">Для улучшения приложения нам нужна анонимная статистика использования и журналы ошибок. Пожалуйста, разрешите сбор и передачу этой статистики. Приложение использует Google Analytics для Firebase и Firebase Crashlytics. Идентификаторы устройств и идентификаторы рекламных объявлений не передаются. Вы можете изменить свой выбор в настройках.</string>
 
 </resources>

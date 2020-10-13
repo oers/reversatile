@@ -2,14 +2,12 @@ package de.earthlingz.oerszebra;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import com.crashlytics.android.Crashlytics;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.shurik.droidzebra.GameState;
-import io.fabric.sdk.android.Fabric;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -20,7 +18,7 @@ import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 public class Analytics {
 
     static final String ANALYTICS_SETTING = "analytics_setting";
-    private static AtomicReference<DroidZebra> app = new AtomicReference<>();
+    private static final AtomicReference<DroidZebra> app = new AtomicReference<>();
     private static FirebaseAnalytics firebase = null;
 
     public static void setApp(DroidZebra zebra) {
@@ -35,18 +33,8 @@ public class Analytics {
             new AlertDialog.Builder(app)
                     .setTitle(R.string.ask_analytics)
                     .setMessage(R.string.ask_analytics_help)
-                    .setPositiveButton(R.string.ask_analytics_accept, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Analytics.initSettings(app, true);
-                        }
-                    })
-                    .setNeutralButton(R.string.ask_analytics_deny, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Analytics.initSettings(app, false);
-                        }
-                    }).show();
+                    .setPositiveButton(R.string.ask_analytics_accept, (dialog, which) -> Analytics.initSettings(app, true))
+                    .setNeutralButton(R.string.ask_analytics_deny, (dialog, which) -> Analytics.initSettings(app, false)).show();
         }
     }
 
@@ -74,7 +62,7 @@ public class Analytics {
             return;
         }
 
-        Fabric.getLogger().log(Log.INFO, id, message);
+        FirebaseCrashlytics.getInstance().log("E/LOG : " + id + " / " +message);
     }
 
     public static void build() {
@@ -86,13 +74,10 @@ public class Analytics {
         boolean consent = isConsent();
 
         if (consent) { //one time only, needs reboot of the app to work
-            Fabric.with(app.get(), new Crashlytics());
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
         }
 
         handleConsent(app.get(), consent);
-
-        return;
-
     }
 
     private static boolean isConsent() {
@@ -127,7 +112,7 @@ public class Analytics {
             Log.i("converse", converse);
             return;
         }
-        Fabric.getLogger().log(Log.INFO, "converse", converse);
+        FirebaseCrashlytics.getInstance().log("E/Converse: " + converse);
         if(app.get() != null) {
             FirebaseAnalytics fb = getFirebaseAnalytics(app.get());
             fb.logEvent(converse, bundle);
@@ -145,6 +130,6 @@ public class Analytics {
         if(app.get() == null) {
             return;
         }
-        Fabric.getLogger().log(Log.ERROR, "alert", message);
+        FirebaseCrashlytics.getInstance().log("E/Message: " + message);
     }
 }

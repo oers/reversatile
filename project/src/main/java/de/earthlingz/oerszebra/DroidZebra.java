@@ -26,33 +26,52 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.*;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import com.joanzapata.iconify.IconDrawable;
-import com.joanzapata.iconify.Iconify;
-import com.joanzapata.iconify.fonts.FontAwesomeIcons;
-import com.joanzapata.iconify.fonts.FontAwesomeModule;
-import com.shurik.droidzebra.*;
-import de.earthlingz.oerszebra.BoardView.BoardView;
-import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
-import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
-import de.earthlingz.oerszebra.parser.GameParser;
 
-import javax.annotation.Nonnull;
+import com.shurik.droidzebra.EngineConfig;
+import com.shurik.droidzebra.GameState;
+import com.shurik.droidzebra.GameStateListener;
+import com.shurik.droidzebra.InvalidMove;
+import com.shurik.droidzebra.Move;
+import com.shurik.droidzebra.ZebraEngine;
+
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
 
-import static de.earthlingz.oerszebra.GameSettingsConstants.*;
-import static de.earthlingz.oerszebra.GlobalSettingsLoader.*;
+import javax.annotation.Nonnull;
+
+import de.earthlingz.oerszebra.BoardView.BoardView;
+import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
+import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
+import de.earthlingz.oerszebra.parser.GameParser;
+
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_BLACK;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_WHITE;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.DEFAULT_SETTING_SENDMAIL;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.OnSettingsChangedListener;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_FUNCTION;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_SENDMAIL;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 
 
 public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
@@ -67,8 +86,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private boolean mActivityActive = false;
 
     private BoardView mBoardView;
-    private StatusView mStatusView;
-
     private GameStateBoardModel state = ZebraServices.getBoardState();
 
     private GameParser parser = ZebraServices.getGameParser();
@@ -81,10 +98,13 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private Menu menu;
 
 
-    public void resetStateAndStatusView() {
-        getState().reset();
-        if (mStatusView != null)
-            mStatusView.clear();
+    public void resetStatusView() {
+        runOnUiThread(() -> {
+            TextView viewById = findViewById(R.id.status_opening);
+            if (viewById != null) {
+                viewById.setText("");
+            }
+        });
     }
 
     public boolean evalsDisplayEnabled() {
@@ -119,6 +139,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     @SuppressLint("RestrictedApi")
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
 
@@ -126,66 +147,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             MenuBuilder m = (MenuBuilder) menu;
             m.setOptionalIconsVisible(true);
         }
-
-        menu.findItem(R.id.menu_take_back).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_undo)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_take_redo).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_repeat)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_new_game).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_play)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_goto_beginning).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_fast_backward)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_rotate).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_refresh)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_switch_sides).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_exchange)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_hint).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_info)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_settings).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_cog)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_enter_moves).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_file_text)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_guess_move).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_question)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_quit).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_close)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
-
-        menu.findItem(R.id.menu_mail).setIcon(
-                new IconDrawable(this, FontAwesomeIcons.fa_mail_forward)
-                        .colorRes(R.color.white)
-                        .sizeDp(12));
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -260,7 +221,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
 
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
         String action = intent.getAction();
         String type = intent.getType();
 
@@ -287,6 +253,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                     Log.e("intent", "unknown intent");
                     break;
             }
+            getIntent().removeExtra("key");
         } else {
             Log.e("intent", "unknown intent");
         }
@@ -300,10 +267,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         super.onCreate(savedInstanceState);
         Analytics.setApp(this);
         Analytics.build();
-        resetStateAndStatusView();
-
-        Iconify
-                .with(new FontAwesomeModule());
 
         clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
@@ -331,20 +294,16 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         engine.onReady(() -> {
             setContentView(R.layout.board_layout);
             showActionBar();
+            getState().reset();
             mBoardView = findViewById(R.id.board);
-            mStatusView = findViewById(R.id.status_panel);
             mBoardView.setBoardViewModel(getState());
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
 
+            resetStatusView();
 
             if (Intent.ACTION_SEND.equals(action) && type != null) {
-                if ("text/plain".equals(type) || "message/rfc822".equals(type)) {
-                    String input = intent.getStringExtra(Intent.EXTRA_TEXT);
-                    if(input != null) {
-                        startNewGameAndResetUI(parser.makeMoveList(input));
-                    }
-                }
+                handleIntent(intent);
             } else if (savedInstanceState != null
                     && savedInstanceState.containsKey("moves_played_count")
                     && savedInstanceState.getInt("moves_played_count") > 0) {
@@ -353,11 +312,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 startNewGameAndResetUI();
             }
 
-
             mIsInitCompleted = true;
         });
     }
-
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
         Analytics.log("new_game", new GameState(8, moves).getMoveSequenceAsString());
@@ -393,7 +350,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     private void resetAndLoadOnGuiThread() {
         runOnUiThread(() -> {
-            resetStateAndStatusView();
+            getState().reset();
+            resetStatusView();
             loadUISettings();
         });
     }
@@ -426,23 +384,21 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setDisplayLastMove(settingsProvider.isSettingDisplayLastMove());
             mBoardView.setDisplayMoves(settingsProvider.isSettingDisplayMoves());
             mBoardView.setDisplayEvals(evalsDisplayEnabled());
+
+
+
+            TextView viewById = findViewById(R.id.status_settings);
+
+            if(viewById != null) {
+                int depth = settingsProvider.getSettingZebraDepth();
+                int depthExact = settingsProvider.getSettingZebraDepthExact();
+                int depthWLD = settingsProvider.getSettingZebraDepthWLD();
+                viewById.setText(
+                        String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
+                );
+            }
         }
 
-
-        int depth = settingsProvider.getSettingZebraDepth();
-        int depthExact = settingsProvider.getSettingZebraDepthExact();
-        int depthWLD = settingsProvider.getSettingZebraDepthWLD();
-
-        mStatusView.setTextForID(
-                StatusView.ID_SCORE_SKILL,
-                String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
-        );
-
-
-        if (!settingsProvider.isSettingDisplayPv()) {
-            mStatusView.setTextForID(StatusView.ID_STATUS_PV, "");
-            mStatusView.setTextForID(StatusView.ID_STATUS_EVAL, "");
-        }
     }
 
 
@@ -667,8 +623,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(@Nonnull Bundle outState) {
         GameState gs = gameState;
         if (gs != null) {
             byte[] moves = gs.exportMoveSequence();
@@ -676,6 +631,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             outState.putInt("moves_played_count", moves.length);
             outState.putInt("version", 1);
         }
+
+        super.onSaveInstanceState(outState);
     }
 
     public GameStateBoardModel getState() {
@@ -719,55 +676,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
         setStatusViewScores(sideToMove);
 
-        int iStart, iEnd;
-        MoveList black_moves = gameState.getBlackPlayer().getMoveList();
-        MoveList white_moves = gameState.getWhitePlayer().getMoveList();
-
-        iEnd = black_moves.length();
-        iStart = Math.max(0, iEnd - 4);
-        for (int i = 0; i < 4; i++) {
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_NUM_1 + i,
-                    String.format(Locale.getDefault(), "%d", i + iStart + 1)
-            );
+        if (gameState.getOpening() != null) {
+            ((TextView)findViewById(R.id.status_opening)).setText(gameState.getOpening());
         }
 
-        for (int i = 0; i < 4; i++) {
-            String move_text;
-            if (i + iStart < iEnd) {
-                move_text = black_moves.getMoveText(i + iStart);
-            } else {
-                move_text = "";
-            }
-
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_BLACK_1 + i,
-                    move_text
-            );
-        }
-
-        iEnd = white_moves.length();
-        iStart = Math.max(0, iEnd - 4);
-        for (int i = 0; i < 4; i++) {
-            String move_text;
-            if (i + iStart < iEnd) {
-                move_text = white_moves.getMoveText(i + iStart);
-            } else {
-                move_text = "";
-            }
-            mStatusView.setTextForID(
-                    StatusView.ID_SCORELINE_WHITE_1 + i,
-                    move_text
-            );
-        }
-
-
-        if (mStatusView != null && gameState.getOpening() != null) {
-            mStatusView.setTextForID(
-                    StatusView.ID_STATUS_OPENING,
-                    gameState.getOpening()
-            );
-        }
         if (!boardChanged) {
             Log.v("Handler", "invalidate");
             mBoardView.invalidate();
@@ -782,10 +694,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         } else {
             scoreText = String.format(Locale.getDefault(), "%d", state.getBlackScore());
         }
-        mStatusView.setTextForID(
-                StatusView.ID_SCORE_BLACK,
-                scoreText
-        );
+        TextView black = findViewById(R.id.blackscore);
+        black.setText(scoreText);
 
         if (sideToMove == ZebraEngine.PLAYER_WHITE) {
             //with dot behind
@@ -793,10 +703,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         } else {
             scoreText = String.format(Locale.getDefault(), "%d", state.getWhiteScore());
         }
-        mStatusView.setTextForID(
-                StatusView.ID_SCORE_WHITE,
-                scoreText
-        );
+
+        TextView white = findViewById(R.id.whitescore);
+        white.setText(scoreText);
     }
 
     @Override
@@ -823,33 +732,33 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onEval(String eval) {
-        if (settingsProvider.isSettingDisplayPv()) {
-            mStatusView.setTextForID(
-                    StatusView.ID_STATUS_EVAL,
-                    eval
-            );
-        }
+        //do nothing
     }
 
     @Override
     public void onPv(byte[] pv) {
-        if (settingsProvider.isSettingDisplayPv() && pv != null) {
-            StringBuilder pvText = new StringBuilder();
-            for (byte move : pv) {
-                pvText.append(new Move(move).getText());
-                pvText.append(" ");
-            }
-            mStatusView.setTextForID(
-                    StatusView.ID_STATUS_PV,
-                    pvText.toString()
-            );
-        }
-
+        //do nothing, happens too fast
     }
 
     public void rotate() {
         byte[] rotate = gameState.rotate();
         startNewGameAndResetUI(gameState.getDisksPlayed(), rotate);
+    }
+
+    public void undo(View view) {
+        undo();
+    }
+
+    public void undoAll(View view) {
+        undoAll();
+    }
+
+    public void redo(View view) {
+        redo();
+    }
+
+    public void rotate(View view) {
+        rotate();
     }
 
 
@@ -872,6 +781,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.dialog_pass_text)
                     .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
+                    .setOnCancelListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
+                    .setOnDismissListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
                     .create();
         }
     }
