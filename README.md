@@ -1,11 +1,11 @@
 Reversatile - Zebra Reversi for Android 
 ---------------------------------------------------------------
 
-[![Build Status Development](https://travis-ci.org/oers/revrsatile.svg?branch=development)](https://travis-ci.org/oers/oerszebra)
+Development: [![Build Status Development](https://travis-ci.org/oers/reversatile.svg?branch=development)](https://travis-ci.org/oers/reversatile)
 
-[![Build Status Master](https://travis-ci.org/oers/revrsatile.svg?branch=development)](https://travis-ci.org/oers/oerszebra)
+Master: [![Build Status Master](https://travis-ci.org/oers/reversatile.svg?branch=master)](https://travis-ci.org/oers/reversatile)
 
-[![Build Status Foss](https://travis-ci.org/oers/revrsatile.svg?branch=development)](https://travis-ci.org/oers/oerszebra)
+FOSS-branch [![Build Status Foss](https://travis-ci.org/oers/reversatile.svg?branch=foss)](https://travis-ci.org/oers/reversatile)
 
 This app continues the work of the discontinued Droidzebra: https://github.com/alkom/droidzebra
 
@@ -51,6 +51,7 @@ Version 1.0.0
 Version 1.3.x.
  - guess the best move mode
 
- Version 1.4.0.
+Version 1.4.X.
   - Better Status View
   - Minimum Android 5
+  - landscape mode

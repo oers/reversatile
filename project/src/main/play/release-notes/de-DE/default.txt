@@ -1,1 +1,2 @@
 Besseres Layout für die Brettansicht
+Landscape-Ansicht

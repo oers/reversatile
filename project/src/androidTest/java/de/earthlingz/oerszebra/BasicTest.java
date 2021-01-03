@@ -3,6 +3,7 @@ package de.earthlingz.oerszebra;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.test.core.app.ActivityScenario;
 import androidx.test.rule.ActivityTestRule;
 import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
 import org.junit.Before;
@@ -11,18 +12,13 @@ import org.junit.Rule;
 import java.util.List;
 
 class BasicTest {
-
-
-    DroidZebra zebra;
-
-    @Rule
-    public ActivityTestRule<DroidZebra> activityRule
-            = new ActivityTestRule<>(DroidZebra.class);
+    DroidZebra zebra = null;
 
     @Before
     public void init() throws InterruptedException {
-        zebra = activityRule.getActivity();
-        while (!zebra.initialized()) {
+        ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
+        scen.onActivity(z -> zebra  = z);
+        while (zebra == null && !zebra.initialized()) {
             Thread.sleep(100);
         }
     }

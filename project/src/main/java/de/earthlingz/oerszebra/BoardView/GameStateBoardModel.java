@@ -3,6 +3,7 @@ package de.earthlingz.oerszebra.BoardView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.shurik.droidzebra.*;
+import de.earthlingz.oerszebra.Player;
 
 import static com.shurik.droidzebra.ZebraEngine.PLAYER_EMPTY;
 
@@ -10,8 +11,7 @@ import static com.shurik.droidzebra.ZebraEngine.PLAYER_EMPTY;
  * Created by stefan on 17.03.2018.
  */
 
-public class GameStateBoardModel implements BoardViewModel {
-
+public class GameStateBoardModel extends AbstractBoardViewModel {
     private Move lastMove = null;
     private int whiteScore = 0;
     private int blackScore = 0;
@@ -22,10 +22,7 @@ public class GameStateBoardModel implements BoardViewModel {
     private ByteBoard currentBoard = new ByteBoard(8);
     private ByteBoard previousBoard = currentBoard;
 
-    @Override
-    public int getBoardSize() {
-        return 8;
-    }
+
 
     @Override
     @Nullable
@@ -144,13 +141,10 @@ public class GameStateBoardModel implements BoardViewModel {
     }
 
     @Override
-    public boolean isFieldEmpty(int x, int y) {
-        return currentBoard.isEmpty(x, y);
-    }
-
-    @Override
-    public boolean isFieldBlack(int x, int y) {
-        return currentBoard.isBlack(x, y);
+    public Player playerAt(int x, int y)
+    {
+        int player = currentBoard.get(x,y);
+        return Player.values()[player];
     }
 
     public byte getFieldByte(int x, int y) {
