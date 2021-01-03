@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "de.earthlingz.oerszebra",
+  "variantName": "processReleaseResources",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 1004009,
+      "versionName": "1.4.9-1-0abe4b5-foss",
+      "outputFile": "reversatile-foss-release-1.4.9-1-0abe4b5-foss-signed.apk"
+    }
+  ]
+}
