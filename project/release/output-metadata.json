@@ -10,9 +10,9 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 1004009,
-      "versionName": "1.4.9-1-0abe4b5-foss",
-      "outputFile": "reversatile-foss-release-1.4.9-1-0abe4b5-foss-signed.apk"
+      "versionCode": 1004010,
+      "versionName": "1.4.10-3-42dc4c5-foss",
+      "outputFile": "reversatile-foss-release-1.4.10-3-42dc4c5-foss-signed.apk"
     }
   ]
 }
