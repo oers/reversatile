@@ -53,11 +53,10 @@ jobs:
         serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: de.earthlingz.oerszebra
         releaseFiles: build/release/signed/*.aab
-        track: production
+        track: beta
         inAppUpdatePriority: 2
         userFraction: 0.33
-        whatsNewDirectory: distribution/whatsnew
-        mappingFile: app/build/outputs/mapping/release/mapping.txt
+        whatsNewDirectory: whatsnew
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
