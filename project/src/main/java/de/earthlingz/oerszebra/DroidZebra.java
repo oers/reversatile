@@ -43,6 +43,8 @@ import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.shurik.droidzebra.EngineConfig;
 import com.shurik.droidzebra.GameState;
 import com.shurik.droidzebra.GameStateListener;
@@ -236,7 +238,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             switch (type) {
                 case "text/plain":
 
-                    String dataString = intent.getDataString();
+                    String dataString = Strings.nullToEmpty(intent.getDataString());
                     Analytics.converse("intent", null);
                     Analytics.log("intent", dataString);
                     consumeMovesString(dataString); // Handle text being sent
