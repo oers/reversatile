@@ -38,8 +38,8 @@ jobs:
       uses: Tlaster/android-sign@v1.2.2
       with:
         releaseDirectory: |
-          app/build/outputs/apk/release
-          app/build/outputs/bundle/release
+          project/build/outputs/apk/release
+          project/build/outputs/bundle/release
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         output: build/release/signed
         alias: ${{ secrets.ALIAS }}
