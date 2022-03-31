@@ -12,6 +12,7 @@ android {
 
 
     compileSdkVersion 32
+    buildToolsVersion '32.0.0'
 
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
@@ -64,6 +65,7 @@ android {
     lint {
         disable 'GoogleAppIndexingWarning', 'UnusedAttribute'
     }
+
 
 }
 
