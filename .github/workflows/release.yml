@@ -37,7 +37,7 @@ jobs:
     - name: Sign app APK
       uses: Tlaster/android-sign@v1.2.2
       with:
-        releaseDirectory: project/build/outputs/apk/debug
+        releaseDirectory: project/build/intermediates/apk/release
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         output: build/release/signed
         alias: ${{ secrets.ALIAS }}
@@ -52,7 +52,7 @@ jobs:
       with:
         serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         packageName: de.earthlingz.oerszebra
-        releaseFiles: build/release/signed/*.aab
+        releaseFiles: build/release/signed/*.apk
         track: beta
         inAppUpdatePriority: 2
         userFraction: 0.33
