@@ -35,7 +35,7 @@ jobs:
     - name: Test with Gradle
       run: ./gradlew test
     - name: Sign app APK
-      uses: Tlaster/android-sign@v1 
+      uses: Tlaster/android-sign@v1.2.2
       with:
         releaseDirectory: |
           app/build/outputs/apk/release
