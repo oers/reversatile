@@ -1,15 +1,15 @@
-if (project.hasProperty("reversatile_key_alias")
-        && project.hasProperty("reversatile_key_password")
-        && project.hasProperty("reversatile_keystore_password")
+if (project.hasProperty("secret.ALIAS")
+        && project.hasProperty("secret.KEY_PASSWORD")
+        && project.hasProperty("secret.KEYSTORE_PASSWORD")
         && file('../keystore/zebra.jks').exists()) {
     System.out.println("SIGNING: Configuring signing config")
     android {
         signingConfigs {
             releaseSigningConfig {
-                keyAlias reversatile_key_alias
-                keyPassword reversatile_key_password
+                keyAlias secret.ALIAS
+                keyPassword secret.KEY_PASSWORD
                 storeFile file('../keystore/zebra.jks')
-                storePassword reversatile_keystore_password
+                storePassword secret.KEYSTORE_PASSWORD
             }
         }
         buildTypes {
@@ -19,8 +19,8 @@ if (project.hasProperty("reversatile_key_alias")
         }
     }
 } else {
-    System.out.println("SIGNING alias: " + project.hasProperty("reversatile_key_alias"))
-    System.out.println("SIGNING pwd: " + project.hasProperty("reversatile_key_password"))
-    System.out.println("SIGNING key_pwd: " + project.hasProperty("reversatile_keystore_password"))
+    System.out.println("SIGNING alias: " + project.hasProperty("secret.ALIAS"))
+    System.out.println("SIGNING pwd: " + project.hasProperty("secret.KEY_PASSWORD"))
+    System.out.println("SIGNING key_pwd: " + project.hasProperty("secret.KEYSTORE_PASSWORD"))
     System.out.println("SIGNING jks: " +  file('../keystore/zebra.jks').exists())
 }
