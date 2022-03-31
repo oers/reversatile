@@ -28,15 +28,23 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: OpenSSL keystore
+      run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
     - name: Test with Gradle
       run: ./gradlew test
-    - name: 'Conntected Test'
-      timeout-minutes: 30
-      uses: reactivecircus/android-emulator-runner@v2
+    - name: Sign app APK
+      uses: Tlaster/android-sign@v1 
       with:
-        api-level: 24
-        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-        script: ./gradlew conntectedTest
+        releaseDirectory: |
+          app/build/outputs/apk/release
+          app/build/outputs/bundle/release
+        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+        output: build/release/signed
+        alias: ${{ secrets.ALIAS }}
+        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
+      env:
+        BUILD_TOOLS_VERSION: "32.0.0"
 
