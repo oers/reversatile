@@ -32,12 +32,16 @@ jobs:
       run: ./gradlew build
     - name: Test with Gradle
       run: ./gradlew test
+    - name: uploadCrashlyticsSymbolFileRelease
+      run: ./gradlew uploadCrashlyticsSymbolFileRelease
     - name: assembleRelease
       run: ./gradlew assembleRelease
+    - name: debug
+      run: find . -name *.apk
     - name: Sign app APK
       uses: Tlaster/android-sign@v1.2.2
       with:
-        releaseDirectory: project/build/intermediates/apk/release
+        releaseDirectory: project/build/outputs/apk/release
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         output: build/release/signed
         alias: ${{ secrets.ALIAS }}
@@ -45,8 +49,6 @@ jobs:
         keyPassword: ${{ secrets.KEY_PASSWORD }}
       env:
         BUILD_TOOLS_VERSION: "32.0.0"
-    - name: publish
-      run: ./gradlew uploadCrashlyticsSymbolFileRelease
     - name: play store
       uses: r0adkll/upload-google-play@v1
       with:
