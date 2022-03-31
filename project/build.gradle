@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 
-apply from: "signing.gradle"
 apply from: "deploy.gradle"
 apply from: "google-api.gradle" // for closed source software
 
@@ -17,10 +16,6 @@ android {
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
 
-
-    dexOptions {
-        javaMaxHeapSize "4g"
-    }
     defaultConfig {
         multiDexEnabled false
         versionName androidGitVersion.name()
