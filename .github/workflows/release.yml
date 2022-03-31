@@ -46,7 +46,18 @@ jobs:
       env:
         BUILD_TOOLS_VERSION: "32.0.0"
     - name: publish
-      run: ./gradlew uploadCrashlyticsSymbolFileRelease publishBundle
+      run: ./gradlew uploadCrashlyticsSymbolFileRelease
+    - name: play store
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+        packageName: de.earthlingz.oerszebra
+        releaseFiles: build/release/signed/*.aab
+        track: production
+        inAppUpdatePriority: 2
+        userFraction: 0.33
+        whatsNewDirectory: distribution/whatsnew
+        mappingFile: app/build/outputs/mapping/release/mapping.txt
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
