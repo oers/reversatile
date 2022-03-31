@@ -30,3 +30,13 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Test with Gradle
+      run: ./gradlew test
+    - name: 'Conntected Test'
+      timeout-minutes: 30
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 24
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+        script: ./gradlew conntectedTest
+
