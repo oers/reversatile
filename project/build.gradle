@@ -32,6 +32,11 @@ android {
         debug {
             applicationIdSuffix '.debug'
         }
+
+        release {
+            signingConfig null
+        }
+
     }
     packagingOptions {
         resources {

@@ -28,12 +28,12 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: OpenSSL keystore
-      run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
     - name: Test with Gradle
       run: ./gradlew test
+    - name: debug
+      run: find . -name *.apk
     - name: Sign app APK
       uses: Tlaster/android-sign@v1.2.2
       with:
