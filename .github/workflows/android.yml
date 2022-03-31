@@ -16,7 +16,7 @@ jobs:
     - name: ndk
       uses: nttld/setup-ndk@v1.0.6
       with: 
-        ndk-version: 24
+        ndk-version: r24
     - name: set up JDK 11
       uses: actions/setup-java@v3
       with:
