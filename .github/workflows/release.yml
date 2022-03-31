@@ -58,7 +58,7 @@ jobs:
         track: beta
         inAppUpdatePriority: 2
         userFraction: 0.33
-        status: completed
+        status: inProgress
         whatsNewDirectory: whatsnew
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
