@@ -58,6 +58,7 @@ jobs:
         track: beta
         inAppUpdatePriority: 2
         userFraction: 0.33
+        status: completed
         whatsNewDirectory: whatsnew
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
@@ -67,5 +68,4 @@ jobs:
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
-        status: completed
         body: "This is my release text"
