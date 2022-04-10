@@ -32,8 +32,6 @@ jobs:
       run: ./gradlew build
     - name: Test with Gradle
       run: ./gradlew test
-    - name: uploadCrashlyticsSymbolFileRelease
-      run: ./gradlew uploadCrashlyticsSymbolFileRelease
     - name: assembleRelease
       run: ./gradlew assembleRelease
     - name: debug
