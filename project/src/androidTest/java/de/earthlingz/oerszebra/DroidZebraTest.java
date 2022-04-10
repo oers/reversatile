@@ -112,6 +112,20 @@ public class DroidZebraTest extends BasicTest{
 
     }
 
+    @Test
+    public void testCrash4() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "D3C3C4C5B4E3E2D2C6B3B5C2E1C1A3A6A5A4A7B2F4F5D6F3F2E6G4G5G3H4F6G6H3H2H7G1F1D1H5H6H1B6C7F7F8D7");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+
+        Thread.sleep(2000);
+        zebra.runOnUiThread(() -> zebra.undoAll());
+        Thread.sleep(10000);
+
+    }
 
 
 }

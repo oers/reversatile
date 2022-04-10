@@ -44,7 +44,6 @@ SRCS = \
 	thordb.c \
 	timer.c \
 	unflip.c
-#	bitbvald.c
 
 HEADERS = \
 	autoplay.h \
@@ -85,7 +84,6 @@ HEADERS = \
 	thordb.h \
 	timer.h \
 	unflip.h
-#	bitbvald.h
 
 
 BOOKTOOL_SRCS	= $(SRCS) booktool.c
@@ -105,6 +103,7 @@ PRACTICE_EXE	= practice
 ENDDEV_EXE	= enddev
 ZEBRA_EXE	= zebra
 SCRZEBRA_EXE	= scrzebra
+TUNE8DBS_EXE	=	tune8dbs
 
 
 
@@ -123,14 +122,11 @@ CXX		= g++
 
 # --- Flags ---
 
-DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DUSE_PENTIUM_ASM -DZLIB_STATIC
-#DEFS =		-DUSE_PENTIUM_ASM -DZLIB_STATIC 
+DEFS =		-DINCLUDE_BOOKTOOL -DTEXT_BASED -DZLIB_STATIC
 
 WARNINGS =	-Wall -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline
-#OPTS =		-O2 -s -fomit-frame-pointer -march=pentium -malign-functions=6 -fschedule-insns2
-OPTS =		-O4 -s -fomit-frame-pointer -mtune=pentium2 -falign-functions=32
-#OPTS =		-O4 -pg -mtune=pentium2 -falign-functions=32
-#OPTS =		-O4 -g -mtune=pentium2
+OPTS =		-O4 -s -fomit-frame-pointer -falign-functions=32
+#OPTS =		-O4 -s -fomit-frame-pointer -mtune=core2 -falign-functions=32
 
 CFLAGS =	$(OPTS) $(WARNINGS) $(DEFS)
 CXXFLAGS =	$(CFLAGS)
@@ -154,7 +150,10 @@ libzebra.a:	$(OBJS)
 clean		:
 	$(RM) $(OBJS) booktool.o zebra.o scrzebra.o $(ZEBRA_EXE) a.out core \
 	*.stackdump gmon.out $(PRACTICE_OBJS) $(PRACTICE_EXE) \
-	libzebra.a *.da
+	libzebra.a *.da autop.o \
+	$(BOOKTOOL_OBJS) $(ENDDEV_OBJS) \
+	$(AUTOPLAY_EXE) $(BOOKTOOL_EXE) $(ENDDEV_EXE) $(SCRZEBRA_EXE) $(TUNE8DBS_EXE) \
+
 
 booktool	: $(OBJS) $(BOOKTOOL_OBJS) autop.o
 	$(CC) -o $(BOOKTOOL_EXE) $(CFLAGS) $(BOOKTOOL_OBJS) autop.o $(LDFLAGS)
@@ -174,7 +173,7 @@ bookinst:
 	$(CC) -o bookinst $(CFLAGS) bookinst.c myrandom.o
 
 tune8dbs:
-	$(CC) -o tune8dbs $(CFLAGS) tune8dbs.c $(LDFLAGS)
+	$(CC) -o $(TUNE8DBS_EXE) $(CFLAGS) tune8dbs.c $(LDFLAGS)
 
 genbb:	genbb.o
 	$(CC) -o genbb genbb.o	

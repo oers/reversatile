@@ -26,6 +26,7 @@
 #include "osfbook.h"
 #include "patterns.h"
 #include "search.h"
+#include "error.h"
 #include "timer.h"
 
 
@@ -54,6 +55,17 @@ clear_stored_game( void ) {
     game_move[i] = ILLEGAL;
 }
 
+/*
+   GET_STORED_MOVE
+   get stored move
+*/
+
+int
+get_stored_move( int index ) {
+  if(index>60) return ILLEGAL;
+  return game_move[index];
+}
+
 
 
 /*
@@ -67,16 +79,6 @@ store_move( int disks_played, int move ) {
   game_move[disks_played] = move;
 }
 
-/*
-   GET_STORED_MOVE
-   get stored move
-*/
-
-int
-get_stored_move( int index ) {
-	if(index>60) return ILLEGAL;
-	return game_move[index];
-}
 
 
 /*
@@ -160,6 +162,9 @@ learn_game( int game_length, int private_game, int save_database ) {
     if ( move_count[disks_played] == 0 ) {
       side_to_move = OPP( side_to_move );
       generate_all( side_to_move );
+    }
+    if (game_move[i] == -1) {
+        fatal_error("Cannot learn game. Missing move no. %d", i);
     }
     (void) make_move( side_to_move, game_move[i], TRUE );
     if ( side_to_move == WHITESQ )

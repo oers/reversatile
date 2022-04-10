@@ -220,6 +220,16 @@ game_in_progress( void ) {
 
 INLINE int
 make_move( int side_to_move, int move, int update_hash ) {
+  if (board[move] == 0 || board[move] == 2) {
+      // This should be unreachable, but fuzzer found an instance where it happens:
+      // -r 0 -l 9 6 3 5 19 0 -repeat 4 -p 1 -b 1 -w 0 -h 19 -dev 17 75 94.33498 -g tests/resources/board.txt -time 40 48 6 24
+      // continuing here can lead to index out of bounds somewhere else, so we return 0 here.
+      // That only causes fatal error in PV completion later
+      return 0;
+  }
+  // we could replace the above if with these asserts, too
+  // assert(board[move] != 0);
+  // assert(board[move] != 2);
   int flipped;
   unsigned int diff1, diff2;
 
@@ -320,7 +330,9 @@ make_move_no_hash( int side_to_move, int move ) {
 INLINE void
 unmake_move( int side_to_move, int move ) {
   board[move] = EMPTY;
-
+  if (disks_played < 1 || disks_played > MAX_SEARCH_DEPTH) {
+      return;
+  }
   disks_played--;
 
   hash1 = hash_stored1[disks_played];
