@@ -5,21 +5,26 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.shurik.droidzebra.GameState;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import javax.annotation.Nullable;
+
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static android.content.Context.MODE_PRIVATE;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 
+import org.matomo.sdk.Matomo;
+import org.matomo.sdk.Tracker;
+import org.matomo.sdk.TrackerBuilder;
+import org.matomo.sdk.extra.TrackHelper;
+
 public class Analytics {
 
     static final String ANALYTICS_SETTING = "analytics_setting";
     private static final AtomicReference<DroidZebra> app = new AtomicReference<>();
-    private static FirebaseAnalytics firebase = null;
+    private static Tracker tracker = null;
 
     public static void setApp(DroidZebra zebra) {
         app.set(zebra);
@@ -62,7 +67,7 @@ public class Analytics {
             return;
         }
 
-        FirebaseCrashlytics.getInstance().log("E/LOG : " + id + " / " +message);
+        TrackHelper.track().event(id, "E/Message: " + message).with(tracker);
     }
 
     public static void build() {
@@ -72,10 +77,6 @@ public class Analytics {
         }
 
         boolean consent = isConsent();
-
-        if (consent) { //one time only, needs reboot of the app to work
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true);
-        }
 
         handleConsent(app.get(), consent);
     }
@@ -91,20 +92,30 @@ public class Analytics {
     }
 
     private static void handleConsent(Context app, boolean consent) {
+        if(tracker != null) { //already initialised
+            return;
+        }
 
-        FirebaseAnalytics instance = getFirebaseAnalytics(app);
-        instance.setAnalyticsCollectionEnabled(consent);
+        getTracker(app);
+
+        tracker.setOptOut(!consent);
 
         if (!consent) {
-            instance.resetAnalyticsData();
+            return;
         }
+
+        tracker.startNewSession();
+        tracker.setUserId(UUID.randomUUID().toString());
+
+        TrackHelper.track().uncaughtExceptions().with(tracker);
+        TrackHelper.track().download().with(tracker);
     }
 
-    private synchronized static FirebaseAnalytics getFirebaseAnalytics(Context app) {
-        if(firebase == null) {
-            firebase = FirebaseAnalytics.getInstance(app);
+    private synchronized static Tracker getTracker(Context app) {
+        if(tracker == null) {
+            tracker = TrackerBuilder.createDefault("https://matomo.reversatile.online/matomo.php", 2).build(Matomo.getInstance(app));
         }
-        return firebase;
+        return tracker;
     }
 
     public static void converse(String converse, @Nullable Bundle bundle) {
@@ -112,10 +123,10 @@ public class Analytics {
             Log.i("converse", converse);
             return;
         }
-        FirebaseCrashlytics.getInstance().log("E/Converse: " + converse);
         if(app.get() != null) {
-            FirebaseAnalytics fb = getFirebaseAnalytics(app.get());
-            fb.logEvent(converse, bundle);
+            Tracker fb = getTracker(app.get());
+            TrackHelper.track().screen( converse).with(fb);
+
         }
 
     }
@@ -130,6 +141,6 @@ public class Analytics {
         if(app.get() == null) {
             return;
         }
-        FirebaseCrashlytics.getInstance().log("E/Message: " + message);
+        TrackHelper.track().event("error", "E/Message: " + message);
     }
 }

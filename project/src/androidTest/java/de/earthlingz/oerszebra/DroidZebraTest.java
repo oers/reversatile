@@ -59,6 +59,59 @@ public class DroidZebraTest extends BasicTest{
         assertSame(32, countSquares(ZebraEngine.PLAYER_BLACK));
     }
 
+    @Test
+    public void testCrash1() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "d3c5f6f5e6e3c4c3f4d6c6d7b5b4c7f7a3g5f8g6g3a6b6a5e8e7f2g4f3e2h3f1d8h5h7a7g2");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+
+        Thread.sleep(2000);
+        zebra.runOnUiThread(() -> zebra.undoAll());
+        Thread.sleep(10000);
+        for(int i = 1; i < 20; i++) {
+            zebra.runOnUiThread(() -> zebra.redo());
+            Thread.sleep(200);
+        }
+    }
+
+    @Test
+    public void testCrash2() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "d3c5e6f5f6e3d6f7g6e7f4c4b4d2c3b5c2e2f3a4f1e1c1g1f2h6f8g5c6b3a6g4a5a3b6a7b2a1a2b1a8d1g3h4h3c7h5h2g7e8c8h7h8");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+
+        Thread.sleep(2000);
+        zebra.runOnUiThread(() -> zebra.undoAll());
+        Thread.sleep(10000);
+        for(int i = 1; i < 50; i++) {
+            zebra.runOnUiThread(() -> zebra.redo());
+            Thread.sleep(200);
+        }
+
+
+    }
+
+    @Test
+    public void testCrash3() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "d3c5e6f5f6e3d6f7g6e7f4c4b4d2c3b5c2e2f3a4f1e1c1g1f2h6f8g5c6b3a6g4a5a3b6a7b2a1a2");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+
+        Thread.sleep(2000);
+        zebra.runOnUiThread(() -> zebra.undoAll());
+        Thread.sleep(10000);
+
+    }
+
 
 
 }

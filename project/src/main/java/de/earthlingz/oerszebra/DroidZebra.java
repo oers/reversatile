@@ -887,7 +887,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         }
     }
 
-    private void undoAll() {
+    void undoAll() {
         engine.undoAll(gameState);
     }
 
