@@ -52,6 +52,9 @@ game_init( const char *file_name,
 	   int *side_to_move );
 
 void
+clear_endgame_performed( void );
+
+void
 set_komi( int in_komi );
 
 void
@@ -90,6 +93,9 @@ get_evaluated_count( void );
 EvaluatedMove
 get_evaluated( int index );
 
+void
+clear_evaluated( void );
+
 int
 compute_move( int side_to_move,
 	      int update_all,
@@ -109,13 +115,6 @@ get_search_statistics( int *max_depth,
 
 int
 get_pv( int *destin );
-
-void
-clear_endgame_performed(void);
-
-void
-clear_evaluated( void );
-
 
 
 #ifdef __cplusplus
