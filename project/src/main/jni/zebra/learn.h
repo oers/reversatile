@@ -26,6 +26,10 @@ extern "C" {
 void
 clear_stored_game( void );
 
+int
+get_stored_move( int index );
+
+
 void
 store_move( int disks_played, int move );
 

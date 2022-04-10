@@ -1574,3 +1574,14 @@ get_pv( int *destin ) {
     return pv_depth[0] + 1;
   }
 }
+
+void clear_endgame_performed() {
+    endgame_performed[BLACKSQ] = endgame_performed[WHITESQ] = FALSE;
+}
+
+void clear_evaluated(void) {
+    game_evaluated_count = 0;
+}
+
+
+

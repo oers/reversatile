@@ -110,6 +110,12 @@ get_search_statistics( int *max_depth,
 int
 get_pv( int *destin );
 
+void
+clear_endgame_performed(void);
+
+void
+clear_evaluated( void );
+
 
 
 #ifdef __cplusplus

@@ -929,6 +929,8 @@ init_coeffs( void ) {
   /* Special hack for CE. */
   getcwd(sPatternFile, sizeof(sPatternFile));
   strcat(sPatternFile, PATTERN_FILE);
+#elif defined(ANDROID)
+  sprintf(sPatternFile, "%s/%s", android_files_dir, PATTERN_FILE);
 #elif defined( __linux__ )
   /* Linux don't support current directory. */
   strcpy( sPatternFile, PATTERN_FILE );
@@ -936,9 +938,8 @@ init_coeffs( void ) {
   getcwd(sPatternFile, sizeof(sPatternFile));
   strcat(sPatternFile, "/" PATTERN_FILE);
 #endif
-  char* env_coeffs = getenv("COEFFS_PATH");
 
-  coeff_stream = gzopen(env_coeffs ? env_coeffs : sPatternFile, "rb" );
+  coeff_stream = gzopen( sPatternFile, "rb" );
   if ( coeff_stream == NULL )
     fatal_error( "%s '%s'\n", FILE_ERROR, sPatternFile );
 
@@ -1046,10 +1047,14 @@ init_coeffs( void ) {
 
 static long long int
 rdtsc( void ) {
-#if defined(__GNUC__)
-  long long a;
-  asm volatile("rdtsc":"=A" (a));
-  return a;
+#ifdef _X64_
+  #if defined(__GNUC__)
+    long long a;
+    asm volatile("rdtsc":"=A" (a));
+    return a;
+  #else
+    return 0;
+  #endif
 #else
   return 0;
 #endif
