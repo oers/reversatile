@@ -62,7 +62,8 @@ clear_stored_game( void ) {
 
 int
 get_stored_move( int index ) {
-  if (index > 60) return ILLEGAL;
+  if(index>60) return ILLEGAL;
+  return game_move[index];
 }
 
 
