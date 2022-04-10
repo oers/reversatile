@@ -54,9 +54,5 @@ extern int white_moves[60];
    but all updates must be reversed when the search stops. */
 extern Board board;
 
-#ifdef ANDROID
-int droidzebra_message_debug(const char* format, ...);
-#define printf(format, args...)  droidzebra_message_debug(format , ## args)
-#endif
 
 #endif  /* GLOBALS_H */

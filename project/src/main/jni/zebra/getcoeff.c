@@ -15,7 +15,7 @@
 #include "porting.h"
 
 
-/* #define __linux__ */
+#define __linux__
 
 
 #if !defined( _WIN32_WCE ) && !defined( __linux__ )
@@ -929,8 +929,6 @@ init_coeffs( void ) {
   /* Special hack for CE. */
   getcwd(sPatternFile, sizeof(sPatternFile));
   strcat(sPatternFile, PATTERN_FILE);
-#elif defined(ANDROID)
-  sprintf(sPatternFile, "%s/%s", android_files_dir, PATTERN_FILE);
 #elif defined( __linux__ )
   /* Linux don't support current directory. */
   strcpy( sPatternFile, PATTERN_FILE );
@@ -938,8 +936,9 @@ init_coeffs( void ) {
   getcwd(sPatternFile, sizeof(sPatternFile));
   strcat(sPatternFile, "/" PATTERN_FILE);
 #endif
+  char* env_coeffs = getenv("COEFFS_PATH");
 
-  coeff_stream = gzopen( sPatternFile, "rb" );
+  coeff_stream = gzopen(env_coeffs ? env_coeffs : sPatternFile, "rb" );
   if ( coeff_stream == NULL )
     fatal_error( "%s '%s'\n", FILE_ERROR, sPatternFile );
 
@@ -1047,9 +1046,6 @@ init_coeffs( void ) {
 
 static long long int
 rdtsc( void ) {
-/*
- I don't know what this does, but the ndk compiler will fail here
- because the A output constraint cannot be applied/found
 #if defined(__GNUC__)
   long long a;
   asm volatile("rdtsc":"=A" (a));
@@ -1057,8 +1053,6 @@ rdtsc( void ) {
 #else
   return 0;
 #endif
- */
-  return 0;
 }
 
 

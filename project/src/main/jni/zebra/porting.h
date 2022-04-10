@@ -15,8 +15,6 @@
 #ifndef PORTING_H
 #define PORTING_H
 
-#ifdef ANDROID
-extern char android_files_dir[];
-#endif
+
 
 #endif

@@ -131,9 +131,6 @@ void
 unpack_compressed_database( const char *in_name, const char *out_name );
 
 void
-unpack_compressed_database_gz( const char *in_name, const char *out_name );;
-
-void
 minimax_tree( void );
 
 void

@@ -24,7 +24,7 @@
 /* Define the inline directive when available */
 
 #ifdef __GNUC__
-  #define INLINE __inline__
+  #define INLINE
 #else
   #define INLINE
 #endif

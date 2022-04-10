@@ -16,17 +16,11 @@
 /* CRON_SUPPORTED should be enabled when Zebra is compiled for
    a Unix system which supports the Cron daemon. */
 
-#ifdef __linux__
-#define CRON_SUPPORTED
-#endif
-
 /* GTC_SUPPORTED should be enabled when Zebra is compiled for
    Windows 95/98/NT and the compiler supports the function
    GetTickCount() and keeps the definition in <windows.h>. */
 
 #include "porting.h"
-
-#define GTC_SUPPORTED
 
 
 

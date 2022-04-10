@@ -36,14 +36,14 @@ extern "C" {
 
 /* Define the inline directive when available */
 #if defined( __GNUC__ )&& !defined( __cplusplus )
-#define INLINE __inline__
+#define INLINE
 #else
 #define INLINE
 #endif
 
 
 /* Define function attributes directive when available */
-#if 0 && __GNUC__ >= 3 
+#if __GNUC__ >= 3
 #define	REGPARM(num)	__attribute__((regparm(num)))
 #else
 #if defined (_MSC_VER) || defined(__BORLANDC__)
