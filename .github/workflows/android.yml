@@ -49,4 +49,15 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         path: build/release/signed/*.apk
+  test:
+    runs-on: macos-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          script: ./gradlew connectedCheck
 
