@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/reversatile.iml" filepath="$PROJECT_DIR$/reversatile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/reversatile.iml" filepath="$PROJECT_DIR$/.idea/modules/reversatile.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/project/reversatile.project.iml" filepath="$PROJECT_DIR$/.idea/modules/project/reversatile.project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/project/reversatile.project.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/project/reversatile.project.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/project/reversatile.project.main.iml" filepath="$PROJECT_DIR$/.idea/modules/project/reversatile.project.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/project/reversatile.project.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/project/reversatile.project.unitTest.iml" />
     </modules>
   </component>
 </project>
