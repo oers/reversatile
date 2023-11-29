@@ -64,6 +64,8 @@ android {
     lint {
         disable 'GoogleAppIndexingWarning', 'UnusedAttribute'
     }
+    namespace 'de.earthlingz.oerszebra'
+    testNamespace 'de.earthlingz.oerszebra.tests'
 
 
 }
