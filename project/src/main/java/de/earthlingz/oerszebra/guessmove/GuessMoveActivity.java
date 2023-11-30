@@ -1,6 +1,7 @@
 package de.earthlingz.oerszebra.guessmove;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -30,19 +31,17 @@ public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar
     private GuessMoveModeManager manager;
     private ImageView sideToMoveCircle;
     private TextView hintText;
-
-    private EngineConfig engineConfig;
     private GlobalSettingsLoader globalSettingsLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        globalSettingsLoader = new GlobalSettingsLoader(getApplicationContext());
-        engineConfig = globalSettingsLoader.createEngineConfig();
+        Context applicationContext = getApplicationContext();
+        globalSettingsLoader = new GlobalSettingsLoader(applicationContext);
 
         this.manager = new GuessMoveModeManager(ZebraEngine.get(
-                new AndroidContext(getApplicationContext())),
-                engineConfig);
+                new AndroidContext(applicationContext)),
+                globalSettingsLoader.getDefaultOpening());
         setContentView(R.layout.activity_guess_move);
         boardView = findViewById(R.id.guess_move_board);
         boardViewModel = manager;
@@ -62,8 +61,7 @@ public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar
     protected void onResume() {
         super.onResume();
         globalSettingsLoader.setOnSettingsChangedListener(() -> {
-            this.engineConfig = globalSettingsLoader.createEngineConfig();
-            this.manager.updateGlobalConfig(engineConfig);
+            this.manager.updateGlobalConfig(globalSettingsLoader.getDefaultOpening());
         });
     }
 

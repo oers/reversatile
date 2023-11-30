@@ -314,5 +314,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
                 computerMoveDelay);
     }
 
-
+    public String getDefaultOpening() {
+        return context.getString(R.string.default_forced_opening);
+    }
 }

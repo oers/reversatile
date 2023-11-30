@@ -23,18 +23,18 @@ public class GuessMoveModeManager extends AbstractBoardViewModel {
     };
     private GuessMoveListener guessMoveListener;
 
-    GuessMoveModeManager(ZebraEngine engine, EngineConfig globalSettings) {
+    GuessMoveModeManager(ZebraEngine engine, String opening) {
 
         this.engine = engine;
-        initConfigs(globalSettings);
+        initConfigs(opening);
     }
 
-    private void initConfigs(EngineConfig globalSettings) {
-        generatorConfig = createGeneratorConfig(globalSettings);
-        guesserConfig = createGuesserConfig(globalSettings);
+    private void initConfigs(String opening) {
+        generatorConfig = createGeneratorConfig(opening);
+        guesserConfig = createGuesserConfig();
     }
 
-    private static EngineConfig createGuesserConfig(EngineConfig gs) {
+    private static EngineConfig createGuesserConfig() {
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN,
                 20, 22, 1, false, "",
@@ -47,15 +47,15 @@ public class GuessMoveModeManager extends AbstractBoardViewModel {
         );
     }
 
-    private static EngineConfig createGeneratorConfig(EngineConfig gs) {
+    private static EngineConfig createGeneratorConfig(String opening) {
 
         return new EngineConfig(
                 GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA,
                 8, 12, 1, true,
-                gs.forcedOpening,
+                opening,
                 false,
                 false,
-                gs.useBook,
+                true,
                 1,
                 1,
                 0
@@ -194,10 +194,8 @@ public class GuessMoveModeManager extends AbstractBoardViewModel {
         return Player.values()[player];
     }
 
-    public void updateGlobalConfig(EngineConfig engineConfig) {
-        initConfigs(engineConfig);
-        //TODO update config for current game
-
+    public void updateGlobalConfig(String opening) {
+        initConfigs(opening);
     }
 
     private void showMove(Move move) {
