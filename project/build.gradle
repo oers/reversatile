@@ -40,10 +40,9 @@ android {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0', 'README.txt']
         }
-        jniLibs.useLegacyPackaging = false
     }
 
-    ndkVersion "23.1.7779620"
+    ndkVersion "21.4.7075529"
 
     externalNativeBuild {
         ndkBuild {

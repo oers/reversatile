@@ -15,7 +15,7 @@
 #include "porting.h"
 
 
-#define __linux__
+/* #define __linux__ */
 
 
 #if !defined( _WIN32_WCE ) && !defined( __linux__ )
@@ -1047,17 +1047,18 @@ init_coeffs( void ) {
 
 static long long int
 rdtsc( void ) {
-#ifdef _X64_
-  #if defined(__GNUC__)
-    long long a;
-    asm volatile("rdtsc":"=A" (a));
-    return a;
-  #else
-    return 0;
-  #endif
+/*
+ I don't know what this does, but the ndk compiler will fail here
+ because the A output constraint cannot be applied/found
+#if defined(__GNUC__)
+  long long a;
+  asm volatile("rdtsc":"=A" (a));
+  return a;
 #else
   return 0;
 #endif
+ */
+  return 0;
 }
 
 

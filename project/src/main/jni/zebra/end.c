@@ -2409,7 +2409,7 @@ setup_end( void ) {
 	if ( dir_mask[pos] & (1 << k) ) {
 	  unsigned int neighbor = shift + dir_shift[k];
 	  if ( neighbor < 32 )
-	    neighborhood_mask[pos].low |= ((unsigned int)1 << ((unsigned int)neighbor));
+	    neighborhood_mask[pos].low |= (1 << neighbor);
 	  else
 	    neighborhood_mask[pos].high |= (1 << (neighbor - 32));
 	}

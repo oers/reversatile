@@ -35,7 +35,7 @@ int root_eval;
 int force_return;
 int full_pv_depth;
 int full_pv[120];
-int list_inherited[62];
+int list_inherited[61];
 int sorted_move_order[64][64];  /* 61*60 used */
 Board evals[61];
 CounterType nodes, total_nodes;
@@ -82,7 +82,7 @@ init_move_lists( void ) {
     for ( j = 0; j < MOVE_ORDER_SIZE; j++ )
       sorted_move_order[i][j] = position_list[j];
   }
-  for ( i = 0; i <= 61; i++ )
+  for ( i = 0; i <= 60; i++ )
     list_inherited[i] = FALSE;
 }
 
@@ -99,9 +99,7 @@ void
 inherit_move_lists( int stage ) {
   int i;
   int last;
-    if(stage >= 61 || stage < 0) {
-        return;
-    }
+
   if ( list_inherited[stage] )
     return;
   list_inherited[stage] = TRUE;

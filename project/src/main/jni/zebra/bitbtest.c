@@ -215,15 +215,15 @@ static const unsigned int high_flip[56] = {
 #define bbFlips_Right_low(pos, mask)	\
   contig = right_contiguous[(opp_bits_low >> (pos + 1)) & mask];	\
   fl = right_flip[contig] << (pos + 1);					\
-  t = ((int)(-(unsigned int)(my_bits_low & fl))) >> 31u;					\
+  t = -(int)(my_bits_low & fl) >> 31;					\
   my_bits_low |= fl & t;						\
   flipped = contig & t
 #endif
 
 #define bbFlips_Right_high(pos, mask)	\
-  contig = right_contiguous[(opp_bits_high >> (pos + 1u)) & mask];	\
-  fl = right_flip[contig] << (pos + 1u);					\
-  t = ((int)(-(unsigned int)(my_bits_high & fl))) >> 31u;					\
+  contig = right_contiguous[(opp_bits_high >> (pos + 1)) & mask];	\
+  fl = right_flip[contig] << (pos + 1);					\
+  t = -(int)(my_bits_high & fl) >> 31;					\
   my_bits_high |= fl & t;						\
   flipped = contig & t
 
@@ -544,22 +544,22 @@ static const unsigned int high_flip[56] = {
 
 
 #define bbFlips_Down_2_3(pos, vec, maskh)	\
-  if (opp_bits_low & (1u << (pos + vec))) {				\
-    if (opp_bits_low & (1u << (pos + vec * 2u))) {			\
-      t = (opp_bits_high >> (pos + vec * 3u - 32u)) & 1u;			\
-      contig = 2u + t;							\
-      t &= (opp_bits_high >> (pos + vec * 4u - 32u));			\
+  if (opp_bits_low & (1 << (pos + vec))) {				\
+    if (opp_bits_low & (1 << (pos + vec * 2))) {			\
+      t = (opp_bits_high >> (pos + vec * 3 - 32)) & 1;			\
+      contig = 2 + t;							\
+      t &= (opp_bits_high >> (pos + vec * 4 - 32));			\
       contig += t;							\
-      t &= (opp_bits_high >> (pos + vec * 5u - 32u));			\
+      t &= (opp_bits_high >> (pos + vec * 5 - 32));			\
       contig += t;							\
       t = lsb_mask[contig - 2] & maskh;					\
       if (my_bits_high & t) {						\
         my_bits_high |= t;						\
-        my_bits_low |= (1u << (pos + vec)) | (1u << (pos + vec * 2u));	\
+        my_bits_low |= (1 << (pos + vec)) | (1 << (pos + vec * 2));	\
         flipped += contig;						\
       }									\
     } else {								\
-      t = (my_bits_low >> (pos + vec * 2u)) & 1u;				\
+      t = (my_bits_low >> (pos + vec * 2)) & 1;				\
       my_bits_low |= t << (pos + vec);					\
       flipped += t;							\
     }									\
@@ -679,17 +679,17 @@ static const unsigned int high_flip[56] = {
 
 
 #define bbFlips_Down_1_3(pos, vec, maskh)	\
-  if (opp_bits_low & (1u << (pos + vec))) {				\
-    t = (opp_bits_high >> (pos + vec * 2u - 32u)) & 1u;			\
+  if (opp_bits_low & (1 << (pos + vec))) {				\
+    t = (opp_bits_high >> (pos + vec * 2 - 32)) & 1;			\
     contig = 1 + t;							\
-    t &= (opp_bits_high >> (pos + vec * 3u - 32u));			\
+    t &= (opp_bits_high >> (pos + vec * 3 - 32));			\
     contig += t;							\
-    t &= (opp_bits_high >> (pos + vec * 4u - 32u));			\
+    t &= (opp_bits_high >> (pos + vec * 4 - 32));			\
     contig += t;							\
-    t = lsb_mask[contig - 1u] & maskh;					\
+    t = lsb_mask[contig - 1] & maskh;					\
     if (my_bits_high & t) {						\
       my_bits_high |= t;						\
-      my_bits_low |= 1u << (pos + vec);					\
+      my_bits_low |= 1 << (pos + vec);					\
       flipped += contig;						\
     }									\
   }
@@ -775,7 +775,7 @@ static const unsigned int high_flip[56] = {
     t &= (opp_bits_high >> (pos + vec * 3 - 32));			\
     contig += t;							\
     fl = lsb_mask[contig] & mask;					\
-    t = ((int)(-(unsigned int)(my_bits_high & fl))) >> 31u;					\
+    t = -(int)(my_bits_high & fl) >> 31;				\
     my_bits_high |= fl & t;						\
     flipped += contig & t;						\
   }
@@ -795,10 +795,10 @@ static const unsigned int high_flip[56] = {
 #endif
 
 #define bbFlips_Up_0_3(pos, vec, mask)	\
-  if (opp_bits_low & (1u << (pos + 32u - vec))) {				\
-    t = (opp_bits_low >> (pos + 32u - vec * 2u)) & 1u;			\
+  if (opp_bits_low & (1 << (pos + 32 - vec))) {				\
+    t = (opp_bits_low >> (pos + 32 - vec * 2)) & 1;			\
     contig = 1 + t;							\
-    t &= (opp_bits_low >> (pos + 32u - vec * 3u));			\
+    t &= (opp_bits_low >> (pos + 32 - vec * 3));			\
     contig += t;							\
     fl = msb_mask[contig] & mask;					\
     t = -(int)(my_bits_low & fl) >> 31;					\
@@ -1021,7 +1021,7 @@ TestFlips_bitboard_a8( unsigned int my_bits_high, unsigned int my_bits_low, unsi
   unsigned int t, fl;
 
   /* Right */
-  bbFlips_Right_high(24u, 0x3Fu);
+  bbFlips_Right_high(24, 0x3F);
   /* Up right */
   bbFlips_Up_3_3(24, 7, 0x00020408u, 0x10204080u);
   /* Up */
@@ -1115,7 +1115,7 @@ TestFlips_bitboard_h2( unsigned int my_bits_high, unsigned int my_bits_low, unsi
   /* Down left */
   bbFlips_Down_2_3(15, 7, 0x02040810u);
   /* Down */
-  bbFlips_Down_2_3(15u, 8u, 0x80808080u);
+  bbFlips_Down_2_3(15, 8, 0x80808080u);
 
   my_bits_low |= 0x00008000u;
   bb_flips.high = my_bits_high;
@@ -1339,7 +1339,7 @@ TestFlips_bitboard_h3( unsigned int my_bits_high, unsigned int my_bits_low, unsi
   /* Down left */
   bbFlips_Down_1_3(23, 7, 0x04081020u);
   /* Down */
-  bbFlips_Down_1_3(23u, 8u, 0x80808080u);
+  bbFlips_Down_1_3(23, 8, 0x80808080u);
   /* Up */
   bbFlips_Up_1_low(23, 8);
   /* Up left */
@@ -1553,7 +1553,7 @@ TestFlips_bitboard_h5( unsigned int my_bits_high, unsigned int my_bits_low, unsi
   /* Down */
   bbFlips_Down_2_high(7, 8, 0x00808000u);
   /* Up */
-  bbFlips_Up_0_3(7u, 8u, 0x80808080u);
+  bbFlips_Up_0_3(7, 8, 0x80808080u);
   /* Up left */
   bbFlips_Up_0_3(7, 9, 0x40201008u);
 

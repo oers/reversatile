@@ -97,7 +97,7 @@ transformation_setup( void ) {
 static void
 add_single( int mask, int pos ) {
   if ( mask < 32 )
-    depend_lo[pos] |= ((unsigned int )1) << ((unsigned int)mask);
+    depend_lo[pos] |= 1 << mask;
   else
     depend_hi[pos] |= 1 << (mask - 32);
 }

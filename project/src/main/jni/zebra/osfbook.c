@@ -752,7 +752,7 @@ minimax_tree( void ) {
 #endif
 }
 
-// #ifdef INCLUDE_BOOKTOOL
+
 #ifdef INCLUDE_BOOKTOOL
 
 /*
@@ -1194,7 +1194,6 @@ generate_endgame_statistics( int max_depth, double probability,
 
 
 #endif
-// #endif INCLUDE_BOOKTOOL
 
 
 
@@ -1228,7 +1227,7 @@ nega_scout( int depth, int allow_mpc, int side_to_move,
   /* First determine the best move in the current position
      and its score when searched to depth DEPTH.
      This is done using standard negascout with iterative deepening. */
-  *best_index = 0; // in case the depth is 0, we have to initialize it somehow. Maybe random index would be better than 0.
+
   for ( curr_depth = 2 - (depth % 2); curr_depth <= depth; curr_depth += 2 ) {
     low_score = -INFINITE_EVAL;
     curr_alpha = -INFINITE_EVAL;
@@ -1575,7 +1574,6 @@ validate_tree( void ) {
 }
 
 
-// #ifdef INCLUDE_BOOKTOOL
 #ifdef INCLUDE_BOOKTOOL
 
 
@@ -1994,7 +1992,6 @@ export_tree( const char *file_name ) {
 
 
 #endif
-// #endif INCLUDE_BOOKTOOL
 
 
 
@@ -3266,6 +3263,8 @@ write_compressed_database( const char *file_name ) {
 
 
 
+#define CHECK_WRITE_UNCOMP(op, size) if((op)!=(size)) fatal_error("error writing uncompressed database: %s", strerror(errno));
+
 /*
   DO_UNCOMPRESS
   Uncompress the subtree below the current node. This is done
@@ -3297,17 +3296,19 @@ do_uncompress( int depth, FILE *stream, int *node_index, int *child_index,
 
   get_hash( &val1, &val2, &orientation );
 
-  fwrite( &val1, sizeof( int ), 1, stream );
-  fwrite( &val2, sizeof( int ), 1, stream );
+  CHECK_WRITE_UNCOMP( fwrite( &val1, sizeof( int ), 1, stream ), 1 );
+  CHECK_WRITE_UNCOMP( fwrite( &val2, sizeof( int ), 1, stream ), 1 );
 
-  fwrite( &black_score[*node_index], sizeof( short ), 1, stream );
-  fwrite( &white_score[*node_index], sizeof( short ), 1, stream );
+  CHECK_WRITE_UNCOMP( fwrite( &black_score[*node_index], sizeof( short ), 1, stream ), 1 );
+  CHECK_WRITE_UNCOMP( fwrite( &white_score[*node_index], sizeof( short ), 1, stream ), 1 );
 
-  fwrite( &alt_move[*node_index], sizeof( short ), 1, stream );
-  fwrite( &alt_score[*node_index], sizeof( short ), 1, stream );
+  CHECK_WRITE_UNCOMP( fwrite( &alt_move[*node_index], sizeof( short ), 1, stream ), 1 );
+  CHECK_WRITE_UNCOMP( fwrite( &alt_score[*node_index], sizeof( short ), 1, stream ), 1 );
 
-  fwrite( &flags[*node_index], sizeof( unsigned short ), 1, stream );
+  CHECK_WRITE_UNCOMP( fwrite( &flags[*node_index], sizeof( unsigned short ), 1, stream ), 1 );
 
+// printf("%d %d %hd %hd %hd %hd %hd\n", val1, val2, black_score[*node_index], white_score[*node_index], alt_move[*node_index], alt_score[*node_index],  flags[*node_index]);
+ 
   (*node_index)++;
 
   /* Recursively traverse the children */
@@ -3323,7 +3324,6 @@ do_uncompress( int depth, FILE *stream, int *node_index, int *child_index,
 		   child_count, child, black_score, white_score,
 		   alt_move, alt_score, flags );
     unmake_move_no_hash( side_to_move, this_move );
-
   }
 }
 
@@ -3438,6 +3438,7 @@ unpack_compressed_database( const char *in_name, const char *out_name ) {
 #endif
 }
 
+
 void
 unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
   int i;
@@ -3485,7 +3486,7 @@ unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
   alt_move = (short *) safe_malloc( node_count * sizeof( short ) );
   alt_score = (short *) safe_malloc( node_count * sizeof( short ) );
   flags =
-          (unsigned short *) safe_malloc( node_count * sizeof( unsigned short ) );
+    (unsigned short *) safe_malloc( node_count * sizeof( unsigned short ) );
 
   for ( i = 0; i < node_count; i++ ) {
     CHECK_READ( gzread( zstream, &black_score[i], sizeof( short ) ), sizeof( short ) );
@@ -3514,16 +3515,16 @@ unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
   toggle_midgame_abort_check( FALSE );
 
   magic = BOOK_MAGIC1;
-  fwrite( &magic, sizeof( short ), 1, stream);
+  CHECK_WRITE_UNCOMP( fwrite( &magic, sizeof( short ), 1, stream ), 1 );
   magic = BOOK_MAGIC2;
-  fwrite( &magic, sizeof( short ), 1, stream);
+  CHECK_WRITE_UNCOMP( fwrite( &magic, sizeof( short ), 1, stream ), 1 );
 
-  fwrite( &node_count, sizeof( int ), 1, stream);
+  CHECK_WRITE_UNCOMP( fwrite( &node_count, sizeof( int ), 1, stream ), 1 );
 
   node_index = 0;
   child_index = 0;
   do_uncompress( 0, stream, &node_index, &child_index, child_count, child,
-                 black_score, white_score, alt_move, alt_score, flags );
+		 black_score, white_score, alt_move, alt_score, flags );
 
   fclose( stream );
 
@@ -3545,9 +3546,6 @@ unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
   puts( "" );
 #endif
 }
-
-
-
 
 /*
    SET_SEARCH_DEPTH
@@ -4159,7 +4157,6 @@ fill_move_alternatives( int side_to_move,
 
     if ( child_feasible && (score == 0) &&
 	 !(node[index].flags & WLD_SOLVED) &&
-         (book_hash_table[slot] != EMPTY_HASH_SLOT) &&
 	 (node[book_hash_table[slot]].flags & WLD_SOLVED) ) {
       /* Check if this is a book draw that should be avoided, i.e., one
          where the current position is not solved but the child position

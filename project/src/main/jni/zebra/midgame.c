@@ -82,8 +82,7 @@ static int do_check_midgame_abort = TRUE;
 static int counter_phase;
 static int apply_perturbation = TRUE;
 static int perturbation_amplitude = 0;
-static int stage_reached[62] = {};
-static int stage_score[62] ={};
+static int stage_reached[61], stage_score[61];
 static int score_perturbation[100];
 static int feas_index_list[64][64];
 
@@ -100,7 +99,7 @@ setup_midgame( void ) {
 
   allow_midgame_hash_probe = TRUE;
   allow_midgame_hash_update = TRUE;
-  for ( i = 0; i <= 61; i++ )
+  for ( i = 0; i <= 60; i++ )
     stage_reached[i] = FALSE;
 
   calculate_perturbation();
@@ -1366,7 +1365,7 @@ middle_game( int side_to_move, int max_depth,
 
     /* Update the stored scores */
 
-    if ((base_stage + depth > 0 && base_stage + depth < 62) && (!stage_reached[base_stage + depth] || full_length_line) &&
+    if ( (!stage_reached[base_stage + depth] || full_length_line) &&
 	 update_evals ) {
       stage_reached[base_stage + depth] = TRUE;
       if ( side_to_move == BLACKSQ )
@@ -1378,7 +1377,7 @@ middle_game( int side_to_move, int max_depth,
     /* Adjust the eval for oscillations odd/even by simply averaging the
        last two stages (if they are available). */
 
-    if ((base_stage + depth > 0 && base_stage + depth < 62) && stage_reached[base_stage + depth] &&
+    if ( stage_reached[base_stage + depth] &&
 	 stage_reached[base_stage + depth - 1] && update_evals ) {
       if ( side_to_move == BLACKSQ )
 	adjusted_val = (stage_score[base_stage + depth] +

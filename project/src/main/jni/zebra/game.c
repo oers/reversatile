@@ -138,7 +138,9 @@ global_setup( int use_random, int hash_bits ) {
 
   /* Clear the log file. No error handling done. */
 
-#ifdef __linux__
+#if defined(ANDROID)
+  sprintf(log_file_path, "%s/%s", android_files_dir, LOG_FILE_NAME);
+#elif defined(__linux__)
   strcpy( log_file_path, LOG_FILE_NAME );
 #else
   char directory_buffer[MAX_PATH_LENGTH];
@@ -199,8 +201,7 @@ global_terminate( void ) {
 
 static void
 setup_game( const char *file_name, int *side_to_move ) {
-    int BUFFER_SIZE = 70;
-    char buffer[BUFFER_SIZE];
+  char buffer[65];
   int i, j;
   int pos, token;
   FILE *stream;
@@ -223,7 +224,7 @@ setup_game( const char *file_name, int *side_to_move ) {
     stream = fopen( file_name, "r" );
     if ( stream == NULL )
       fatal_error( "%s '%s'\n", GAME_LOAD_ERROR, file_name );
-    fgets(buffer, BUFFER_SIZE, stream );
+    fgets( buffer, 65, stream );
     token = 0;
     for ( i = 1; i <= 8; i++ )
       for ( j = 1; j <= 8; j++ ) {
@@ -242,14 +243,12 @@ setup_game( const char *file_name, int *side_to_move ) {
 	  break;
 	default:
 #if TEXT_BASED
-          if (buffer[token] != '\0') // Don't log if string ended
-	    printf( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[token],
+	  printf( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[pos],
 		  GAME_FILE_TEXT);
 #endif
 	  break;
 	}
-        if (buffer[token] != '\0') // Don't increment if string ended
-          token++;
+	token++;
       }
 
     fgets( buffer, 10, stream );
@@ -260,10 +259,6 @@ setup_game( const char *file_name, int *side_to_move ) {
     else
       fatal_error( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[0],
 		   GAME_FILE_TEXT);
-    if (board[45] == EMPTY || board[54] == EMPTY || board[44] == EMPTY || board[55] == EMPTY) {
-        // various pieces of the program are not ready for this, even though we have end solve routines for it
-        fatal_error( "Initial squares (d4, e4, d5, e5) from the board file should not be empty.\n");
-    }
   }
   disks_played = disc_count( BLACKSQ ) + disc_count( WHITESQ ) - 4;
 
@@ -310,6 +305,12 @@ game_init( const char *file_name, int *side_to_move ) {
   endgame_performed[BLACKSQ] = endgame_performed[WHITESQ] = FALSE;
 }
 
+
+void
+clear_endgame_performed()
+{
+  endgame_performed[BLACKSQ] = endgame_performed[WHITESQ] = FALSE;
+}
 
 
 /*
@@ -903,6 +904,7 @@ extended_compute_move( int side_to_move, int book_only,
 		evaluated_list[j + 1] = temp;
 	      }
 	  } while ( changed );
+	  display_status(stdout, FALSE);
       }
 
       first_iteration = FALSE;
@@ -930,7 +932,6 @@ extended_compute_move( int side_to_move, int book_only,
 	}
 	unsearched_move[0] = this_move;
       }
-
     } while ( !force_return &&
 	      ((current_mid != mid) ||
 	       (current_exact != exact) || (current_wld != wld)) );
@@ -1125,6 +1126,11 @@ get_evaluated_count( void ) {
 EvaluatedMove
 get_evaluated( int index ) {
   return evaluated_list[index];
+}
+
+void
+clear_evaluated( void ) {
+	game_evaluated_count = 0;
 }
 
 
@@ -1522,6 +1528,8 @@ compute_move( int side_to_move,
 
   /* Write the principal variation, if available, to the log file
      and, optionally, to screen. */
+  if(curr_move!=pv[0][0])
+	  clear_pv();
 
   if ( !get_ponder_move() ) {
     complete_pv( side_to_move );
@@ -1574,14 +1582,3 @@ get_pv( int *destin ) {
     return pv_depth[0] + 1;
   }
 }
-
-void clear_endgame_performed() {
-    endgame_performed[BLACKSQ] = endgame_performed[WHITESQ] = FALSE;
-}
-
-void clear_evaluated(void) {
-    game_evaluated_count = 0;
-}
-
-
-

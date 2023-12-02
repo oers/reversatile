@@ -190,7 +190,7 @@ my_srandom(int x)
     my_state[ 0 ] = x;
     for (i = 1; i < my_rand_deg; i++)
     {
-      my_state[i] = ((unsigned int)1103515245)*((unsigned int)my_state[i - 1]) + ((unsigned int )12345);
+      my_state[i] = 1103515245*my_state[i - 1] + 12345;
     }
     my_fptr = &my_state[my_rand_sep];
     my_rptr = &my_state[0];
@@ -348,7 +348,7 @@ my_random(void)
   }
   else
   {
-    *my_fptr = ((unsigned int)*my_fptr) + ((unsigned int)*my_rptr);
+    *my_fptr += *my_rptr;
     i = (*my_fptr >> 1)&0x7fffffff; /* chucking least random bit */
     if (++my_fptr >= my_end_ptr )
     {
