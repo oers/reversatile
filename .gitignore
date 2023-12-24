@@ -16,3 +16,5 @@ android-ndk-*
 keystore/zebra.jks
 keystore/api-playstore.json
 project/.cxx
+/.idea/androidTestResultsUserPreferences.xml
+/.idea/shelf

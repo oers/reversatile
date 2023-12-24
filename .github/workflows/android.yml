@@ -18,7 +18,7 @@ jobs:
     - name: ndk
       uses: nttld/setup-ndk@v1.0.6
       with: 
-        ndk-version: r23
+        ndk-version: r26b
     - name: set up JDK 17
       uses: actions/setup-java@v3
       with:
@@ -68,6 +68,6 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          ndk: 23.1.7779620
+          ndk: 26.1.10909125
           script: ./gradlew connectedCheck
 

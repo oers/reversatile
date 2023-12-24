@@ -2,12 +2,16 @@ package de.earthlingz.oerszebra;
 
 import android.content.Intent;
 import androidx.test.filters.SmallTest;
+
+import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.ZebraEngine;
 
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @SmallTest
 public class DroidZebraTest extends BasicTest{
@@ -90,10 +94,16 @@ public class DroidZebraTest extends BasicTest{
 
         Thread.sleep(2000);
         zebra.runOnUiThread(() -> zebra.undoAll());
-        Thread.sleep(10000);
+        Thread.sleep(2000);
         for(int i = 1; i < 50; i++) {
             zebra.runOnUiThread(() -> zebra.redo());
-            Thread.sleep(200);
+            Thread.sleep(500);
+            //if(i == 30) {
+            CandidateMove[] candidateMoves = zebra.getGameState().getCandidateMoves();
+            for(CandidateMove m : candidateMoves) {
+                assertTrue(m.hasEval);
+            }
+            //}
         }
 
 

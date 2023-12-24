@@ -43,7 +43,7 @@ android {
         jniLibs.useLegacyPackaging = false
     }
 
-    ndkVersion "23.1.7779620"
+    ndkVersion "26.1.10909125"
 
     externalNativeBuild {
         ndkBuild {

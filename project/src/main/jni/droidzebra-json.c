@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include "droidzebra-json.h"
 
 jobject droidzebra_json_create(JNIEnv* env, const char* str)
