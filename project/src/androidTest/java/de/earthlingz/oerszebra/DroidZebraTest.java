@@ -101,7 +101,7 @@ public class DroidZebraTest extends BasicTest{
             //if(i == 30) {
             CandidateMove[] candidateMoves = zebra.getGameState().getCandidateMoves();
             for(CandidateMove m : candidateMoves) {
-                assertTrue(m.hasEval);
+                assertTrue(m.getText() + "ist evaluiert", m.hasEval);
             }
             //}
         }

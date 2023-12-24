@@ -2,6 +2,8 @@ package de.earthlingz.oerszebra;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import com.google.common.base.MoreObjects;
 import com.shurik.droidzebra.EngineConfig;
 
 import java.util.Locale;
@@ -77,11 +79,13 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private OnSettingsChangedListener onSettingsChangedListener;
     private int computerMoveDelay = 1000;
 
+    public static String testSearchDepth = null;
+
     public GlobalSettingsLoader(Context context) {
 
         this.context = context;
 
-        DEFAULT_SETTING_STRENGTH = context.getString(R.string.default_search_depth);
+        DEFAULT_SETTING_STRENGTH = MoreObjects.firstNonNull(testSearchDepth, context.getString(R.string.default_search_depth));
         settingFunction = DEFAULT_SETTING_FUNCTION = Integer.parseInt(context.getString(R.string.default_engine_function));
         settingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES = Boolean.parseBoolean(context.getString(R.string.default_auto_make_moves));
         settingRandomness = DEFAULT_SETTING_RANDOMNESS = Integer.parseInt(context.getString(R.string.default_randomness));

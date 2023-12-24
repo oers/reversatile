@@ -16,6 +16,7 @@ class BasicTest {
 
     @Before
     public void init() throws InterruptedException {
+        GlobalSettingsLoader.testSearchDepth ="22|20|0";
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
         while (zebra == null && !zebra.initialized()) {
