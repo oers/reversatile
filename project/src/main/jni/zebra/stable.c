@@ -281,7 +281,7 @@ count_stable( int color,
 
   common_stable.low = edge_stable[edge_a1h1];
 
-  common_stable.high = (edge_stable[edge_a8h8] << 24);
+  common_stable.high = (((unsigned int)edge_stable[edge_a8h8]) << (unsigned int)24);
 
   t = edge_stable[edge_a1a8];
   common_stable.low |= ((t & 0x0F) * 0x00204081) & 0x01010101;

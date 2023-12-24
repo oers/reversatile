@@ -3,6 +3,8 @@ package de.earthlingz.oerszebra;
 import android.content.Intent;
 import androidx.test.filters.SmallTest;
 import com.shurik.droidzebra.ZebraEngine;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
@@ -98,6 +100,27 @@ public class DroidZebraTest extends BasicTest{
     }
 
     @Test
+    @Ignore
+    public void testCrash86() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "c4c3d3c5b3f4b5b4a5a3c6d6f3c2d1e6d2b6g4e2e3f2e1f1g1f5g6a6a7a2c7d7d8e7e8f7f6f8g8g5h4b1b2a1c1a4a8b7b8c8h8g7h7h6h5h3h1g2");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+
+        Thread.sleep(2000);
+        zebra.runOnUiThread(() -> zebra.undoAll());
+        Thread.sleep(10000);
+        for(int i = 1; i < 50; i++) {
+            zebra.runOnUiThread(() -> zebra.redo());
+            Thread.sleep(200);
+        }
+
+
+    }
+
+    @Test
     public void testCrash3() throws InterruptedException {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
@@ -112,6 +135,20 @@ public class DroidZebraTest extends BasicTest{
 
     }
 
+    @Test
+    public void testCrash4() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "D3C3C4C5B4E3E2D2C6B3B5C2E1C1A3A6A5A4A7B2F4F5D6F3F2E6G4G5G3H4F6G6H3H2H7G1F1D1H5H6H1B6C7F7F8D7");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+
+        Thread.sleep(2000);
+        zebra.runOnUiThread(() -> zebra.undoAll());
+        Thread.sleep(10000);
+
+    }
 
 
 }

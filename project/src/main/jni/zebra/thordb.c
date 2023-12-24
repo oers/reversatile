@@ -2031,7 +2031,7 @@ database_search( int *in_board,
 
   if ( thor_search.allocation == 0 ) {
     thor_search.match_list =
-      (GameType **) safe_malloc( thor_game_count * sizeof( GameType * ) );
+      (GameType **) safe_malloc( thor_game_count * sizeof( GameType * ) ); // TODO this memory is leaked somewhere
     thor_search.allocation = thor_game_count;
   }
   else if ( thor_search.allocation < thor_game_count) {
@@ -2096,44 +2096,44 @@ database_search( int *in_board,
       if ( in_board[pos] != EMPTY ) {
 	index = 8 * i + j;
 	if ( index < 32 )
-	  shape_lo[0] |= (1 << index);
+	  shape_lo[0] |= (1u << index);
 	else
-	  shape_hi[0] |= (1 << (index - 32));
+	  shape_hi[0] |= (1u << (index - 32));
 	index = 8 * i + (7 - j);
 	if ( index < 32 )
-	  shape_lo[1] |= (1 << index);
+	  shape_lo[1] |= (1u << index);
 	else
-	  shape_hi[1] |= (1 << (index - 32));
+	  shape_hi[1] |= (1u << (index - 32));
 	index = 8 * j + i;
 	if ( index < 32 )
-	  shape_lo[2] |= (1 << index);
+	  shape_lo[2] |= (1u << index);
 	else
-	  shape_hi[2] |= (1 << (index - 32));
+	  shape_hi[2] |= (1u << (index - 32));
 	index = 8 * j + (7 - i);
 	if ( index < 32 )
-	  shape_lo[3] |= (1 << index);
+	  shape_lo[3] |= (1u << index);
 	else
-	  shape_hi[3] |= (1 << (index - 32));
+	  shape_hi[3] |= (1u << (index - 32));
 	index = 8 * (7 - i) + j;
 	if ( index < 32 )
-	  shape_lo[4] |= (1 << index);
+	  shape_lo[4] |= (1u << (index));
 	else
-	  shape_hi[4] |= (1 << (index - 32));
+	  shape_hi[4] |= (1u << (index - 32));
 	index = 8 * (7 - i) + (7 - j);
 	if ( index < 32 )
-	  shape_lo[5] |= (1 << index);
+	  shape_lo[5] |= (1u << index);
 	else
-	  shape_hi[5] |= (1 << (index - 32));
+	  shape_hi[5] |= (1u << (index - 32));
 	index = 8 * (7 - j) + i;
 	if ( index < 32 )
-	  shape_lo[6] |= (1 << index);
+	  shape_lo[6] |= (1u << index);
 	else
-	  shape_hi[6] |= (1 << (index - 32));
+	  shape_hi[6] |= (1u << (index - 32));
 	index = 8 * (7 - j) + (7 - i);
 	if ( index < 32 )
-	  shape_lo[7] |= (1 << index);
+	  shape_lo[7] |= (1u << index);
 	else
-	  shape_hi[7] |= (1 << (index - 32));
+	  shape_hi[7] |= (1u << (index - 32));
       }
 
   /* Get the corner mask */
@@ -2522,18 +2522,18 @@ init_move_masks( void ) {
   for ( i = 0; i < 4; i++ )
     for ( j = 0, pos = 10 * i + 11; j < 8; j++, pos++ ) {
       index = 8 * i + j;
-      move_mask_lo[pos] = (1 << index);
+      move_mask_lo[pos] = (((unsigned int)1) << ((unsigned int)index));
       move_mask_hi[pos] = 0;
-      unmove_mask_lo[pos] = ~(1 << index);
+      unmove_mask_lo[pos] = ~(((unsigned int)1) << ((unsigned int)index));
       unmove_mask_hi[pos] = ~0;
     }
   for ( i = 0; i < 4; i++ )
     for ( j = 0, pos = 10 * i + 51; j < 8; j++, pos++ ) {
       index = 8 * i + j;
       move_mask_lo[pos] = 0;
-      move_mask_hi[pos] = (1 << index);
+      move_mask_hi[pos] = (((unsigned int)1) << ((unsigned int)index));
       unmove_mask_lo[pos] = ~0;
-      unmove_mask_hi[pos] = ~(1 << index);
+      unmove_mask_hi[pos] = ~(((unsigned int)1) << ((unsigned int)index));
     }
 }
 

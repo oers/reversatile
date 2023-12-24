@@ -609,8 +609,13 @@ main( int argc, char *argv[] ) {
   global_setup( use_random, hash_bits );
   init_thor_database();
 
-  if ( use_book )
-    init_learn( "book.bin", TRUE );
+  if ( use_book ) {
+      char *book_filename = getenv("BOOK_PATH");
+      if (book_filename == NULL) {
+          book_filename = "book.bin";
+      }
+      init_learn(book_filename, TRUE );
+  }
   if ( use_random && !SCRIPT_ONLY ) {
     time( &timer );
     my_srandom( timer );
@@ -765,7 +770,7 @@ play_game( const char *file_name,
   int col, row;
   int thor_position_count;
   int provided_move[61];
-  char move_vec[121];
+  char move_vec[123];
   char line_buffer[1000];
   time_t timer;
   FILE *log_file;
@@ -782,7 +787,7 @@ play_game( const char *file_name,
 
   if ( move_file != NULL ) {
     char *newline_pos;
-
+    line_buffer[0] = 0;
     fgets( line_buffer, sizeof line_buffer, move_file );
     newline_pos = strchr( line_buffer, '\n' );
     if ( newline_pos != NULL )
@@ -827,30 +832,30 @@ play_game( const char *file_name,
     /* No error checking done as it's only for testing purposes */
 
     database_start = get_real_timer();
-    (void) read_player_database( "thor\\wthor.jou");
-    (void) read_tournament_database( "thor\\wthor.trn" );
-    (void) read_game_database( "thor\\wth_2001.wtb" );
-    (void) read_game_database( "thor\\wth_2000.wtb" );
-    (void) read_game_database( "thor\\wth_1999.wtb" );
-    (void) read_game_database( "thor\\wth_1998.wtb" );
-    (void) read_game_database( "thor\\wth_1997.wtb" );
-    (void) read_game_database( "thor\\wth_1996.wtb" );
-    (void) read_game_database( "thor\\wth_1995.wtb" );
-    (void) read_game_database( "thor\\wth_1994.wtb" );
-    (void) read_game_database( "thor\\wth_1993.wtb" );
-    (void) read_game_database( "thor\\wth_1992.wtb" );
-    (void) read_game_database( "thor\\wth_1991.wtb" );
-    (void) read_game_database( "thor\\wth_1990.wtb" );
-    (void) read_game_database( "thor\\wth_1989.wtb" );
-    (void) read_game_database( "thor\\wth_1988.wtb" );
-    (void) read_game_database( "thor\\wth_1987.wtb" );
-    (void) read_game_database( "thor\\wth_1986.wtb" );
-    (void) read_game_database( "thor\\wth_1985.wtb" );
-    (void) read_game_database( "thor\\wth_1984.wtb" );
-    (void) read_game_database( "thor\\wth_1983.wtb" ); 
-    (void) read_game_database( "thor\\wth_1982.wtb" );
-    (void) read_game_database( "thor\\wth_1981.wtb" );
-    (void) read_game_database( "thor\\wth_1980.wtb" );
+    (void) read_player_database( "thor/wthor.jou");
+    (void) read_tournament_database( "thor/wthor.trn" );
+    (void) read_game_database( "thor/wth_2001.wtb" );
+    (void) read_game_database( "thor/wth_2000.wtb" );
+    (void) read_game_database( "thor/wth_1999.wtb" );
+    (void) read_game_database( "thor/wth_1998.wtb" );
+    (void) read_game_database( "thor/wth_1997.wtb" );
+    (void) read_game_database( "thor/wth_1996.wtb" );
+    (void) read_game_database( "thor/wth_1995.wtb" );
+    (void) read_game_database( "thor/wth_1994.wtb" );
+    (void) read_game_database( "thor/wth_1993.wtb" );
+    (void) read_game_database( "thor/wth_1992.wtb" );
+    (void) read_game_database( "thor/wth_1991.wtb" );
+    (void) read_game_database( "thor/wth_1990.wtb" );
+    (void) read_game_database( "thor/wth_1989.wtb" );
+    (void) read_game_database( "thor/wth_1988.wtb" );
+    (void) read_game_database( "thor/wth_1987.wtb" );
+    (void) read_game_database( "thor/wth_1986.wtb" );
+    (void) read_game_database( "thor/wth_1985.wtb" );
+    (void) read_game_database( "thor/wth_1984.wtb" );
+    (void) read_game_database( "thor/wth_1983.wtb" );
+    (void) read_game_database( "thor/wth_1982.wtb" );
+    (void) read_game_database( "thor/wth_1981.wtb" );
+    (void) read_game_database( "thor/wth_1980.wtb" );
     database_stop = get_real_timer();
 #if FULL_ANALYSIS
     frequency_analysis( get_total_game_count() );
