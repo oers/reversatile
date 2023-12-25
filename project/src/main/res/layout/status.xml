@@ -15,10 +15,10 @@
         android:layout_height="0dp"
 
         android:gravity="center"
-        android:text="Mid: 20 Exakt: 22 G/V: 0"
+        android:text="Move 16\nStatus: Thinking (18)\nMid: 20 Exakt: 22 G/V: 0"
         app:autoSizeMaxTextSize="15sp"
-        app:autoSizeTextType="uniform"
         app:autoSizeMinTextSize="5sp"
+        app:autoSizeTextType="uniform"
 
         app:layout_constraintBottom_toTopOf="@id/doubledot"
         app:layout_constraintLeft_toLeftOf="parent"
