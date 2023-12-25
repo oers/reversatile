@@ -134,8 +134,10 @@ public class GameState {
     }
 
     void setReachedDepth(int reachedDepth) {
-        this.reachedDepth = reachedDepth;
-        handler.onBoard(this);
+        if(reachedDepth != this.reachedDepth) {
+            this.reachedDepth = reachedDepth;
+            handler.onBoard(this);
+        }
     }
 
     public String getOpening() {
