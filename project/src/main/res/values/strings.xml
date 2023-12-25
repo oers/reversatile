@@ -24,7 +24,7 @@
     <string name="gameover_choices_cancel">View Board</string>
     <string name="gameover_choices_switch">Switch Sides</string>
     <string name="gameover_choices_new_game">New Game</string>
-    <string name="gameover_choices_email">e-Mail</string>
+    <string name="gameover_choices_email">share/send</string>
     <string name="settings_ui_display_pv_summary">Display sequence of moves that is the most advantageous to the current
         player (computed at the lookahead setting)
     </string>
@@ -67,7 +67,7 @@
     <string name="dialog_pass_text">You have to pass</string>
     <string name="dialog_ok">OK</string>
     <string name="dialog_cancel">Cancel</string>
-    <string name="menu_item_mail">e-Mail</string>
+    <string name="menu_item_mail">share/send</string>
     <string name="spash_layout_message_2">(this may take a few moments)</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$d)%nMid: %1$d Exact: %2$d</string>
     <string name="settings_title">Settings</string>

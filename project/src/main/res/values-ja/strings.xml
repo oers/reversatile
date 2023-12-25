@@ -24,7 +24,7 @@
     <string name="gameover_choices_cancel">盤面を見る</string>
     <string name="gameover_choices_switch">色を変える</string>
     <string name="gameover_choices_new_game">新規盤面</string>
-    <string name="gameover_choices_email">メール</string>
+    <string name="gameover_choices_email">送信/共有</string>
     <string name="settings_ui_display_pv_summary">想定される最善の手順について表示(コンピュータは先読みします)</string>
     <string name="settings_ui_display_pv_title">想定される手順表示</string>
     <string name="settings_ui_display_enable_animations_summary">アニメーション効果</string>
@@ -60,7 +60,7 @@
     <string name="dialog_busy_message">&quot;まだ考え中です&#8230; タッチ操作で割り込みします&quot;</string>
     <string name="dialog_pass_text">あなたはパスです</string>
     <string name="dialog_ok">OK</string>
-    <string name="menu_item_mail">メール</string>
+    <string name="menu_item_mail">送信/共有</string>
     <string name="spash_layout_message_2">(しばらくお待ちください)</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$d)%nMid: %1$d Exact: %2$d</string>
     <string name="settings_title">設定</string>

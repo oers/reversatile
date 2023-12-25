@@ -24,7 +24,7 @@
     <string name="gameover_choices_cancel">보드 보기</string>
     <string name="gameover_choices_switch">팀 바꾸기</string>
     <string name="gameover_choices_new_game">새로운 게임</string>
-    <string name="gameover_choices_email">이메일</string>
+    <string name="gameover_choices_email">보내기/공유</string>
     <string name="settings_ui_display_pv_summary">현재 플레이어에게 가장 유리한 이동 순서 보이기</string>
     <string name="settings_ui_display_pv_title">중요한 변동 전시</string>
     <string name="settings_ui_display_enable_animations_summary">위치 이동 시 애니메이션 효과를 주게하다</string>
@@ -60,7 +60,7 @@
     <string name="dialog_busy_message">&quot;생각 중 입니다. 중단하려면 아무 키나 눌러주세요&quot;</string>
     <string name="dialog_pass_text">패스해야만 한다</string>
     <string name="dialog_ok">네</string>
-    <string name="menu_item_mail">이메일</string>
+    <string name="menu_item_mail">보내기/공유</string>
     <string name="spash_layout_message_2">잠시만 기다려주십시오</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$d)%nMid: %1$d Exact: %2$d</string>
     <string name="settings_title">환경설정</string>
