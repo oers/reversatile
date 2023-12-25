@@ -18,6 +18,8 @@
 package com.shurik.droidzebra;
 
 import android.util.Log;
+
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -714,7 +716,8 @@ public class ZebraEngine {
                 case MSG_STATUS: {
                     String message = data.getString("status");
                     ZebraEngine.this.onDebugListener.onDebug("Status: " + message);
-                    String[] split = message.split("\\s+");
+
+                    String[] split = StringUtils.split(message, ' ');
                     if(split.length > 1) {
                         String reachedDepth = split[1];
                         ZebraEngine.this.onDebugListener.onDebug("Depth: " + reachedDepth);
