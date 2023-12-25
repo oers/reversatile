@@ -70,6 +70,7 @@ public class ZebraEngine {
             MSG_CANDIDATE_EVALS = 13,
             MSG_ANALYZE_GAME = 14,
             MSG_NEXT_MOVE = 15,
+            MSG_STATUS = 16,
             MSG_DEBUG = 65535;
 
     // engine state
@@ -554,18 +555,6 @@ public class ZebraEngine {
 
                 case MSG_DEBUG: {
                     String message = data.getString("message");
-                    if(message.startsWith("status")) {
-                        String[] split = message.split("\\s+");
-                        if(split.length > 3) {
-                            ZebraEngine.this.onDebugListener.onDebug("Depth: " + split[2]);
-                            try {
-                                currentGameState.setReachedDepth(Integer.parseInt(split[2]));
-                            } catch (NumberFormatException e) {
-                                Log.e("Status", e.toString(), e);
-                            }
-                        }
-
-                    }
                     ZebraEngine.this.onDebugListener.onDebug(message);
                 }
                 break;
@@ -718,6 +707,26 @@ public class ZebraEngine {
                     for (int i = 0; i < len; i++)
                         moves[i] = (byte) zeArray.getInt(i);
                     currentGameState.sendPv(moves);
+                }
+                break;
+
+
+                case MSG_STATUS: {
+                    String message = data.getString("status");
+                    ZebraEngine.this.onDebugListener.onDebug("Status: " + message);
+                    String[] split = message.split("\\s+");
+                    if(split.length > 1) {
+                        String reachedDepth = split[1];
+                        ZebraEngine.this.onDebugListener.onDebug("Depth: " + reachedDepth);
+                        try {
+                            currentGameState.setReachedDepth(Integer.parseInt(reachedDepth));
+                        } catch (NumberFormatException e) {
+                            Log.e("Status", e.toString(), e);
+                        }
+                    }
+
+
+                    ZebraEngine.this.onDebugListener.onDebug("Status: " + message);
                 }
                 break;
 

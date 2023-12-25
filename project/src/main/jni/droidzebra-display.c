@@ -253,7 +253,7 @@ display_status( FILE *stream, int allow_repeat ) {
 	// original
 	if ( ((status_pos != 0) || allow_repeat ) &&
 			(strlen( status_buffer ) > 0) ) {
-		droidzebra_message_debug( "status: %s\n", status_buffer );
+		droidzebra_msg_status(status_buffer );
 		strcpy( stored_status_buffer, status_buffer );
 	}
 	status_pos = 0;

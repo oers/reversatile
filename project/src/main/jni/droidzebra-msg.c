@@ -273,6 +273,15 @@ droidzebra_msg_pv(void)
 	droidzebra_message(MSG_PV, buffer);
 }
 
+// MSG_PV
+void
+droidzebra_msg_status(char *status)
+{
+	char buffer[128];
+	sprintf(buffer, "{\"status\":\"%s\"}", status);
+	droidzebra_message(MSG_STATUS, buffer);
+}
+
 /*
   COMPARE_EVAL
   Comparison function for two evals.  Same return value conventions
