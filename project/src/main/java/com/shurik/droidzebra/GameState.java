@@ -18,6 +18,8 @@ public class GameState {
     private String opening;
     private int lastMove;
     private int nextMove;
+
+    private int reachedDepth;
     private ByteBoard byteBoard;
     private GameStateListener handler = new GameStateListener() {
     };
@@ -131,8 +133,17 @@ public class GameState {
         handler.onBoard(this);
     }
 
+    void setReachedDepth(int reachedDepth) {
+        this.reachedDepth = reachedDepth;
+        handler.onBoard(this);
+    }
+
     public String getOpening() {
         return opening;
+    }
+
+    public int getReachedDepth() {
+        return reachedDepth;
     }
 
     void setLastMove(int lastMove) {

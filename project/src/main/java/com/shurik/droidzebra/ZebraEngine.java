@@ -73,12 +73,13 @@ public class ZebraEngine {
             MSG_DEBUG = 65535;
 
     // engine state
-    private static final int
-            ES_INITIAL = 0,
-            ES_READY2PLAY = 1,
-            ES_PLAY = 2,
-            ES_PLAY_IN_PROGRESS = 3,
-            ES_USER_INPUT_WAIT = 4;
+    public enum ENGINE_STATE {
+        ES_INITIAL,
+        ES_READY2PLAY,
+        ES_PLAY,
+        ES_PLAY_IN_PROGRESS,
+        ES_USER_INPUT_WAIT;
+    }
 
     private static final int
             UI_EVENT_EXIT = 0,
@@ -118,7 +119,7 @@ public class ZebraEngine {
 
     private final transient Object engineStateEventLock = new Object();
 
-    private int mEngineState = ES_INITIAL;
+    private ENGINE_STATE mEngineState = ENGINE_STATE.ES_INITIAL;
 
     private boolean isRunning = false;
 
@@ -182,7 +183,7 @@ public class ZebraEngine {
         }
     }
 
-    private void waitForEngineState(int state, int milliseconds) {
+    private void waitForEngineState(ENGINE_STATE state, int milliseconds) {
         synchronized (engineStateEventLock) {
             if (mEngineState != state)
                 try {
@@ -194,7 +195,7 @@ public class ZebraEngine {
         }
     }
 
-    private void waitForEngineState(int state) {
+    private void waitForEngineState(ENGINE_STATE state) {
         synchronized (engineStateEventLock) {
             while (mEngineState != state && isRunning)
                 try {
@@ -206,14 +207,18 @@ public class ZebraEngine {
     }
 
     private void setEngineStatePlay() {
-        setEngineState(ZebraEngine.ES_PLAY);
+        setEngineState(ENGINE_STATE.ES_PLAY);
     }
 
-    private void setEngineState(int state) {
+    private void setEngineState(ENGINE_STATE state) {
+        ZebraEngine.this.onDebugListener.onDebug("State: " + state);
         synchronized (engineStateEventLock) {
             mEngineState = state;
             engineStateEventLock.notifyAll();
         }
+    }
+    public ENGINE_STATE getState() {
+        return mEngineState;
     }
 
     private void setRunning(boolean b) {
@@ -232,14 +237,14 @@ public class ZebraEngine {
         zeForceExit();
         // if waiting for move - get back into the engine
         // every other state should work itself out
-        if (mEngineState == ES_USER_INPUT_WAIT) {
+        if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
             mPendingEvent = new JSONObject();
             try {
                 mPendingEvent.put("type", UI_EVENT_EXIT);
             } catch (JSONException e) {
                 // Log.getStackTraceString(e);
             }
-            setEngineState(ES_PLAY);
+            setEngineState(ENGINE_STATE.ES_PLAY);
         }
     }
 
@@ -254,7 +259,7 @@ public class ZebraEngine {
         // if thinking on human time - stop
         stopIfThinkingOnHumanTime();
 
-        if (mEngineState != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -267,7 +272,7 @@ public class ZebraEngine {
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
-        setEngineState(ES_PLAY);
+        setEngineState(ENGINE_STATE.ES_PLAY);
     }
 
     /**
@@ -276,7 +281,7 @@ public class ZebraEngine {
     private void stopIfThinkingOnHumanTime() {
         if (isThinkingOnHumanTime()) {
             stopMove();
-            waitForEngineState(ES_USER_INPUT_WAIT, 1000);
+            waitForEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT, 1000);
         }
     }
 
@@ -289,7 +294,7 @@ public class ZebraEngine {
         // if thinking on human time - stop
         stopIfThinkingOnHumanTime();
 
-        if (mEngineState != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -301,7 +306,7 @@ public class ZebraEngine {
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
-        setEngineState(ES_PLAY);
+        setEngineState(ENGINE_STATE.ES_PLAY);
     }
 
 
@@ -314,7 +319,7 @@ public class ZebraEngine {
         // if thinking on human time - stop
         stopIfThinkingOnHumanTime();
 
-        if (mEngineState != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -326,7 +331,7 @@ public class ZebraEngine {
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
-        setEngineState(ES_PLAY);
+        setEngineState(ENGINE_STATE.ES_PLAY);
     }
 
     public void redoMove(GameState gameState) {
@@ -338,7 +343,7 @@ public class ZebraEngine {
         // if thinking on human time - stop
         stopIfThinkingOnHumanTime();
 
-        if (mEngineState != ES_USER_INPUT_WAIT) {
+        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
             // Log.d("ZebraEngine", "Invalid Engine State");
             return;
         }
@@ -350,7 +355,7 @@ public class ZebraEngine {
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
-        setEngineState(ES_PLAY);
+        setEngineState(ENGINE_STATE.ES_PLAY);
     }
 
     private boolean isThinkingOnHumanTime() {
@@ -361,25 +366,25 @@ public class ZebraEngine {
     // notifications that some settings have changes - see if we care
     private void sendSettingsChanged() {
         // if we are waiting for input - restart the move (e.g. if sides switched)
-        if (mEngineState == ES_USER_INPUT_WAIT) {
+        if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
             mPendingEvent = new JSONObject();
             try {
                 mPendingEvent.put("type", UI_EVENT_SETTINGS_CHANGE);
             } catch (JSONException e) {
                 // Log.getStackTraceString(e);
             }
-            setEngineState(ES_PLAY);
+            setEngineState(ENGINE_STATE.ES_PLAY);
         }
     }
 
     private void sendReplayMoves(List<Move> moves) {
-        if (mEngineState != ZebraEngine.ES_READY2PLAY) {
+        if (mEngineState != ZebraEngine.ENGINE_STATE.ES_READY2PLAY) {
             stopGame();
-            waitForEngineState(ZebraEngine.ES_READY2PLAY);
+            waitForEngineState(ZebraEngine.ENGINE_STATE.ES_READY2PLAY);
         }
         initialGameState = new GameState(BOARD_SIZE, moves);
 
-        setEngineState(ES_PLAY);
+        setEngineState(ENGINE_STATE.ES_PLAY);
     }
 
     // settings helpers
@@ -535,7 +540,7 @@ public class ZebraEngine {
             bInCallback = true;
             switch (msgcode) {
                 case MSG_ERROR: {
-                    if (mEngineState == ES_INITIAL) {
+                    if (mEngineState == ENGINE_STATE.ES_INITIAL) {
                         // delete .bin files if initialization failed
                         // will be recreated from resources
                         new File(mFilesDir, PATTERNS_FILE).delete();
@@ -549,6 +554,18 @@ public class ZebraEngine {
 
                 case MSG_DEBUG: {
                     String message = data.getString("message");
+                    if(message.startsWith("status")) {
+                        String[] split = message.split("\\s+");
+                        if(split.length > 3) {
+                            ZebraEngine.this.onDebugListener.onDebug("Depth: " + split[2]);
+                            try {
+                                currentGameState.setReachedDepth(Integer.parseInt(split[2]));
+                            } catch (NumberFormatException e) {
+                                Log.e("Status", e.toString(), e);
+                            }
+                        }
+
+                    }
                     ZebraEngine.this.onDebugListener.onDebug(message);
                 }
                 break;
@@ -594,18 +611,18 @@ public class ZebraEngine {
 
                 case MSG_GET_USER_INPUT: {
 
-                    setEngineState(ES_USER_INPUT_WAIT);
+                    setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
 
-                    waitForEngineState(ES_PLAY);
+                    waitForEngineState(ENGINE_STATE.ES_PLAY);
 
                     while (mPendingEvent == null) {
-                        setEngineState(ES_USER_INPUT_WAIT);
-                        waitForEngineState(ES_PLAY);
+                        setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
+                        waitForEngineState(ENGINE_STATE.ES_PLAY);
                     }
 
                     retval = mPendingEvent;
 
-                    setEngineState(ES_PLAY_IN_PROGRESS);
+                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
 
                     mValidMoves = null;
                     mPendingEvent = null;
@@ -613,17 +630,17 @@ public class ZebraEngine {
                 break;
 
                 case MSG_PASS: {
-                    setEngineState(ES_USER_INPUT_WAIT);
+                    setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
                     currentGameState.sendPass();
-                    waitForEngineState(ES_PLAY);
-                    setEngineState(ES_PLAY_IN_PROGRESS);
+                    waitForEngineState(ENGINE_STATE.ES_PLAY);
+                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
                 }
                 break;
                 case MSG_ANALYZE_GAME: {
-                    setEngineState(ES_USER_INPUT_WAIT);
+                    setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
                     //currentGameState.sendMessage(msg);
-                    waitForEngineState(ES_PLAY);
-                    setEngineState(ES_PLAY_IN_PROGRESS);
+                    waitForEngineState(ENGINE_STATE.ES_PLAY);
+                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
                 }
                 break;
 
@@ -683,6 +700,7 @@ public class ZebraEngine {
                             android.os.SystemClock.sleep(computerMoveDelay - (moveEnd - mMoveStartTime));
                         }
                     }
+                    ZebraEngine.this.onDebugListener.onDebug("Move END");
                     currentGameState.sendMoveEnd();
                 }
                 break;
@@ -734,7 +752,7 @@ public class ZebraEngine {
     }
 
     private boolean isThinking() {
-        return mEngineState == ZebraEngine.ES_PLAY_IN_PROGRESS;
+        return mEngineState == ZebraEngine.ENGINE_STATE.ES_PLAY_IN_PROGRESS;
     }
 
     private boolean isValidMove(Move move) {
@@ -827,11 +845,11 @@ public class ZebraEngine {
     }
 
     void waitForReadyToPlay() {
-        waitForEngineState(ZebraEngine.ES_READY2PLAY);
+        waitForEngineState(ZebraEngine.ENGINE_STATE.ES_READY2PLAY);
     }
 
     private boolean isReadyToPlay() {
-        return mEngineState == ZebraEngine.ES_READY2PLAY;
+        return mEngineState == ZebraEngine.ENGINE_STATE.ES_READY2PLAY;
     }
 
     private void kill() { //TODO remove this, no one should be able to kill the engine
@@ -991,7 +1009,7 @@ public class ZebraEngine {
         public void run() {
             setRunning(true);
 
-            setEngineState(ES_INITIAL);
+            setEngineState(ENGINE_STATE.ES_INITIAL);
 
             // init data files
             if (!initFiles()) return;
@@ -1002,14 +1020,14 @@ public class ZebraEngine {
                 zeSetPlayerInfo(PLAYER_WHITE, 0, 0, 0, INFINITE_TIME, 0);
             }
 
-            setEngineState(ES_READY2PLAY);
+            setEngineState(ENGINE_STATE.ES_READY2PLAY);
 
             while (isRunning) {
-                waitForEngineState(ES_PLAY);
+                waitForEngineState(ENGINE_STATE.ES_PLAY);
 
                 if (!isRunning) break; // something may have happened while we were waiting
 
-                setEngineState(ES_PLAY_IN_PROGRESS);
+                setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
 
                 synchronized (mJNILock) {
                     setPlayerInfos();
@@ -1031,7 +1049,7 @@ public class ZebraEngine {
 
                 }
 
-                setEngineState(ES_READY2PLAY);
+                setEngineState(ENGINE_STATE.ES_READY2PLAY);
                 //setEngineState(ES_PLAY);  // test
             }
 

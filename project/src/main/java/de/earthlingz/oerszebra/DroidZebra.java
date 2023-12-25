@@ -388,19 +388,37 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setDisplayEvals(evalsDisplayEnabled());
 
 
-
-            TextView viewById = findViewById(R.id.status_settings);
-
-            if(viewById != null) {
-                int depth = settingsProvider.getSettingZebraDepth();
-                int depthExact = settingsProvider.getSettingZebraDepthExact();
-                int depthWLD = settingsProvider.getSettingZebraDepthWLD();
-                viewById.setText(
-                        String.format(getString(R.string.display_depth), depth, depthExact, depthWLD)
-                );
-            }
+            setStatus();
         }
 
+    }
+
+    private void setStatus() {
+        TextView viewById = findViewById(R.id.status_settings);
+
+        if(viewById != null) {
+            int depth = settingsProvider.getSettingZebraDepth();
+            int depthExact = settingsProvider.getSettingZebraDepthExact();
+            int reachedDepth = 0;
+            int moveNumber = 1;
+            if(gameState != null) {
+                reachedDepth = gameState.getReachedDepth();
+                moveNumber = gameState.getDisksPlayed();
+            }
+            String state = "IDLE";
+            if(engine != null ) {
+                switch (engine.getState()) {
+                    case ES_PLAY_IN_PROGRESS:
+                        state = "Thinking";
+                        break;
+                    default:
+                        state = "Idle";
+                }
+            }
+            viewById.setText(
+                    String.format(getString(R.string.display_depth), depth, depthExact, reachedDepth, moveNumber, state)
+            );
+        }
     }
 
 
@@ -677,6 +695,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         boolean boardChanged = state.update(gameState);
 
         setStatusViewScores(sideToMove);
+
+        setStatus();
 
         if (gameState.getOpening() != null) {
             ((TextView)findViewById(R.id.status_opening)).setText(gameState.getOpening());
