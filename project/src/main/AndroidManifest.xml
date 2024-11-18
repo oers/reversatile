@@ -22,8 +22,8 @@
         <activity
                 android:name=".DroidZebra"
                 android:configChanges="keyboardHidden"
-                android:label="@string/app_name"
-                android:launchMode="singleTask"
+                android:allowEmbedded="false"
+                android:launchMode="standard"
                 android:multiprocess="false"
                 android:screenOrientation="unspecified"
                 android:exported="true">

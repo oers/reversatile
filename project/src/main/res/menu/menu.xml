@@ -51,5 +51,6 @@
     <item
         android:id="@+id/menu_quit"
         android:icon="@drawable/ic_exit_to_app_exit_24dp"
-        android:title="@string/menu_item_quit" />
+        android:title="@string/menu_item_quit"
+        app:showAsAction="ifRoom" />
      </menu>

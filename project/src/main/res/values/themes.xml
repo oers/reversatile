@@ -9,7 +9,7 @@
     </style>
 
     <!-- ActionBar styles -->
-    <style name="MyActionBar" parent="Widget.AppCompat.ActionBar">
+    <style name="actioMyActionBar" parent="Widget.AppCompat.ActionBar">
         <item name="background">@color/board_color</item>
         <item name="titleTextStyle">@style/MyActionBarTitleText</item>
     </style>
