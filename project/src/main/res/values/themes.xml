@@ -3,8 +3,9 @@
 
     <!-- the theme applied to the application or activity -->
     <style name="CustomActionBarTheme" parent="Theme.AppCompat">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
         <item name="actionBarStyle">@style/MyActionBar</item>
-        <item name="android:textColor">@color/statustextcolor</item>
+        <item name="android:textColor">@color/statustextcolor</item>test
         <item name="android:actionButtonStyle">@style/ActionButton</item>
     </style>
 
