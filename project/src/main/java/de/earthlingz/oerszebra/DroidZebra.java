@@ -165,7 +165,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 startNewGameAndResetUI();
                 return true;
             case R.id.menu_quit:
-                showQuitDialog();
                 return true;
             case R.id.menu_take_back:
                 undo();
@@ -238,9 +237,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             switch (type) {
                 case "text/plain":
 
-                    String dataString = Strings.nullToEmpty(intent.getDataString());
-                    Analytics.converse("intent", null);
+                    String dataString = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    if(Strings.isNullOrEmpty(dataString)) {
+                        dataString = Strings.nullToEmpty(intent.getDataString());
+                    }
                     Analytics.log("intent", dataString);
+                    Analytics.converse("intent", null);
                     consumeMovesString(dataString); // Handle text being sent
 
                     break;
@@ -566,11 +568,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     public void showGameOverDialog() {
         DialogFragment newFragment = DialogGameOver.newInstance();
         showDialog(newFragment, "dialog_gameover");
-    }
-
-    public void showQuitDialog() {
-        DialogFragment newFragment = DialogQuit.newInstance();
-        showDialog(newFragment, "dialog_quit");
     }
 
     private void enterMoves() {
