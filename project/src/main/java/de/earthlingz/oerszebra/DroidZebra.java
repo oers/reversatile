@@ -40,6 +40,9 @@ import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
@@ -296,6 +299,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         Log.i("Intent", type + " " + action);
         engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
 
+
+
         engine.onReady(() -> {
             setContentView(R.layout.board_layout);
             showActionBar();
@@ -304,6 +309,25 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setBoardViewModel(getState());
             mBoardView.setOnMakeMoveListener(this);
             mBoardView.requestFocus();
+
+            //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
+            ViewCompat.setOnApplyWindowInsetsListener(mBoardView, (v, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                // Apply the insets as a margin to the view. This solution sets only the
+                // bottom, left, and right dimensions, but you can apply whichever insets are
+                // appropriate to your layout. You can also update the view padding if that's
+                // more appropriate.
+                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+                mlp.topMargin = insets.top;
+                mlp.leftMargin = insets.left;
+                mlp.bottomMargin = insets.bottom;
+                mlp.rightMargin = insets.right;
+                v.setLayoutParams(mlp);
+
+                // Return CONSUMED if you don't want want the window insets to keep passing
+                // down to descendant views.
+                return WindowInsetsCompat.CONSUMED;
+            });
 
             resetStatusView();
 
