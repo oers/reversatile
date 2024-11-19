@@ -19,7 +19,7 @@ public class GameState {
     private int lastMove;
     private int nextMove;
 
-    private int reachedDepth;
+    private String reachedDepth = "0";
     private ByteBoard byteBoard;
     private GameStateListener handler = new GameStateListener() {
     };
@@ -133,8 +133,8 @@ public class GameState {
         handler.onBoard(this);
     }
 
-    void setReachedDepth(int reachedDepth) {
-        if(reachedDepth != this.reachedDepth) {
+    void setReachedDepth(String reachedDepth) {
+        if(!Objects.equals(reachedDepth, this.reachedDepth)) {
             this.reachedDepth = reachedDepth;
             handler.onBoard(this);
         }
@@ -144,7 +144,7 @@ public class GameState {
         return opening;
     }
 
-    public int getReachedDepth() {
+    public String getReachedDepth() {
         return reachedDepth;
     }
 

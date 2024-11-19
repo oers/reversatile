@@ -722,9 +722,7 @@ public class ZebraEngine {
                         String reachedDepth = split[1];
                         ZebraEngine.this.onDebugListener.onDebug("Depth: " + reachedDepth);
                         try {
-
-                            int newDepth = Integer.parseInt(reachedDepth);
-                            currentGameState.setReachedDepth(newDepth);
+                            currentGameState.setReachedDepth(reachedDepth);
                         } catch (NumberFormatException e) {
                             Log.e("Status", e.toString(), e);
                         }

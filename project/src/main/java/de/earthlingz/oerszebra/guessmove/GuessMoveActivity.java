@@ -6,10 +6,15 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import com.innovattic.rangeseekbar.RangeSeekBar;
 import com.shurik.droidzebra.EngineConfig;
 import com.shurik.droidzebra.InvalidMove;
@@ -46,6 +51,26 @@ public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar
         boardView = findViewById(R.id.guess_move_board);
         boardViewModel = manager;
         boardView.setBoardViewModel(boardViewModel);
+
+        //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
+        ViewCompat.setOnApplyWindowInsetsListener(boardView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Apply the insets as a margin to the view. This solution sets only the
+            // bottom, left, and right dimensions, but you can apply whichever insets are
+            // appropriate to your layout. You can also update the view padding if that's
+            // more appropriate.
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.topMargin = insets.top;
+            mlp.leftMargin = insets.left;
+            mlp.bottomMargin = insets.bottom;
+            mlp.rightMargin = insets.right;
+            v.setLayoutParams(mlp);
+
+            // Return CONSUMED if you don't want want the window insets to keep passing
+            // down to descendant views.
+            return WindowInsetsCompat.CONSUMED;
+        });
+
         boardView.requestFocus();
         sideToMoveCircle = findViewById(R.id.side_to_move_circle);
         hintText = findViewById(R.id.guess_move_text);

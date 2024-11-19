@@ -298,51 +298,56 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
         Log.i("Intent", type + " " + action);
         engine.setOnErrorListener(this); //TODO don't forget to remove later to avoid memory leak
-
-
-
-        engine.onReady(() -> {
-            setContentView(R.layout.board_layout);
-            showActionBar();
-            getState().reset();
-            mBoardView = findViewById(R.id.board);
-            mBoardView.setBoardViewModel(getState());
-            mBoardView.setOnMakeMoveListener(this);
-            mBoardView.requestFocus();
-
-            //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
-            ViewCompat.setOnApplyWindowInsetsListener(mBoardView, (v, windowInsets) -> {
-                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-                // Apply the insets as a margin to the view. This solution sets only the
-                // bottom, left, and right dimensions, but you can apply whichever insets are
-                // appropriate to your layout. You can also update the view padding if that's
-                // more appropriate.
-                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-                mlp.topMargin = insets.top;
-                mlp.leftMargin = insets.left;
-                mlp.bottomMargin = insets.bottom;
-                mlp.rightMargin = insets.right;
-                v.setLayoutParams(mlp);
-
-                // Return CONSUMED if you don't want want the window insets to keep passing
-                // down to descendant views.
-                return WindowInsetsCompat.CONSUMED;
+        if(engine.getState() != ZebraEngine.ENGINE_STATE.ES_INITIAL) {
+            onReady(savedInstanceState, action, type, intent);
+        } else {
+            engine.onReady(() -> {
+                onReady(savedInstanceState, action, type, intent);
             });
+        }
+    }
 
-            resetStatusView();
+    private void onReady(Bundle savedInstanceState, String action, String type, Intent intent) {
+        setContentView(R.layout.board_layout);
+        showActionBar();
+        getState().reset();
+        mBoardView = findViewById(R.id.board);
+        mBoardView.setBoardViewModel(getState());
+        mBoardView.setOnMakeMoveListener(this);
+        mBoardView.requestFocus();
 
-            if (Intent.ACTION_SEND.equals(action) && type != null) {
-                handleIntent(intent);
-            } else if (savedInstanceState != null
-                    && savedInstanceState.containsKey("moves_played_count")
-                    && savedInstanceState.getInt("moves_played_count") > 0) {
-                startNewGameAndResetUI(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
-            } else {
-                startNewGameAndResetUI();
-            }
+        //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
+        ViewCompat.setOnApplyWindowInsetsListener(mBoardView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Apply the insets as a margin to the view. This solution sets only the
+            // bottom, left, and right dimensions, but you can apply whichever insets are
+            // appropriate to your layout. You can also update the view padding if that's
+            // more appropriate.
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.topMargin = insets.top;
+            mlp.leftMargin = insets.left;
+            mlp.bottomMargin = insets.bottom;
+            mlp.rightMargin = insets.right;
+            v.setLayoutParams(mlp);
 
-            mIsInitCompleted = true;
+            // Return CONSUMED if you don't want want the window insets to keep passing
+            // down to descendant views.
+            return WindowInsetsCompat.CONSUMED;
         });
+
+        resetStatusView();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            handleIntent(intent);
+        } else if (savedInstanceState != null
+                && savedInstanceState.containsKey("moves_played_count")
+                && savedInstanceState.getInt("moves_played_count") > 0) {
+            startNewGameAndResetUI(savedInstanceState.getInt("moves_played_count"), savedInstanceState.getByteArray("moves_played"));
+        } else {
+            startNewGameAndResetUI();
+        }
+
+        mIsInitCompleted = true;
     }
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
@@ -426,7 +431,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         if(viewById != null) {
             int depth = settingsProvider.getSettingZebraDepth();
             int depthExact = settingsProvider.getSettingZebraDepthExact();
-            int reachedDepth = 0;
+            String reachedDepth = "0";
             int moveNumber = 1;
             if(gameState != null) {
                 reachedDepth = gameState.getReachedDepth();
