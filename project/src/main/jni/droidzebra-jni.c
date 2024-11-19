@@ -1017,11 +1017,10 @@ void _droidzebra_undo_turn(int* side_to_move)
 // undo moves until player is a human and he can make a move
 void _droidzebra_undo_all(int* side_to_move)
 {
-	int curr_move;
+    int curr_move;
 
+    //already at the beginning
 	if(score_sheet_row==0 && *side_to_move==BLACKSQ) return;
-
-
 
 	do {
         _droidzebra_undo_stack_push(disks_played);
@@ -1042,7 +1041,7 @@ void _droidzebra_undo_all(int* side_to_move)
 			black_moves[score_sheet_row] = PASS;
 		}
 
-		droidzebra_message_debug("undo: side_to_move %d, undo_move %d, score_sheet_row %d, disks_played %d, move_count %d", *side_to_move, curr_move, score_sheet_row, disks_played, move_count[disks_played]);
+		droidzebra_message_debug("undoall: side_to_move %d, undo_move %d, score_sheet_row %d, disks_played %d, move_count %d", *side_to_move, curr_move, score_sheet_row, disks_played, move_count[disks_played]);
 	} while( !(score_sheet_row==0 && *side_to_move==BLACKSQ));
 	clear_endgame_performed();
 }
@@ -1124,7 +1123,6 @@ void _droidzebra_throw_engine_error(JNIEnv* env, const char* msg)
 
 void _droidzebra_undo_stack_push(int val)
 {
-	assert(s_undo_stack_pointer<64);
 	s_undo_stack[s_undo_stack_pointer++] = val;
 }
 
