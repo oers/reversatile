@@ -76,6 +76,7 @@ jobs:
           ndk: 26.1.10909125
           script: ./gradlew connectedCheck
       - name: Logcat
+        continue-on-error: true
         run: |
           adb logcat de.earthlingz.oerszebra:D *:S
 
