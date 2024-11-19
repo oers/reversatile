@@ -75,4 +75,7 @@ jobs:
           api-level: 29
           ndk: 26.1.10909125
           script: ./gradlew connectedCheck
+      - name: Logcat
+        run: |
+          adb logcat de.earthlingz.oerszebra:D *:S
 
