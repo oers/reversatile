@@ -71,7 +71,7 @@ static int s_practice_mode = FALSE;
 static const char* s_forced_opening_seq = NULL;
 static int s_use_book = TRUE;
 static int s_enable_msg = TRUE;
-static int s_undo_stack[64];
+static int s_undo_stack[128];
 static int s_undo_stack_pointer = 0;
 // --
 
@@ -1023,8 +1023,12 @@ void _droidzebra_undo_all(int* side_to_move)
 	if(score_sheet_row==0 && *side_to_move==BLACKSQ) return;
 
 	do {
+        droidzebra_message_debug("undoall Before: %d", s_undo_stack_pointer);
+
         _droidzebra_undo_stack_push(disks_played);
-		*side_to_move = OPP(*side_to_move);
+        droidzebra_message_debug("undoall After: %d", s_undo_stack_pointer);
+
+        *side_to_move = OPP(*side_to_move);
 
 		if ( *side_to_move == WHITESQ )
 			score_sheet_row--;
@@ -1123,6 +1127,7 @@ void _droidzebra_throw_engine_error(JNIEnv* env, const char* msg)
 
 void _droidzebra_undo_stack_push(int val)
 {
+    assert(s_undo_stack_pointer< 128);
 	s_undo_stack[s_undo_stack_pointer++] = val;
 }
 
