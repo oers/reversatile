@@ -19,6 +19,7 @@ package com.shurik.droidzebra;
 
 import android.util.Log;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -186,9 +187,9 @@ public class ZebraEngine {
         }
     }
 
-    private void waitForEngineState(ENGINE_STATE state, int milliseconds) {
+    private void waitForEngineState(int milliseconds, ENGINE_STATE... state) {
         synchronized (engineStateEventLock) {
-            if (mEngineState != state)
+            if (!ArrayUtils.contains(state, mEngineState))
                 try {
                     engineStateEventLock.wait(milliseconds);
                 } catch (InterruptedException e) {
@@ -198,9 +199,9 @@ public class ZebraEngine {
         }
     }
 
-    private void waitForEngineState(ENGINE_STATE state) {
+    private void waitForEngineState(ENGINE_STATE... state) {
         synchronized (engineStateEventLock) {
-            while (mEngineState != state && isRunning)
+            while (!ArrayUtils.contains(state, mEngineState) && isRunning)
                 try {
                     engineStateEventLock.wait();
                 } catch (InterruptedException e) {
@@ -251,6 +252,18 @@ public class ZebraEngine {
         }
     }
 
+    public void forceStopGame() {
+        zeForceExit();
+        // if waiting for move - get back into the engine
+        mPendingEvent = new JSONObject();
+        try {
+            mPendingEvent.put("type", UI_EVENT_EXIT);
+        } catch (JSONException e) {
+            // Log.getStackTraceString(e);
+        }
+        waitForEngineState(ENGINE_STATE.ES_READY2PLAY, ENGINE_STATE.ES_USER_INPUT_WAIT);
+    }
+
     public void makeMove(GameState gameState, Move move) throws InvalidMove {
         if (gameState != currentGameState) {
             //TODO switch context and play
@@ -284,7 +297,7 @@ public class ZebraEngine {
     private void stopIfThinkingOnHumanTime() {
         if (isThinkingOnHumanTime()) {
             stopMove();
-            waitForEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT, 1000);
+            waitForEngineState(1000, ENGINE_STATE.ES_USER_INPUT_WAIT);
         }
     }
 

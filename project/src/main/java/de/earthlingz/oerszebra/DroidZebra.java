@@ -730,7 +730,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         }
 
         if (!boardChanged) {
-            Log.v("Handler", "invalidate");
             mBoardView.invalidate();
         }
     }
@@ -936,30 +935,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     void undoAll() {
         engine.undoAll(gameState);
-    }
-
-    //-------------------------------------------------------------------------
-    // Pass Dialog
-    public static class DialogQuit extends DialogFragment {
-
-        public static DialogQuit newInstance() {
-            return new DialogQuit();
-        }
-
-        public DroidZebra getDroidZebra() {
-            return (DroidZebra) getActivity();
-        }
-
-        @Nonnull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            return new AlertDialog.Builder(getActivity())
-                    .setTitle(R.string.dialog_quit_title)
-                    .setPositiveButton(R.string.dialog_quit_button_quit, (dialog, id) -> getDroidZebra().finish()
-                    )
-                    .setNegativeButton(R.string.dialog_quit_button_cancel, null)
-                    .create();
-        }
     }
 
     //-------------------------------------------------------------------------

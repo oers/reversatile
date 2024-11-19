@@ -63,18 +63,27 @@ public class GuessMoveModeManager extends AbstractBoardViewModel {
     }
 
     public void generate(int minIn, int max, GuessMoveListener guessMoveListener) {
+        gameState.setGameStateListener(new GameStateListener() {
+            @Override
+            public void onBoard(GameState board) {
+                return;
+            }
+        });
         int min = Math.max(minIn, 4);
         this.guessMoveListener = guessMoveListener;
         final int movesPlayed = random.nextInt(max - min) + min;
         this.candidateMoves = new CandidateMove[0];
+        listener.onBoardStateChanged();
+        engine.forceStopGame();
+
         new GameGenerator(engine).generate(generatorConfig, guesserConfig, movesPlayed, gameState -> {
             GuessMoveModeManager.this.gameState = gameState;
             gameState.setGameStateListener(new GameStateListener() {
                 @Override
                 public void onBoard(GameState board) {
-                    listener.onBoardStateChanged();
                     updateCandidateMoves(board.getCandidateMoves());
                     guessMoveListener.onSideToMoveChanged(board.getSideToMove());
+                    listener.onBoardStateChanged();
                 }
             });
             guessMoveListener.onGenerated(gameState.getSideToMove());
@@ -97,7 +106,7 @@ public class GuessMoveModeManager extends AbstractBoardViewModel {
         if (this.candidateMoves.length == replacement.size()) {
             this.candidateMoves = replacement.toArray(this.candidateMoves);
         } else {
-            this.candidateMoves = replacement.toArray(new CandidateMove[replacement.size()]);
+            this.candidateMoves = replacement.toArray(new CandidateMove[0]);
         }
     }
 
