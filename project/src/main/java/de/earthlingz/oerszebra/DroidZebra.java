@@ -165,6 +165,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 startNewGameAndResetUI();
                 return true;
             case R.id.menu_quit:
+                finish();
                 return true;
             case R.id.menu_take_back:
                 undo();
