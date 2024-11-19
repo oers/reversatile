@@ -220,7 +220,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     void undo() {
-        menu.findItem(R.id.menu_take_back).setEnabled(false);
         engine.undoMove(gameState);
     }
 
@@ -715,7 +714,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onBoard(GameState gameState) {
-        menu.findItem(R.id.menu_take_back).setEnabled(true);
         int sideToMove = gameState.getSideToMove();
 
         //triggers animations

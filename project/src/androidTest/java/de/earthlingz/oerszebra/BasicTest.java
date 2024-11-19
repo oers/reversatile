@@ -1,5 +1,7 @@
 package de.earthlingz.oerszebra;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -22,6 +24,7 @@ class BasicTest {
         while (zebra == null && !zebra.initialized()) {
             Thread.sleep(100);
         }
+        getInstrumentation().waitForIdleSync();
     }
 
     void waitForOpenendDialogs(boolean dismiss) throws InterruptedException {

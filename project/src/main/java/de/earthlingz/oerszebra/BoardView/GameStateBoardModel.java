@@ -70,7 +70,12 @@ public class GameStateBoardModel extends AbstractBoardViewModel {
         int max = currentBoard.size() * currentBoard.size();
         if (getBlackScore() + getWhiteScore() < max) {
             //adjust result
-            if (getBlackScore() > getWhiteScore()) {
+            if (getBlackScore() == getWhiteScore()) {
+                int empty = max - blackScore - whiteScore;
+                this.blackScore = blackScore + empty/2;
+                this.whiteScore = whiteScore + empty/2;
+            }
+            else if (getBlackScore() > getWhiteScore()) {
                 this.blackScore = max - getWhiteScore();
             } else {
                 this.whiteScore = max - getBlackScore();
