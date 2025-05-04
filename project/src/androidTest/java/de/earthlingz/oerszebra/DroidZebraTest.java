@@ -66,6 +66,22 @@ public class DroidZebraTest extends BasicTest{
     }
 
     @Test
+    public void testIssue79() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "E6F6C4D6F7C3C6C7G6H6C8G8C2B2A2C1G7C5B3B6A6H8E3A3F4A1");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+        waitForOpenendDialogs(false);
+        assertSame(34, countSquares(ZebraEngine.PLAYER_EMPTY));
+        assertSame(15, countSquares(ZebraEngine.PLAYER_WHITE));
+        assertSame(15, countSquares(ZebraEngine.PLAYER_BLACK));
+        assertSame(32,zebra.getState().getBlackScore());
+        assertSame(32,zebra.getState().getWhiteScore());
+    }
+
+    @Test
     public void testCrash1() throws InterruptedException {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
