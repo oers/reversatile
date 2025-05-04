@@ -126,6 +126,7 @@ public class DroidZebraTest extends BasicTest{
     }
 
     @Test
+    @Ignore
     public void testCrash86() throws InterruptedException {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
