@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_cancel">Annuler</string>
     <string name="menu_enter_moves">Entrer des coups</string>
     <string name="settings_engine_use_book_summary">Utiliser bibliothèque d\'ouvertures</string>
     <string name="settings_engine_use_book_title">Bibliothèque d\'ouvertures</string>
@@ -65,15 +65,15 @@
     <string name="mail_generated">Généré par Reversatile (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">Date:</string>
     <string name="mail_move">Suite de coups:</string>
-    <string name="somebody_wins">Somebody wins</string>
+    <string name="somebody_wins"></string>
     <string name="_00_00">00:00</string>
-    <string name="guess_best_title">Guess Best Move</string>
-    <string name="guess_black_move_hint">Guess best black move.</string>
-    <string name="guess_move_correct">Correct!</string>
-    <string name="guess_move_incorrect">Not the best move, try again</string>
-    <string name="guess_white_move_hint">Guess best white move.</string>
-    <string name="menu_item_guess_move">Guess Move Mode</string>
-    <string name="gameover_choices_rotate">Rotate the Board</string>
+    <string name="guess_best_title">Devinez le meilleur coup</string>
+    <string name="guess_black_move_hint">Devinez le meilleur coup pour les noirs.</string>
+    <string name="guess_move_correct">Correct !</string>
+    <string name="guess_move_incorrect">Ce n\'est pas le meilleur coup, réessayez</string>
+    <string name="guess_white_move_hint">Devinez le meilleur coup pour les blancs.</string>
+    <string name="menu_item_guess_move">Mode Deviner le coup</string>
+    <string name="gameover_choices_rotate">Tourner l\'othellier</string>
     <string name="gameover_choices_analyze">Analyser la partie</string>
     <string name="analysis_progress">Analyse du coup %1$d sur %2$d…</string>
     <string name="settings_analysis_drawer_side_title">Côté du panneau d\'analyse</string>
@@ -83,11 +83,11 @@
     <string name="onboarding_mode_analyze">Analyser des parties</string>
     <string name="onboarding_mode_vs_human">Jouer localement contre un ami</string>
     <string name="onboarding_mode_vs_computer">Jouer contre l\'ordinateur</string>
-    <string name="menu_item_first_move">Replay</string>
-    <string name="gameover_beginning">Go to first Move</string>
-    <string name="board_description">The Board</string>
-    <string name="ask.analytics">Analytics</string>
-    <string name="ask_analytics_deny">Deny</string>
-    <string name="ask_analytics_accept">Accept</string>
-    <string name="ask.analytics.help">To improve the app I need some anonymous usage statistics and error logs Please allow the collection and transmision of these statistics. The app uses Google Analytics for Firebase and Firebase Crashlytics. DeviceIds and Ad-Ids are not transmitted. You can change your this in the settings later.</string>
+    <string name="menu_item_first_move">Rejouer</string>
+    <string name="gameover_beginning">Aller au premier coup</string>
+    <string name="board_description">L\'othellier</string>
+    <string name="ask.analytics">Statistiques</string>
+    <string name="ask_analytics_deny">Refuser</string>
+    <string name="ask_analytics_accept">Accepter</string>
+    <string name="ask.analytics.help">Pour améliorer l\'application, nous avons besoin de statistiques d\'utilisation anonymes et de journaux d\'erreurs. Veuillez autoriser la collecte et la transmission de ces statistiques. L\'application utilise Google Analytics for Firebase et Firebase Crashlytics. Les identifiants d\'appareil et publicitaires ne sont pas transmis. Vous pouvez modifier ce choix plus tard dans les paramètres.</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="menu_enter_moves">Enter Moves</string>
+    <string name="dialog_cancel">キャンセル</string>
+    <string name="menu_enter_moves">棋譜を入力</string>
     <string name="settings_engine_use_book_summary">Bookを使用</string>
     <string name="settings_engine_use_book_title">Bookを使用</string>
     <string name="gameover_choices_options">設定を変える</string>
@@ -67,15 +67,15 @@
     <string name="mail_generated">作成：DroidZebra (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">日付:</string>
     <string name="mail_move">棋譜:</string>
-    <string name="somebody_wins">Somebody wins</string>
+    <string name="somebody_wins"></string>
     <string name="_00_00">00:00</string>
-    <string name="guess_best_title">Guess Best Move</string>
-    <string name="guess_black_move_hint">Guess best black move.</string>
-    <string name="guess_move_correct">Correct!</string>
-    <string name="guess_move_incorrect">Not the best move, try again</string>
-    <string name="guess_white_move_hint">Guess best white move.</string>
-    <string name="menu_item_guess_move">Guess Move Mode</string>
-    <string name="gameover_choices_rotate">Rotate the Board</string>
+    <string name="guess_best_title">最善手を当てよう</string>
+    <string name="guess_black_move_hint">黒の最善手を当ててください。</string>
+    <string name="guess_move_correct">正解！</string>
+    <string name="guess_move_incorrect">最善手ではありません。もう一度どうぞ</string>
+    <string name="guess_white_move_hint">白の最善手を当ててください。</string>
+    <string name="menu_item_guess_move">着手当てモード</string>
+    <string name="gameover_choices_rotate">盤面を回転</string>
     <string name="gameover_choices_analyze">対局を分析</string>
     <string name="analysis_progress">%1$d手目 / %2$d手を分析中…</string>
     <string name="settings_analysis_drawer_side_title">分析パネルの位置</string>
@@ -85,11 +85,11 @@
     <string name="onboarding_mode_analyze">対局を分析する</string>
     <string name="onboarding_mode_vs_human">友達とローカル対戦</string>
     <string name="onboarding_mode_vs_computer">コンピュータと対戦</string>
-    <string name="menu_item_first_move">Replay</string>
-    <string name="gameover_beginning">Go to first Move</string>
-    <string name="board_description">The Board</string>
-    <string name="ask.analytics">Analytics</string>
-    <string name="ask_analytics_deny">Deny</string>
-    <string name="ask_analytics_accept">Accept</string>
-    <string name="ask.analytics.help">To improve the app I need some anonymous usage statistics and error logs Please allow the collection and transmision of these statistics. The app uses Google Analytics for Firebase and Firebase Crashlytics. DeviceIds and Ad-Ids are not transmitted. You can change your this in the settings later.</string>
+    <string name="menu_item_first_move">最初から</string>
+    <string name="gameover_beginning">最初の手へ</string>
+    <string name="board_description">盤面</string>
+    <string name="ask.analytics">統計情報</string>
+    <string name="ask_analytics_deny">拒否</string>
+    <string name="ask_analytics_accept">許可</string>
+    <string name="ask.analytics.help">アプリを改善するために、匿名の利用統計とエラーログが必要です。これらの統計の収集と送信を許可してください。本アプリはGoogle Analytics for FirebaseとFirebase Crashlyticsを使用しています。デバイスIDや広告IDは送信されません。この設定は後から変更できます。</string>
 </resources>

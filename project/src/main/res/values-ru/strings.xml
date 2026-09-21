@@ -86,7 +86,7 @@
     <string name="onboarding_mode_vs_human">Играть локально с другом</string>
     <string name="onboarding_mode_vs_computer">Играть против компьютера</string>
     <string name="menu_item_first_move">Переиграть</string>
-    <string name="gameover_beginning">Анализ игры</string>
+    <string name="gameover_beginning">К первому ходу</string>
     <string name="board_description">Игровое поле</string>
     <string name="ask.analytics">Сбор статистики</string>
     <string name="ask_analytics_deny">Запретить</string>

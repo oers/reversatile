@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="menu_enter_moves">Enter Moves</string>
+    <string name="dialog_cancel">취소</string>
+    <string name="menu_enter_moves">수 입력</string>
     <string name="settings_engine_use_book_summary">오프닝 사용</string>
     <string name="settings_engine_use_book_title">오프닝 사용</string>
     <string name="gameover_choices_options">환경설정</string>
@@ -14,7 +14,7 @@
     <string name="settings_engine_randomness_dialog_message">AI가 최상의 움직임이 아닌 것을 고려하도록 허용하다.  약해질 수 도 있지만 더 변화가 많은 게임 가능 – 더 인간 같은.</string>
     <string name="settings_engine_randomness_summary">AI가 최상의 움직임이 아닌 것을 고려하도록 허용하다</string>
     <string name="settings_engine_randomness_title">랜덤</string>
-    <string name="spash_layout_message">드로이드제브라가 준비중입니다</string>
+    <string name="spash_layout_message">Reversatile가 준비중입니다</string>
     <string name="settings_engine_auto_make_moves_summary">자동으로 움직이게 하다</string>
     <string name="settings_engine_auto_make_moves_title">자동으로 움직이게 하다</string>
     <string name="settings_ui_display_last_move_summary">보드에 마지막 이동 표시</string>
@@ -34,11 +34,11 @@
     <string name="settings_engine_function_title">엔진 기능</string>
     <string name="settings_engine_function_dialog_title">엔진 기능 선택</string>
     <string name="settings_sendmail_title">이메일 주소</string>
-    <string name="settings_sendmail_summary">게임 결과표 전송을 위한 이메일 주소 없음</string>
+    <string name="settings_sendmail_summary">게임 기록 전송을 위한 기본 이메일 주소</string>
     <string name="setting_strength_preference_summary">엔진 강도: 게임 하는 동안 컴퓨터가 분석 할 움직임의 수</string>
     <string name="settings_strength_preference_title">검색 강도</string>
     <string name="settings_strength_dialog_title">하나를 선택하다</string>
-    <string name="app_name">드로이드제브라</string>
+    <string name="app_name">Reversatile</string>
 
     <string name="settings_engine_preferences">엔진 환경설정</string>
 
@@ -50,7 +50,7 @@
     <string name="menu_item_redo">다시 실행</string>
     <string name="menu_item_undo">실행 취소</string>
     <string name="menu_item_quit">나가기</string>
-    <string name="menu_item_about">드로이드제브라 정보</string>
+    <string name="menu_item_about">Reversatile 정보</string>
     <string name="menu_item_settings">환경설정</string>
     <string name="menu_item_hint">암시</string>
     <string name="gameover_title">게임 오버</string>
@@ -64,18 +64,18 @@
     <string name="spash_layout_message_2">잠시만 기다려주십시오</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$s)%nMid: %1$d Exact: %2$d</string>
     <string name="settings_title">환경설정</string>
-    <string name="mail_generated">드로이드제브라에 의해 생성됨 (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
+    <string name="mail_generated">Reversatile에 의해 생성됨 (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">날짜:</string>
     <string name="mail_move">수순:</string>
-    <string name="somebody_wins">Somebody wins</string>
+    <string name="somebody_wins"></string>
     <string name="_00_00">00:00</string>
-    <string name="guess_best_title">Guess Best Move</string>
-    <string name="guess_black_move_hint">Guess best black move.</string>
-    <string name="guess_move_correct">Correct!</string>
-    <string name="guess_move_incorrect">Not the best move, try again</string>
-    <string name="guess_white_move_hint">Guess best white move.</string>
-    <string name="menu_item_guess_move">Guess Move Mode</string>
-    <string name="gameover_choices_rotate">Rotate the Board</string>
+    <string name="guess_best_title">최선의 수 맞추기</string>
+    <string name="guess_black_move_hint">흑의 최선의 수를 맞춰보세요.</string>
+    <string name="guess_move_correct">정답!</string>
+    <string name="guess_move_incorrect">최선의 수가 아닙니다. 다시 시도하세요</string>
+    <string name="guess_white_move_hint">백의 최선의 수를 맞춰보세요.</string>
+    <string name="menu_item_guess_move">수 맞추기 모드</string>
+    <string name="gameover_choices_rotate">보드 회전</string>
     <string name="gameover_choices_analyze">게임 분석</string>
     <string name="analysis_progress">%1$d / %2$d 수 분석 중…</string>
     <string name="settings_analysis_drawer_side_title">분석 패널 위치</string>
@@ -85,11 +85,11 @@
     <string name="onboarding_mode_analyze">게임 분석하기</string>
     <string name="onboarding_mode_vs_human">친구와 로컬 대전</string>
     <string name="onboarding_mode_vs_computer">컴퓨터와 대전</string>
-    <string name="menu_item_first_move">Replay</string>
-    <string name="gameover_beginning">Go to first Move</string>
-    <string name="board_description">The Board</string>
-    <string name="ask.analytics">Analytics</string>
-    <string name="ask_analytics_deny">Deny</string>
-    <string name="ask_analytics_accept">Accept</string>
-    <string name="ask.analytics.help">To improve the app I need some anonymous usage statistics and error logs Please allow the collection and transmision of these statistics. The app uses Google Analytics for Firebase and Firebase Crashlytics. DeviceIds and Ad-Ids are not transmitted. You can change your this in the settings later.</string>
+    <string name="menu_item_first_move">처음부터</string>
+    <string name="gameover_beginning">첫 수로 이동</string>
+    <string name="board_description">보드</string>
+    <string name="ask.analytics">통계</string>
+    <string name="ask_analytics_deny">거부</string>
+    <string name="ask_analytics_accept">허용</string>
+    <string name="ask.analytics.help">앱을 개선하기 위해 익명의 사용 통계와 오류 로그가 필요합니다. 이 통계의 수집과 전송을 허용해 주세요. 이 앱은 Google Analytics for Firebase와 Firebase Crashlytics를 사용합니다. 기기 ID와 광고 ID는 전송되지 않습니다. 이 설정은 나중에 언제든지 변경할 수 있습니다.</string>
 </resources>

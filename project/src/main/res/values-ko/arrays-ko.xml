@@ -27,10 +27,10 @@
     <item>20|22|0</item>
 </string-array>
 <string-array name="settings_engine_function_preferences">
-<item>졔브라가 활동적이지 않다</item>
-<item>졔브라가 횐색으로 하기</item>
-<item>졔브라가 검은색으로 하기</item>
-<item>졔브라가 졔브라랑 하기</item>
+<item>제브라가 활동적이지 않다</item>
+<item>제브라가 흰색으로 하기</item>
+<item>제브라가 검은색으로 하기</item>
+<item>제브라가 제브라랑 하기</item>
 </string-array>
 <string-array  name="settings_engine_function_values">
 <item>0</item>
@@ -46,11 +46,11 @@
 <item>4</item>
 </string-array>
 <string-array name="settings_engine_randomness_preferences">
-<item>None</item>
-<item>Small (1–2 discs)</item>
-<item>Medium (4–5 discs)</item>
-<item>Large (6–8 discs)</item>
-<item>Huge (10–16 discs)</item>
+<item>없음</item>
+<item>작음 (1–2개)</item>
+<item>중간 (4–5개)</item>
+<item>큼 (6–8개)</item>
+<item>매우 큼 (10–16개)</item>
 </string-array>
 <string-array name="settings_engine_opening_values">
 <!--  !!!DO NOT TRANSLATE _values arrays!!! -->
@@ -135,7 +135,7 @@
 </string-array>
 
 <string-array name="settings_engine_opening_names">
-<item>None</item>
+<item>없음</item>
 <item>Aircraft / Feldborg</item>
 <item>Aubrey (Feldborg continuation)</item>
 <item>Aubrey / Tanaka</item>
@@ -212,5 +212,13 @@
 <item>Tiger</item>
 <item>Wing Variation</item>
 <item>X-square Opening</item>
+</string-array>
+<string-array name="settings_analysis_drawer_side_preferences">
+<item>왼쪽</item>
+<item>오른쪽</item>
+</string-array>
+<string-array name="settings_analysis_drawer_side_values">
+<item>left</item>
+<item>right</item>
 </string-array>
 </resources>

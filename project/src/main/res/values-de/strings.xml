@@ -31,7 +31,7 @@
     <string name="menu_item_settings">Einstellungen</string>
     <string name="menu_item_switch_sides">Seite tauschen</string>
     <string name="menu_item_undo">Zurücknehmen</string>
-    <string name="setting_strength_preference_summary">Engine strength: number of moves computer will analyze while playing</string>
+    <string name="setting_strength_preference_summary">Spielstärke: Anzahl der Züge, die der Computer beim Spielen analysiert</string>
     <string name="settings_engine_auto_make_moves_summary">Erzwungene Züge automatisch durchführen</string>
     <string name="settings_engine_auto_make_moves_title">Erzwungene Züge</string>
     <string name="settings_engine_force_opening_summary">Eröffnung einstellen</string>
@@ -43,7 +43,7 @@
     <string name="settings_engine_human_openings_title">Menschliche Eröffnungen</string>
     <string name="settings_engine_practice_mode_summary">Analyse auf dem Brett anzeigen</string>
     <string name="settings_engine_practice_mode_title">Übungsmodus</string>
-    <string name="settings_engine_preferences">Enginge Einstellungen</string>
+    <string name="settings_engine_preferences">Engine Einstellungen</string>
     <string name="settings_engine_randomness_dialog_message">Engine darf sub-optimale Züge machen. Erlaubt Fehler.</string>
     <string name="settings_engine_randomness_summary">AI darf fehler machen</string>
     <string name="settings_engine_randomness_title">Zufälligkeit</string>
@@ -58,14 +58,14 @@
     <string name="settings_ui_display_enable_animations_title">Animationen einstellen</string>
     <string name="settings_ui_display_last_move_summary">Letzten Zug auf dem Brett markieren</string>
     <string name="settings_ui_display_last_move_title">Letzten Zug markieren</string>
-    <string name="settings_ui_display_moves_summary">Erkaube Züge auf dem Brett markieren</string>
+    <string name="settings_ui_display_moves_summary">Erlaubte Züge auf dem Brett markieren</string>
     <string name="settings_ui_display_moves_title">Züge anzeigen</string>
     <string name="settings_ui_display_pv_summary">Optimale Zug-Sequenz anzeigen</string>
     <string name="settings_ui_display_pv_title">Hauptabweichung anzeigen</string>
     <string name="settings_ui_preferences">Benutzerinterface</string>
     <string name="spash_layout_message">Reversatile wird geladen</string>
     <string name="spash_layout_message_2">(das kann einige Momente dauern)</string>
-    <string name="somebody_wins">Somebody wins</string>
+    <string name="somebody_wins"></string>
     <string name="_00_00">00:00</string>
     <string name="guess_best_title">Besten Zug raten</string>
     <string name="guess_black_move_hint">Besten schwarzen Zug raten</string>
@@ -85,8 +85,8 @@
     <string name="onboarding_mode_vs_computer">Gegen den Computer spielen</string>
     <string name="menu_item_first_move">Erster Zug</string>
     <string name="gameover_beginning">Zum ersten Zug</string>
-    <string name="board_description">The Board</string>
-    <string name="ask.analytics">Analytics</string>
+    <string name="board_description">Das Spielbrett</string>
+    <string name="ask.analytics">Nutzungsstatistik</string>
     <string name="ask_analytics_deny">Ablehnen</string>
     <string name="ask_analytics_accept">Akzeptieren</string>
     <string name="ask.analytics.help">Anonymisierte Nutzungsdaten senden, damit die App verbessert werden kann. Es werden Google Analytics for Firebase und Firebase Crashlytics verwendet. Es werde keine Geräte-IDs oder AD-Ids übermittelt. Die Auswahl kann in den Einstellungen jederzeit geändert werden.</string>

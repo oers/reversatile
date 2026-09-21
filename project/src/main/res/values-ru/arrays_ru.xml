@@ -135,7 +135,7 @@
 </string-array>
 
 <string-array name="settings_engine_opening_names">
-<item>Не устанолено</item>
+<item>Не установлено</item>
 <item>Aircraft / Feldborg</item>
 <item>Aubrey (Feldborg continuation)</item>
 <item>Aubrey / Tanaka</item>
@@ -212,5 +212,13 @@
 <item>Tiger</item>
 <item>Wing Variation</item>
 <item>X-square Opening</item>
+</string-array>
+<string-array name="settings_analysis_drawer_side_preferences">
+<item>Слева</item>
+<item>Справа</item>
+</string-array>
+<string-array name="settings_analysis_drawer_side_values">
+<item>left</item>
+<item>right</item>
 </string-array>
 </resources>
