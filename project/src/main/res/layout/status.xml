@@ -100,6 +100,25 @@
         app:layout_constraintTop_toBottomOf="@id/doubledot"
         tools:ignore="HardcodedText" />
 
+    <TextView
+        android:id="@+id/status_analysis_progress"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="5dp"
+        android:background="@color/board_color"
+        android:gravity="center"
+        android:text="@string/analysis_progress"
+        android:visibility="gone"
+        app:autoSizeMaxTextSize="15sp"
+        app:autoSizeTextType="uniform"
+        app:autoSizeMinTextSize="5sp"
+
+        app:layout_constraintBottom_toTopOf="@id/status_undo"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/doubledot" />
+
 
 
     <ImageButton

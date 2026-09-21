@@ -22,6 +22,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private final boolean DEFAULT_SETTING_DISPLAY_MOVES;
     private final boolean DEFAULT_SETTING_DISPLAY_LAST_MOVE;
     private final boolean DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
+    private final String DEFAULT_SETTING_ANALYSIS_DRAWER_SIDE;
 
     private final int DEFAULT_SETTING_RANDOMNESS;
     private final int DEFAULT_SETTING_FUNCTION;
@@ -41,7 +42,8 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
             SETTINGS_KEY_DISPLAY_MOVES = "settings_ui_display_moves",
             SETTINGS_KEY_DISPLAY_LAST_MOVE = "settings_ui_display_last_move",
             SETTINGS_KEY_SENDMAIL = "settings_sendmail",
-            SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS = "settings_ui_display_enable_animations";
+            SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS = "settings_ui_display_enable_animations",
+            SETTINGS_KEY_ANALYSIS_DRAWER_SIDE = "settings_analysis_drawer_side";
 
 
     private static final int
@@ -63,6 +65,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private boolean settingDisplayMoves;
     private boolean settingDisplayLastMove;
     private boolean settingDisplayEnableAnimations;
+    private String settingAnalysisDrawerSide;
 
     private int settingSlack;
     private int settingPerturbation;
@@ -97,6 +100,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         settingDisplayMoves = DEFAULT_SETTING_DISPLAY_MOVES = Boolean.parseBoolean(context.getString(R.string.default_display_moves));
         settingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE = Boolean.parseBoolean(context.getString(R.string.default_display_last_move));
         settingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS = Boolean.parseBoolean(context.getString(R.string.default_enable_animations));
+        settingAnalysisDrawerSide = DEFAULT_SETTING_ANALYSIS_DRAWER_SIDE = context.getString(R.string.default_analysis_drawer_side);
 
         loadSettings();
         context.getSharedPreferences(SHARED_PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
@@ -131,6 +135,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         boolean settingDisplayMoves = settings.getBoolean(SETTINGS_KEY_DISPLAY_MOVES, DEFAULT_SETTING_DISPLAY_MOVES);
         boolean settingDisplayLastMove = settings.getBoolean(SETTINGS_KEY_DISPLAY_LAST_MOVE, DEFAULT_SETTING_DISPLAY_LAST_MOVE);
         boolean settingDisplayEnableAnimations = settings.getBoolean(SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS, DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS);
+        String settingAnalysisDrawerSide = settings.getString(SETTINGS_KEY_ANALYSIS_DRAWER_SIDE, DEFAULT_SETTING_ANALYSIS_DRAWER_SIDE);
 
 
         boolean bZebraSettingChanged = (
@@ -148,6 +153,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
                         || this.settingDisplayMoves != settingDisplayMoves
                         || this.settingDisplayLastMove != settingDisplayLastMove
                         || this.settingDisplayEnableAnimations != settingDisplayEnableAnimations
+                        || !this.settingAnalysisDrawerSide.equals(settingAnalysisDrawerSide)
         );
 
         settingFunction = settingsFunction;
@@ -165,6 +171,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         this.settingDisplayMoves = settingDisplayMoves;
         this.settingDisplayLastMove = settingDisplayLastMove;
         this.settingDisplayEnableAnimations = settingDisplayEnableAnimations;
+        this.settingAnalysisDrawerSide = settingAnalysisDrawerSide;
 
 
         switch (settingRandomness) {
@@ -264,6 +271,11 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     @Override
     public boolean isSettingDisplayEnableAnimations() {
         return settingDisplayEnableAnimations;
+    }
+
+    @Override
+    public String getSettingAnalysisDrawerSide() {
+        return settingAnalysisDrawerSide;
     }
 
     @Override

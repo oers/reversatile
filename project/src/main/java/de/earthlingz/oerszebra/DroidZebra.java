@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
@@ -43,8 +45,11 @@ import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -56,15 +61,21 @@ import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
 import de.earthlingz.oerszebra.BoardView.BoardView;
 import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
+import de.earthlingz.oerszebra.analysis.AnalysisAdapter;
+import de.earthlingz.oerszebra.analysis.GameAnalyzer;
+import de.earthlingz.oerszebra.analysis.MoveEval;
 import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
 import de.earthlingz.oerszebra.parser.GameParser;
 
@@ -102,6 +113,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private EngineConfig engineConfig;
     private Menu menu;
 
+    private GameAnalyzer gameAnalyzer;
+    private boolean suppressNextGameOverDialog = false;
+    private List<MoveEval> lastAnalysisResults = Collections.emptyList();
+    private DrawerLayout analysisDrawerLayout;
+    private RecyclerView analysisDrawerRecyclerView;
+    private Button analysisDrawerHandle;
+    private AnalysisAdapter analysisAdapter;
+
 
     public void resetStatusView() {
         runOnUiThread(() -> {
@@ -124,6 +143,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     private void startNewGame() {
+        clearAnalysisResults();
         engine.newGame(engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState) {
@@ -163,6 +183,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (!mIsInitCompleted) return false;
+        cancelAnalysisIfRunning();
         switch (item.getItemId()) {
             case R.id.menu_new_game:
                 startNewGameAndResetUI();
@@ -216,10 +237,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     void redo() {
+        cancelAnalysisIfRunning();
         engine.redoMove(gameState);
     }
 
     void undo() {
+        cancelAnalysisIfRunning();
         engine.undoMove(gameState);
     }
 
@@ -314,6 +337,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         mBoardView.setBoardViewModel(getState());
         mBoardView.setOnMakeMoveListener(this);
         mBoardView.requestFocus();
+        setupAnalysisDrawer();
         if (savedInstanceState != null) {
             mBoardView.setRotated(savedInstanceState.getBoolean("board_rotated", false));
         }
@@ -353,6 +377,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
+        clearAnalysisResults();
         Analytics.log("new_game", new GameState(8, moves).getMoveSequenceAsString());
         engine.newGame(moves, engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
@@ -703,6 +728,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onMakeMove(Move move) {
+        cancelAnalysisIfRunning();
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
             if (engine.isThinking(gameState) && !engine.isHumanToMove(gameState, engineConfig)) {
@@ -773,7 +799,170 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     public void onGameOver() {
         state.processGameOver();
         runOnUiThread(() -> mBoardView.invalidate());//TODO Id doubt runOnUIThread is necessary here
-        this.showGameOverDialog();
+        if (suppressNextGameOverDialog) {
+            // reached game-over again as a side effect of restoring the live
+            // game after analysis - don't pop the dialog a second time
+            suppressNextGameOverDialog = false;
+        } else {
+            this.showGameOverDialog();
+        }
+    }
+
+    /**
+     * Evaluates every move of the just-finished game and shows the results
+     * in the analysis drawer. The live game is left exactly as it was once
+     * this completes (or is cancelled via {@link #cancelAnalysisIfRunning()}).
+     */
+    public void analyzeGame() {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+            return;
+        }
+        final int originalDisksPlayed = gameState.getDisksPlayed();
+        final byte[] originalMoves = gameState.exportMoveSequence();
+        final List<MoveEval> resultsSoFar = new ArrayList<>();
+
+        setAnalysisProgressVisible(true);
+        gameAnalyzer = new GameAnalyzer(engine);
+        gameAnalyzer.start(gameState, engineConfig, new GameAnalyzer.Listener() {
+            @Override
+            public void onProgress(int done, int total, MoveEval latest) {
+                updateAnalysisProgress(done, total);
+                resultsSoFar.add(latest);
+                updateAnalysisDrawer(new ArrayList<>(resultsSoFar), done == 1);
+            }
+
+            @Override
+            public void onFinished(List<MoveEval> results, boolean wasCancelled) {
+                lastAnalysisResults = results;
+                setAnalysisProgressVisible(false);
+                updateAnalysisDrawer(results, false);
+                suppressNextGameOverDialog = true;
+                startNewGameAndResetUI(originalDisksPlayed, originalMoves);
+            }
+        });
+    }
+
+    /** Stops any in-progress analysis; a no-op if none is running. */
+    void cancelAnalysisIfRunning() {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+            gameAnalyzer.cancel();
+        }
+    }
+
+    private void updateAnalysisProgress(int done, int total) {
+        TextView view = findViewById(R.id.status_analysis_progress);
+        if (view != null) {
+            view.setText(getString(R.string.analysis_progress, done, total));
+        }
+    }
+
+    private void setAnalysisProgressVisible(boolean visible) {
+        TextView view = findViewById(R.id.status_analysis_progress);
+        if (view != null) {
+            view.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    public List<MoveEval> getLastAnalysisResults() {
+        return lastAnalysisResults;
+    }
+
+    private void setupAnalysisDrawer() {
+        analysisDrawerLayout = findViewById(R.id.board_drawer_layout);
+        analysisDrawerRecyclerView = findViewById(R.id.analysis_drawer);
+        analysisDrawerHandle = findViewById(R.id.analysis_drawer_handle);
+
+        if (analysisDrawerLayout == null || analysisDrawerRecyclerView == null) {
+            return;
+        }
+
+        analysisDrawerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        analysisAdapter = new AnalysisAdapter(moveEval -> {
+            if (gameAnalyzer == null || !gameAnalyzer.isRunning()) {
+                jumpToMove(moveEval.getPly());
+            }
+        });
+        analysisDrawerRecyclerView.setAdapter(analysisAdapter);
+
+        boolean openFromLeft = "left".equals(settingsProvider.getSettingAnalysisDrawerSide());
+        int gravity = openFromLeft ? Gravity.START : Gravity.END;
+
+        DrawerLayout.LayoutParams drawerParams =
+                (DrawerLayout.LayoutParams) analysisDrawerRecyclerView.getLayoutParams();
+        drawerParams.gravity = gravity;
+        analysisDrawerRecyclerView.setLayoutParams(drawerParams);
+
+        if (analysisDrawerHandle != null) {
+            RelativeLayout.LayoutParams handleParams =
+                    (RelativeLayout.LayoutParams) analysisDrawerHandle.getLayoutParams();
+            handleParams.addRule(RelativeLayout.ALIGN_PARENT_START, openFromLeft ? RelativeLayout.TRUE : 0);
+            handleParams.addRule(RelativeLayout.ALIGN_PARENT_END, openFromLeft ? 0 : RelativeLayout.TRUE);
+            analysisDrawerHandle.setLayoutParams(handleParams);
+
+            analysisDrawerHandle.setOnClickListener(v -> {
+                if (analysisDrawerLayout.isDrawerOpen(analysisDrawerRecyclerView)) {
+                    analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+                } else {
+                    analysisDrawerLayout.openDrawer(analysisDrawerRecyclerView);
+                }
+            });
+
+            analysisDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    analysisDrawerHandle.setText(R.string.analysis_drawer_handle_open);
+                }
+
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    analysisDrawerHandle.setText(R.string.analysis_drawer_handle_closed);
+                }
+            });
+        }
+    }
+
+    private void updateAnalysisDrawer(List<MoveEval> results, boolean autoOpen) {
+        if (analysisAdapter != null) {
+            analysisAdapter.setItems(results);
+        }
+        if (analysisDrawerHandle != null && !results.isEmpty()) {
+            analysisDrawerHandle.setVisibility(View.VISIBLE);
+        }
+        if (autoOpen && analysisDrawerLayout != null && analysisDrawerRecyclerView != null) {
+            analysisDrawerLayout.openDrawer(analysisDrawerRecyclerView);
+        }
+    }
+
+    private void clearAnalysisResults() {
+        lastAnalysisResults = Collections.emptyList();
+        if (analysisAdapter != null) {
+            analysisAdapter.clear();
+        }
+        if (analysisDrawerHandle != null) {
+            analysisDrawerHandle.setVisibility(View.GONE);
+        }
+        if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null
+                && analysisDrawerLayout.isDrawerOpen(analysisDrawerRecyclerView)) {
+            analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+        }
+    }
+
+    /**
+     * Navigates the live board to the position right after ply {@code targetDisksPlayed}
+     * (as produced by {@link GameAnalyzer}), reusing the same undo/redo primitives as the
+     * manual navigation buttons.
+     */
+    void jumpToMove(int targetDisksPlayed) {
+        if (gameState == null || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
+            return;
+        }
+        int delta = targetDisksPlayed - gameState.getDisksPlayed();
+        for (int i = 0; i < -delta; i++) {
+            undo();
+        }
+        for (int i = 0; i < delta; i++) {
+            redo();
+        }
     }
 
     @Override
@@ -797,6 +986,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     public void rotate() {
+        cancelAnalysisIfRunning();
         // A pure view-layer transform (see BoardView#setRotated): the engine, its
         // move history, and the undo/redo stack are never touched, so rotating
         // always works and never loses undo/redo state, regardless of when it's
@@ -904,6 +1094,13 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                         getDroidZebra().undoAll();
                     });
 
+            button = v.findViewById(R.id.gameover_choice_analyze);
+            button.setOnClickListener(
+                    click -> {
+                        dismiss();
+                        getDroidZebra().analyzeGame();
+                    });
+
             button = v.findViewById(R.id.gameover_choice_switch);
             button.setOnClickListener(
                     v12 -> {
@@ -945,6 +1142,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     void undoAll() {
+        cancelAnalysisIfRunning();
         engine.undoAll(gameState);
     }
 

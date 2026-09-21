@@ -42,6 +42,13 @@
         android:textSize="24sp" />
 
     <Button
+        android:id="@+id/gameover_choice_analyze"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/gameover_choices_analyze"
+        android:textSize="24sp" />
+
+    <Button
         android:id="@+id/gameover_choice_rotate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

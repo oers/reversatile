@@ -28,6 +28,8 @@ public interface SettingsProvider {
 
     boolean isSettingDisplayEnableAnimations();
 
+    String getSettingAnalysisDrawerSide();
+
     int getSettingAnimationDuration();
 
     int getSettingZebraDepth();

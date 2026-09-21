@@ -85,6 +85,12 @@
     <string name="guess_move_correct">Correct!</string>
     <string name="guess_move_incorrect">Not the best move, try again</string>
     <string name="gameover_choices_rotate">Rotate the Board</string>
+    <string name="gameover_choices_analyze">Analyze Game</string>
+    <string name="analysis_progress">Analyzing move %1$d of %2$d…</string>
+    <string name="analysis_drawer_handle_closed">≡</string>
+    <string name="analysis_drawer_handle_open">×</string>
+    <string name="settings_analysis_drawer_side_title">Analysis panel side</string>
+    <string name="settings_analysis_drawer_side_summary">Which edge the game-analysis panel opens from</string>
     <string name="menu_item_first_move">Replay</string>
     <string name="gameover_beginning">Go to first Move</string>
     <string name="board_description">The Board</string>

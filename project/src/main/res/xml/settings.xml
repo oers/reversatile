@@ -21,6 +21,13 @@
             android:key="settings_ui_display_enable_animations"
             android:summary="@string/settings_ui_display_enable_animations_summary"
             android:title="@string/settings_ui_display_enable_animations_title" />
+        <ListPreference
+            android:defaultValue="@string/default_analysis_drawer_side"
+            android:entries="@array/settings_analysis_drawer_side_preferences"
+            android:entryValues="@array/settings_analysis_drawer_side_values"
+            android:key="settings_analysis_drawer_side"
+            android:summary="@string/settings_analysis_drawer_side_summary"
+            android:title="@string/settings_analysis_drawer_side_title" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_engine_preferences">
         <ListPreference
