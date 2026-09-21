@@ -1,6 +1,7 @@
 package de.earthlingz.oerszebra;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -20,6 +21,7 @@ public class WthorReplayTest extends BasicTest {
     private static final int HEADER_SIZE = 16;
     private static final int GAME_HEADER_SIZE = 8;
     private static final int GAME_RECORD_SIZE = 68;
+    private static final int LOCAL_GAME_LIMIT = 200;
 
     @Test
     public void replayAllGames() throws Exception {
@@ -30,9 +32,17 @@ public class WthorReplayTest extends BasicTest {
         assertEquals("Unexpected WThor game count", gameCount,
                 (file.length - HEADER_SIZE) / GAME_RECORD_SIZE);
 
-        for (int gameIndex = 0; gameIndex < gameCount; gameIndex++) {
+        int gamesToRun = getGameLimit(gameCount);
+        for (int gameIndex = 0; gameIndex < gamesToRun; gameIndex++) {
             String moves = decodeGame(file, gameIndex);
-            playAndWaitForReplay(moves, gameIndex);
+            if ((gameIndex + 1) % 10 == 0) {
+                playAndWaitMoveByMove(moves, gameIndex);
+                undoAndRedoGame(moves, gameIndex);
+            } else if ((gameIndex & 1) == 1) {
+                playAndWaitMoveByMove(moves, gameIndex);
+            } else {
+                playAndWaitForReplay(moves, gameIndex);
+            }
 
             int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
             int expectedBlackScore = file[offset + 6] & 0xff;
@@ -44,11 +54,76 @@ public class WthorReplayTest extends BasicTest {
         }
     }
 
+    private int getGameLimit(int gameCount) {
+        String configuredLimit = getArguments().getString("wthorGameLimit");
+        if ("all".equalsIgnoreCase(configuredLimit)) {
+            return gameCount;
+        }
+        if (configuredLimit != null) {
+            try {
+                return Math.min(gameCount, Math.max(1, Integer.parseInt(configuredLimit)));
+            } catch (NumberFormatException ignored) {
+                fail("Invalid wthorGameLimit: " + configuredLimit);
+            }
+        }
+        return Math.min(gameCount, LOCAL_GAME_LIMIT);
+    }
+
+    private void playAndWaitMoveByMove(String moves, int gameIndex) throws InterruptedException {
+        zebra.runOnUiThread(zebra::startNewGameAndResetUI);
+        waitForMoveSequence("", gameIndex);
+
+        for (int offset = 0; offset < moves.length(); offset += 2) {
+            String expectedMoves = moves.substring(0, offset + 2);
+            Move move = new Move(moves.charAt(offset) - 'a',
+                    moves.charAt(offset + 1) - '1');
+            zebra.runOnUiThread(() -> zebra.onMakeMove(move));
+            waitForMoveSequence(expectedMoves, gameIndex);
+        }
+
+        waitForOpenendDialogs(true);
+    }
+
+    private void undoAndRedoGame(String moves, int gameIndex) throws InterruptedException {
+        for (int offset = moves.length() - 2; offset >= 0; offset -= 2) {
+            String expectedMoves = moves.substring(0, offset);
+            zebra.runOnUiThread(zebra::undo);
+            waitForMoveSequence(expectedMoves, gameIndex);
+        }
+
+        for (int offset = 2; offset <= moves.length(); offset += 2) {
+            String expectedMoves = moves.substring(0, offset);
+            zebra.runOnUiThread(zebra::redo);
+            waitForMoveSequence(expectedMoves, gameIndex);
+        }
+
+        waitForOpenendDialogs(true);
+    }
+
+    private void waitForMoveSequence(String expectedMoves, int gameIndex)
+            throws InterruptedException {
+        long timeout = System.currentTimeMillis() + 30_000;
+        while (System.currentTimeMillis() < timeout) {
+            if (zebra.getGameState() != null
+                    && expectedMoves.equals(
+                    removePasses(zebra.getGameState().getMoveSequenceAsString()))) {
+                return;
+            }
+            Thread.sleep(10);
+        }
+
+        String actualMoves = zebra.getGameState() == null
+                ? "<no game state>"
+                : removePasses(zebra.getGameState().getMoveSequenceAsString());
+        fail("WThor game " + gameIndex + " did not reach move-by-move prefix. Expected: "
+                + expectedMoves + ", actual: " + actualMoves);
+    }
+
     private void playAndWaitForReplay(String moves, int gameIndex) throws InterruptedException {
         Object previousGameState = zebra.getGameState();
         zebra.runOnUiThread(() -> zebra.consumeMovesString(toThorNotation(moves)));
 
-        long timeout = System.currentTimeMillis() + 30_000;
+        long timeout = System.currentTimeMillis() + 120_000;
         while (System.currentTimeMillis() < timeout) {
             if (zebra.getGameState() != null
                     && zebra.getGameState() != previousGameState

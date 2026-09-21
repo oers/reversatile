@@ -79,4 +79,4 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          script: ./gradlew connectedCheck
+          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.wthorGameLimit=all
