@@ -18,13 +18,21 @@ class BasicTest {
 
     @Before
     public void init() throws InterruptedException {
-        GlobalSettingsLoader.testSearchDepth ="22|20|0";
+        GlobalSettingsLoader.testSearchDepth = getTestSearchDepth();
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
         while (zebra == null && !zebra.initialized()) {
             Thread.sleep(100);
         }
         getInstrumentation().waitForIdleSync();
+    }
+
+    // Subclasses that trigger extra engine searches per test (e.g. analyzing
+    // every move of a game) can override this with a shallow depth to keep
+    // CI fast; the default matches the strong, deterministic depth the
+    // existing tests were written against.
+    protected String getTestSearchDepth() {
+        return "22|20|0";
     }
 
     void waitForOpenendDialogs(boolean dismiss) throws InterruptedException {
