@@ -44,14 +44,28 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # AGP's aapt2 (needed to compile resources/generate R.java, which the
+      # unit-test variant's compile depends on) is only published as an
+      # x86_64 Linux binary - there's no linux-aarch64 build. Without this,
+      # the kernel can't exec it on this arm64 runner and the shell
+      # misinterprets the raw ELF bytes as a script ("Syntax error: word
+      # unexpected"). QEMU user-mode emulation lets that one short-lived
+      # x86_64 binary run transparently; it does NOT need /dev/kvm (unlike
+      # the Android emulator we abandoned) since it's not virtualizing a
+      # whole guest OS, just interpreting one foreign-arch process. Our
+      # actual native zebra engine (project/hostjni) still compiles and
+      # runs 100% natively for this runner's real arm64 CPU - this only
+      # covers AGP's own build-time tooling.
+      - name: Set up QEMU (AGP's aapt2 is x86_64-only for Linux)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: amd64
+
       # ubuntu-24.04-arm has no Android SDK preinstalled (unlike ubuntu-latest,
       # which GitHub images with one). We only need it so AGP can configure
       # the project and compile resources for the unit-test variant - no
       # assemble/connectedCheck runs here, so a minimal cmdline-tools install
-      # is enough. The cmdline-tools themselves are plain Java (run fine on
-      # arm64); the native aapt2 that resource-compilation actually calls is
-      # fetched by Gradle separately, as a Maven artifact matching the host
-      # arch (os.arch), not the sdkmanager-installed build-tools binary.
+      # is enough.
       - name: Install Android SDK cmdline-tools
         env:
           ANDROID_HOME: /home/runner/android-sdk
