@@ -91,6 +91,11 @@
     <string name="analysis_drawer_handle_open" translatable="false">×</string>
     <string name="settings_analysis_drawer_side_title">Analysis panel side</string>
     <string name="settings_analysis_drawer_side_summary">Which edge the game-analysis panel opens from</string>
+    <string name="settings_analysis_preferences">Analysis</string>
+    <string name="onboarding_mode_title">What would you like to do?</string>
+    <string name="onboarding_mode_analyze">Analyze games</string>
+    <string name="onboarding_mode_vs_human">Play locally vs. a friend</string>
+    <string name="onboarding_mode_vs_computer">Play vs. the computer</string>
     <string name="menu_item_first_move">Replay</string>
     <string name="gameover_beginning">Go to first Move</string>
     <string name="board_description">The Board</string>

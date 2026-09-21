@@ -80,6 +80,11 @@
     <string name="analysis_progress">Анализ хода %1$d из %2$d…</string>
     <string name="settings_analysis_drawer_side_title">Сторона панели анализа</string>
     <string name="settings_analysis_drawer_side_summary">С какой стороны открывается панель анализа</string>
+    <string name="settings_analysis_preferences">Анализ</string>
+    <string name="onboarding_mode_title">Что вы хотите делать?</string>
+    <string name="onboarding_mode_analyze">Анализировать партии</string>
+    <string name="onboarding_mode_vs_human">Играть локально с другом</string>
+    <string name="onboarding_mode_vs_computer">Играть против компьютера</string>
     <string name="menu_item_first_move">Переиграть</string>
     <string name="gameover_beginning">Анализ игры</string>
     <string name="board_description">Игровое поле</string>

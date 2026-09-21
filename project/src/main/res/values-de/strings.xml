@@ -78,6 +78,11 @@
     <string name="analysis_progress">Analysiere Zug %1$d von %2$d…</string>
     <string name="settings_analysis_drawer_side_title">Seite der Analyseleiste</string>
     <string name="settings_analysis_drawer_side_summary">Von welcher Seite sich die Analyseleiste öffnet</string>
+    <string name="settings_analysis_preferences">Analyse</string>
+    <string name="onboarding_mode_title">Was möchtest du tun?</string>
+    <string name="onboarding_mode_analyze">Spiele analysieren</string>
+    <string name="onboarding_mode_vs_human">Lokal gegen einen Freund spielen</string>
+    <string name="onboarding_mode_vs_computer">Gegen den Computer spielen</string>
     <string name="menu_item_first_move">Erster Zug</string>
     <string name="gameover_beginning">Zum ersten Zug</string>
     <string name="board_description">The Board</string>

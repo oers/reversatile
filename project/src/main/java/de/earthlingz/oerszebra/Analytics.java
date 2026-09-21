@@ -38,9 +38,58 @@ public class Analytics {
             new AlertDialog.Builder(app)
                     .setTitle(R.string.ask_analytics)
                     .setMessage(R.string.ask_analytics_help)
-                    .setPositiveButton(R.string.ask_analytics_accept, (dialog, which) -> Analytics.initSettings(app, true))
-                    .setNeutralButton(R.string.ask_analytics_deny, (dialog, which) -> Analytics.initSettings(app, false)).show();
+                    .setPositiveButton(R.string.ask_analytics_accept, (dialog, which) -> {
+                        Analytics.initSettings(app, true);
+                        askPlayMode(app);
+                    })
+                    .setNeutralButton(R.string.ask_analytics_deny, (dialog, which) -> {
+                        Analytics.initSettings(app, false);
+                        askPlayMode(app);
+                    }).show();
         }
+    }
+
+    // Second onboarding step, right after the analytics consent: lets a new
+    // user pick a sensible starting point instead of the raw default
+    // settings. Just pre-fills the existing engine-function/practice-mode
+    // preferences - no new persisted concept, everything stays changeable
+    // in Settings afterwards.
+    private static void askPlayMode(DroidZebra app) {
+        CharSequence[] labels = {
+                app.getString(R.string.onboarding_mode_analyze),
+                app.getString(R.string.onboarding_mode_vs_human),
+                app.getString(R.string.onboarding_mode_vs_computer)
+        };
+        new AlertDialog.Builder(app)
+                .setTitle(R.string.onboarding_mode_title)
+                .setCancelable(false)
+                .setItems(labels, (dialog, which) -> applyPlayModeChoice(app, which))
+                .show();
+    }
+
+    private static void applyPlayModeChoice(DroidZebra app, int which) {
+        final SharedPreferences settings =
+                app.getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        switch (which) {
+            case 0: // analyze games - human vs human, evals on so the board is informative right away
+                editor.putString(GlobalSettingsLoader.SETTINGS_KEY_FUNCTION,
+                        String.valueOf(GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN));
+                editor.putBoolean(GlobalSettingsLoader.SETTINGS_KEY_PRACTICE_MODE, true);
+                break;
+            case 1: // play locally vs. another human
+                editor.putString(GlobalSettingsLoader.SETTINGS_KEY_FUNCTION,
+                        String.valueOf(GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN));
+                editor.putBoolean(GlobalSettingsLoader.SETTINGS_KEY_PRACTICE_MODE, false);
+                break;
+            case 2: // play vs. the computer
+            default:
+                editor.putString(GlobalSettingsLoader.SETTINGS_KEY_FUNCTION,
+                        String.valueOf(GameSettingsConstants.FUNCTION_ZEBRA_BLACK));
+                editor.putBoolean(GlobalSettingsLoader.SETTINGS_KEY_PRACTICE_MODE, false);
+                break;
+        }
+        editor.apply();
     }
 
     private static void initSettings(DroidZebra app, boolean consent) {

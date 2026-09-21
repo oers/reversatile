@@ -78,6 +78,11 @@
     <string name="analysis_progress">Analyse du coup %1$d sur %2$d…</string>
     <string name="settings_analysis_drawer_side_title">Côté du panneau d\'analyse</string>
     <string name="settings_analysis_drawer_side_summary">Côté d\'ouverture du panneau d\'analyse</string>
+    <string name="settings_analysis_preferences">Analyse</string>
+    <string name="onboarding_mode_title">Que souhaitez-vous faire ?</string>
+    <string name="onboarding_mode_analyze">Analyser des parties</string>
+    <string name="onboarding_mode_vs_human">Jouer localement contre un ami</string>
+    <string name="onboarding_mode_vs_computer">Jouer contre l\'ordinateur</string>
     <string name="menu_item_first_move">Replay</string>
     <string name="gameover_beginning">Go to first Move</string>
     <string name="board_description">The Board</string>
