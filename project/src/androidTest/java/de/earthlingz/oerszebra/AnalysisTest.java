@@ -36,15 +36,19 @@ public class AnalysisTest extends BasicTest {
     // First four moves of the verified-legal sequence already used by
     // DroidZebraTest#testIssue79 - short on purpose, see getTestSearchDepth().
     private static final String SHORT_LEGAL_GAME = "E6F6C4D6";
+    private static final int SHORT_LEGAL_GAME_MOVES = 4;
 
-    private void loadGame(String moveText) throws InterruptedException {
+    // This is a mid-game position, not a finished game, so no Game Over
+    // dialog ever appears - wait for the move replay itself instead of
+    // waitForOpenendDialogs (which would poll forever here).
+    private void loadGame(String moveText, int expectedDisksPlayed) throws InterruptedException {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
         intent.setType("message/rfc822");
         intent.putExtra(Intent.EXTRA_TEXT, moveText);
 
         zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
-        waitForOpenendDialogs(false);
+        waitForDisksPlayed(expectedDisksPlayed, 10000);
     }
 
     private void waitForAnalysisResults(int expectedSize, long timeoutMillis) throws InterruptedException {
@@ -71,7 +75,7 @@ public class AnalysisTest extends BasicTest {
 
     @Test
     public void testAnalyzeGameProducesOneEvalPerMoveAndRestoresLiveGame() throws InterruptedException {
-        loadGame(SHORT_LEGAL_GAME);
+        loadGame(SHORT_LEGAL_GAME, SHORT_LEGAL_GAME_MOVES);
 
         GameState original = zebra.getGameState();
         int originalDisksPlayed = original.getDisksPlayed();
@@ -100,7 +104,7 @@ public class AnalysisTest extends BasicTest {
 
     @Test
     public void testCancellingAnalysisStillRestoresLiveGame() throws InterruptedException {
-        loadGame(SHORT_LEGAL_GAME);
+        loadGame(SHORT_LEGAL_GAME, SHORT_LEGAL_GAME_MOVES);
 
         GameState original = zebra.getGameState();
         int originalDisksPlayed = original.getDisksPlayed();
@@ -121,7 +125,7 @@ public class AnalysisTest extends BasicTest {
 
     @Test
     public void testJumpToMoveNavigatesBoardToThatPly() throws InterruptedException {
-        loadGame(SHORT_LEGAL_GAME);
+        loadGame(SHORT_LEGAL_GAME, SHORT_LEGAL_GAME_MOVES);
         int originalDisksPlayed = zebra.getGameState().getDisksPlayed();
 
         zebra.runOnUiThread(zebra::analyzeGame);
