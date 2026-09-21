@@ -83,8 +83,12 @@ jobs:
             set +e
             ./gradlew connectedCheck
             status=$?
-            set -e
-            adb logcat -d -s engine:D > "$GITHUB_WORKSPACE/engine-logcat.txt" || true
+            echo "gradle exit status: $status"
+            ADB="$ANDROID_HOME/platform-tools/adb"
+            if [ ! -x "$ADB" ]; then ADB=adb; fi
+            "$ADB" devices
+            "$ADB" logcat -d -s engine:D > "$GITHUB_WORKSPACE/engine-logcat.txt"
+            echo "logcat lines captured: $(wc -l < "$GITHUB_WORKSPACE/engine-logcat.txt")"
             exit $status
       - name: Print test results on failure
         if: failure()
