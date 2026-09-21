@@ -69,11 +69,23 @@ public class AnalysisTest extends BasicTest {
     // GameState is momentarily null while a new game is being (re)established
     // (e.g. right after firing the moves intent, before the engine hands back
     // the replayed GameState) - treat that as "not there yet" rather than NPEing.
+    //
+    // Also wait for zebra.getState() (GameStateBoardModel, what countSquares()
+    // and the score getters read) to reflect the same ply count: it mirrors the
+    // raw engine GameState asynchronously via the onBoard() callback, so it can
+    // still show the previous position for a moment after getDisksPlayed()
+    // already reports the new one (confirmed in CI: an assertion right after a
+    // bare disksPlayed wait saw 64 empty squares - the untouched starting board
+    // - even though disksPlayed already read 4). These test games never pass,
+    // so total discs is always 4 (the opening position) plus plies played.
     private void waitForDisksPlayed(int expected, long timeoutMillis) throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMillis;
+        int expectedDiscs = 4 + expected;
         while (System.currentTimeMillis() < deadline) {
             GameState gameState = zebra.getGameState();
-            if (gameState != null && gameState.getDisksPlayed() == expected) {
+            if (gameState != null && gameState.getDisksPlayed() == expected
+                    && zebra.getState().getBlackScore() + zebra.getState().getWhiteScore()
+                            == expectedDiscs) {
                 return;
             }
             Thread.sleep(100);

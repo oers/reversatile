@@ -973,10 +973,16 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         if (current == targetDisksPlayed) {
             return;
         }
-        if (targetDisksPlayed < current) {
-            undo();
-        } else {
-            redo();
+        // Only fire once the engine is actually able to take it - undo()/redo()
+        // silently no-op otherwise, so firing blindly wastes a step every time
+        // the engine is still busy (e.g. running practice mode's post-move eval
+        // search) and needlessly stretches out how long this takes to converge.
+        if (engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
+            if (targetDisksPlayed < current) {
+                undo();
+            } else {
+                redo();
+            }
         }
         mBoardView.postDelayed(() -> stepTowardMove(targetDisksPlayed), 100);
     }
