@@ -1363,7 +1363,7 @@ middle_game( int side_to_move, int max_depth,
 
     /* Update the stored scores */
 
-    if ( (!stage_reached[base_stage + depth] || full_length_line) &&
+    if ((base_stage + depth > 0 && base_stage + depth < 62) && (!stage_reached[base_stage + depth] || full_length_line) &&
 	 update_evals ) {
       stage_reached[base_stage + depth] = TRUE;
       if ( side_to_move == BLACKSQ )
@@ -1375,7 +1375,7 @@ middle_game( int side_to_move, int max_depth,
     /* Adjust the eval for oscillations odd/even by simply averaging the
        last two stages (if they are available). */
 
-    if ( stage_reached[base_stage + depth] &&
+    if ((base_stage + depth > 0 && base_stage + depth < 62) && stage_reached[base_stage + depth] &&
 	 stage_reached[base_stage + depth - 1] && update_evals ) {
       if ( side_to_move == BLACKSQ )
 	adjusted_val = (stage_score[base_stage + depth] +

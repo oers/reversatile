@@ -101,7 +101,9 @@ void
 inherit_move_lists( int stage ) {
   int i;
   int last;
-
+    if(stage >= 61 || stage < 0) {
+        return;
+    }
   if ( list_inherited[stage] )
     return;
   list_inherited[stage] = TRUE;

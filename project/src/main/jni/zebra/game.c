@@ -259,6 +259,10 @@ setup_game( const char *file_name, int *side_to_move ) {
     else
       fatal_error( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[0],
 		   GAME_FILE_TEXT);
+    if (board[45] == EMPTY || board[54] == EMPTY || board[44] == EMPTY || board[55] == EMPTY) {
+        // various pieces of the program are not ready for this, even though we have end solve routines for it
+        fatal_error( "Initial squares (d4, e4, d5, e5) from the board file should not be empty.\n");
+    }
   }
   disks_played = disc_count( BLACKSQ ) + disc_count( WHITESQ ) - 4;
 
