@@ -18,7 +18,15 @@ class BasicTest {
 
     @Before
     public void init() throws InterruptedException {
-        GlobalSettingsLoader.testSearchDepth = "10|10|0";
+        // Shallow on purpose: none of these tests assert on evaluation quality,
+        // and practice mode (on by default) recomputes evals for every legal
+        // move after every human-vs-human position change - including undo/
+        // redo and the WThor replay tests' many per-move steps. At a deeper
+        // depth those searches piled up enough under CI load to make replay
+        // steps miss their wait windows late in a game (seen in CI: WThor
+        // redo/move-by-move replay consistently landing one move short right
+        // at the end of longer games).
+        GlobalSettingsLoader.testSearchDepth = "1|1|1";
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
         while (zebra == null && !zebra.initialized()) {

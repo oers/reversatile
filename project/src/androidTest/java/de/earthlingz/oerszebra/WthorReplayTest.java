@@ -286,7 +286,7 @@ public class WthorReplayTest extends BasicTest {
 
     private void playMoveAndWait(Move move, int moveIndex, String expectedMoves, int gameIndex,
                                  boolean finalMove) throws InterruptedException {
-        long timeout = System.currentTimeMillis() + (finalMove ? 10_000 : 60_000);
+        long timeout = System.currentTimeMillis() + (finalMove ? 30_000 : 60_000);
         long nextSendAt = 0;
         while (System.currentTimeMillis() < timeout) {
             if (hasMoveSequence(expectedMoves)) {
