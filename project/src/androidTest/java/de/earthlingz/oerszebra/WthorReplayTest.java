@@ -80,6 +80,14 @@ public class WthorReplayTest extends BasicTest {
         assertEquals("Unexpected WThor game count", gameCount,
                 (file.length - HEADER_SIZE) / GAME_RECORD_SIZE);
 
+        // Captured before any WThor game is loaded - the app's default
+        // fresh-game board, i.e. the standard Othello starting position
+        // (4 center discs, everything else empty). Used below (UNDO_AND_REDO
+        // only) to check whether undoing all the way back to ply 0 actually
+        // restores this exact position, or whether unmake_move() itself
+        // already leaves the board subtly wrong before any redo even starts.
+        byte[][] pristineStartBoard = mode == ReplayMode.UNDO_AND_REDO ? captureBoard() : null;
+
         int gamesToRun = getGameLimit(gameCount);
         for (int gameIndex = 0; gameIndex < gamesToRun; gameIndex++) {
             String moves = decodeGame(file, gameIndex);
@@ -108,7 +116,7 @@ public class WthorReplayTest extends BasicTest {
                     // run), so a mismatch after undo+redo can be pinned down
                     // to specific squares instead of just "score is wrong".
                     byte[][] originalBoard = captureBoard();
-                    undoAndRedoGame(moves, gameIndex, file, originalBoard);
+                    undoAndRedoGame(moves, gameIndex, file, originalBoard, pristineStartBoard);
                     break;
             }
 
@@ -243,7 +251,8 @@ public class WthorReplayTest extends BasicTest {
                 + "Actual moves: " + actualMoves);
     }
 
-    private void undoAndRedoGame(String moves, int gameIndex, byte[] file, byte[][] originalBoard)
+    private void undoAndRedoGame(String moves, int gameIndex, byte[] file, byte[][] originalBoard,
+                                  byte[][] pristineStartBoard)
             throws InterruptedException {
         dismissOpenDialogIfPresent();
         for (int offset = moves.length() - 2; offset >= 0; offset -= 2) {
@@ -260,6 +269,16 @@ public class WthorReplayTest extends BasicTest {
         Log.i("WthorReplayTest", "WThor game " + gameIndex
                 + " undo phase complete, engine state=" + zebra.getEngineState()
                 + " - starting redo phase");
+        // If undoing all 58 plies doesn't restore the exact standard
+        // starting position, unmake_move() itself already leaves the board
+        // wrong before any redo/make_move is even involved - narrows the
+        // later final-score mismatch down to "broken by undo" vs
+        // "broken by redo" instead of just "broken somewhere in between".
+        String postUndoDiff = diffBoards(pristineStartBoard, captureBoard());
+        if (!"<no differing squares>".equals(postUndoDiff)) {
+            fail("WThor game " + gameIndex + " board after undoing all the way to ply 0 does "
+                    + "not match the standard starting position: " + postUndoDiff);
+        }
 
         for (int offset = 2; offset <= moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset);
