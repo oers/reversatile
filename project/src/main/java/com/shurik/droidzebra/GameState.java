@@ -24,22 +24,18 @@ public class GameState {
     private GameStateListener handler = new GameStateListener() {
     };
 
-    private final Map<Integer, Integer> rotateMap;
-
     @Deprecated
     public //Creates insonsistent instance
     GameState(int boardSize, List<Move> moves) {
         this.disksPlayed = moves.size();
         this.moveSequence = toBytesWithBoardSize(moves, boardSize);
         byteBoard = new ByteBoard(boardSize);
-        rotateMap = initRotateMap(boardSize);
     }
 
     public GameState(int boardSize) {
         this.disksPlayed = 0;
         this.moveSequence = new byte[2 * boardSize * boardSize];
         byteBoard = new ByteBoard(boardSize);
-        rotateMap = initRotateMap(boardSize);
     }
 
     @Deprecated
@@ -49,7 +45,6 @@ public class GameState {
         this.disksPlayed = movesPlayed;
         this.moveSequence = Arrays.copyOf(moves, boardByteLength(boardSize));
         byteBoard = new ByteBoard(boardSize);
-        rotateMap = initRotateMap(boardSize);
     }
 
 
@@ -208,30 +203,6 @@ public class GameState {
         return sbMoves.toString();
     }
 
-    public byte[] rotate() {
-        return rotateSequence(moveSequence);
-    }
-
-    private byte[] rotateSequence(byte[] moveSequence) {
-        byte[] result = new byte[disksPlayed];
-        for(int i = 0; i < disksPlayed; i++) {
-            result[i] = rotateBoardField(moveSequence[i]);
-        }
-        return result;
-    }
-
-    private byte rotateBoardField(byte field) {
-        if(field <= 0) { //pass and empty
-            return field;
-        }
-        int column = field / 10;
-        int row = field % 10;
-
-        int toRow = byteBoard.size() +1 - row;
-        int toColumn = byteBoard.size() +1 - column;
-        return (byte)(toColumn*10 + toRow);
-    }
-
     void updateGameState(int sideToMove, int disksPlayed, String blackTime, float blackEval, int blackDiscCount, String whiteTime, float whiteEval, int whiteDiscCOunt, MoveList blackMoveList, MoveList whiteMoveList, ByteBoard byteBoard) {
         this.byteBoard = byteBoard;
         this.sideToMove = sideToMove;
@@ -289,21 +260,6 @@ public class GameState {
             }
         }
         return null;
-    }
-
-    private Map<Integer,Integer> initRotateMap(int boardSize) {
-        Map<Integer, Integer> tm = new TreeMap<>();
-        for(int row = 1; row <= boardSize /2; row++) {
-            for(int column = 1; column <= boardSize; column++) {
-                int from = (row -1) * (boardSize) + column;
-                int toRow = boardSize +1 - row;
-                int toColumn = boardSize +1 - column;
-                int to = (toRow -1) * (boardSize) + toColumn;
-                tm.put(from , to);
-                tm.put(to, from);
-            }
-        }
-        return tm;
     }
 
 }

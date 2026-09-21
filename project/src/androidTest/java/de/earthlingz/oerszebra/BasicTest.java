@@ -48,6 +48,16 @@ class BasicTest {
         return false;
     }
 
+    // Polls until the board reaches the expected square count or the timeout
+    // elapses, instead of guessing a fixed sleep duration - undo/redo board
+    // updates arrive asynchronously from the native engine thread.
+    void waitForSquareCount(byte color, int expectedCount, long timeoutMillis) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMillis;
+        while (countSquares(color) != expectedCount && System.currentTimeMillis() < deadline) {
+            Thread.sleep(100);
+        }
+    }
+
     int countSquares(byte color) {
         GameStateBoardModel state = this.zebra.getState();
         int result = 0;
