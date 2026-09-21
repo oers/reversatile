@@ -357,7 +357,7 @@ public class WthorReplayTest extends BasicTest {
             if (offset < moves.length()) {
                 sendRedoUntilApplied(expectedMoves, gameIndex);
             } else {
-                sendFinalRedoUntilApplied(file, gameIndex, originalBoard);
+                sendFinalRedoUntilApplied(file, gameIndex, originalBoard, expectedColor);
             }
             // Mirrors the undo-phase per-call check above: does the square
             // this redo call just placed actually show the mover's color?
@@ -423,12 +423,23 @@ public class WthorReplayTest extends BasicTest {
     // Fire once and give it a single generous wait instead of racing retries.
     private static final long UNDO_REDO_TIMEOUT_MILLIS = 20_000;
 
-    private void sendFinalRedoUntilApplied(byte[] file, int gameIndex, byte[][] originalBoard)
+    private void sendFinalRedoUntilApplied(byte[] file, int gameIndex, byte[][] originalBoard,
+                                            byte expectedFinalMoveColor)
             throws InterruptedException {
         int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
         int expectedBlackScore = file[offset + 6] & 0xff;
         int expectedWhiteScore = 64 - expectedBlackScore;
         ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
+        // If a pass happened anywhere in the preceding 57 plies without our
+        // pure odd=BLACK/even=WHITE alternation assumption noticing (the
+        // per-call checks only verify each move's own target square color,
+        // which stays right even if a *later* move's expected mover is
+        // miscalculated), sideToMoveBeforeCall diverging from
+        // expectedFinalMoveColor here would be the tell - and would mean
+        // the "move sequence" string itself has one fewer real move than
+        // plies, throwing off every ply/expectedColor computed from string
+        // position alone.
+        byte sideToMoveBeforeCall = (byte) zebra.getGameState().getSideToMove();
         zebra.runOnUiThread(zebra::redo);
         if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, UNDO_REDO_TIMEOUT_MILLIS)) {
             return;
@@ -448,6 +459,8 @@ public class WthorReplayTest extends BasicTest {
                 + removePasses(zebra.getGameState().getMoveSequenceAsString())
                 + ", engine state before redo()/now: " + stateBeforeCall
                 + "/" + zebra.getEngineState()
+                + ", side to move before final redo: " + fieldName(sideToMoveBeforeCall)
+                + " (expected " + fieldName(expectedFinalMoveColor) + ")"
                 + ", board diff vs. original playthrough: "
                 + diffBoards(originalBoard, captureBoard()));
     }
