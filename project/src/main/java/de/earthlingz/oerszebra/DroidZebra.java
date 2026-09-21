@@ -923,7 +923,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     private void updateAnalysisDrawer(List<MoveEval> results, boolean autoOpen) {
         if (analysisAdapter != null) {
-            analysisAdapter.setItems(results);
+            // Newest move first: as analysis progresses the latest evaluated
+            // ply appears at the top instead of pushing older ones further
+            // and further out of view.
+            List<MoveEval> newestFirst = new ArrayList<>(results);
+            Collections.reverse(newestFirst);
+            analysisAdapter.setItems(newestFirst);
         }
         if (analysisDrawerHandle != null && !results.isEmpty()) {
             analysisDrawerHandle.setVisibility(View.VISIBLE);
