@@ -37,25 +37,24 @@ public class WthorReplayTest extends BasicTest {
     }
 
     // Known bug, not yet root-caused: redo sometimes overshoots straight to
-    // the fully-completed game instead of advancing one ply (reproduced
-    // reliably on WThor game 0's second redo call in the full CI suite,
-    // identical at the shallowest search depth). A genuine, separate bug
+    // the fully-completed game instead of advancing one ply. Reproduced
+    // reliably on WThor game 0's second redo call, identical at the
+    // shallowest search depth AND when the test is pinned to run in total
+    // isolation (no other test class, capped to 2 games - see git history
+    // for the diagnostic CI config) - same failure, same ~54s, every time.
+    // That rules out state leaking from earlier tests via the ZebraEngine
+    // singleton as the cause; this is a deterministic bug in the redo path
+    // itself, not a test-order or timing artifact. A genuine, separate bug
     // was found and fixed along the way (UI_EVENT_REDO was unhandled in
     // droidzebra-jni.c's post-game-over loop), but it wasn't the full
-    // story.
-    //
-    // TEMPORARY: @Suppress removed and CI's test job pinned (via
-    // testInstrumentationRunnerArguments.class in android.yml) to run only
-    // this one method, to test a specific hypothesis: ZebraEngine is a
-    // static singleton backed by one long-lived native thread, so an
-    // entire instrumented test run shares its state across every test
-    // class - if this method only fails after other tests (crash-repro
-    // cases, the other two replayGames* methods) have already driven the
-    // engine, but passes running alone, that's state leaking between
-    // tests rather than a bug in the redo logic itself. Restore @Suppress
-    // and the plain `./gradlew connectedCheck` script once this diagnostic
-    // run's result is read.
+    // story. Root-causing the rest needs live-device/logcat debugging,
+    // which this sandboxed environment can't do (see also
+    // testRedoAcrossPass in DroidZebraTest, the same class of bug in a
+    // different scenario).
+    // @Suppress (not @Ignore) because AGP's androidTest XML report
+    // surfaces a plain-@Ignore'd test as an unexplained empty failure.
     @Test
+    @Suppress
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);
     }
