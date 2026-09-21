@@ -79,7 +79,7 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.wthorGameLimit=all
+          script: ./gradlew connectedCheck
       - name: Print test results on failure
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;

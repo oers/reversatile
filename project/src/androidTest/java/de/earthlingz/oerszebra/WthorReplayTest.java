@@ -63,9 +63,11 @@ public class WthorReplayTest extends BasicTest {
                     break;
             }
 
-            if (mode == ReplayMode.MOVE_BY_MOVE || mode == ReplayMode.UNDO_AND_REDO) {
-                waitForGameScore(file, gameIndex);
-            }
+            // The score shown via zebra.getState() (GameStateBoardModel) is updated
+            // asynchronously from the raw engine GameState the wait-for-replay helpers
+            // above poll on, so it can still lag behind right after they return -
+            // including in FAST mode, which used to skip this and read a stale score.
+            waitForGameScore(file, gameIndex);
             assertGameScore(file, gameIndex);
         }
     }
@@ -176,16 +178,24 @@ public class WthorReplayTest extends BasicTest {
         dismissOpenDialogIfPresent();
     }
 
+    // A single undo()/redo() call is only guaranteed to be picked up once the
+    // engine is back in ES_USER_INPUT_WAIT (ZebraEngine#undoMove/redoMove
+    // silently no-op otherwise, same as the manual toolbar buttons). Firing a
+    // second undo()/redo() before the first one's board update lands - e.g.
+    // because practice mode's post-move eval search made it slower than a
+    // short per-attempt timeout - advances the game by an extra ply instead
+    // of retrying the same one, which showed up in CI as moves being skipped.
+    // Fire once and give it a single generous wait instead of racing retries.
+    private static final long UNDO_REDO_TIMEOUT_MILLIS = 20_000;
+
     private void sendFinalRedoUntilApplied(byte[] file, int gameIndex)
             throws InterruptedException {
         int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
         int expectedBlackScore = file[offset + 6] & 0xff;
         int expectedWhiteScore = 64 - expectedBlackScore;
-        for (int attempt = 1; attempt <= 3; attempt++) {
-            zebra.runOnUiThread(zebra::redo);
-            if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, 5_000)) {
-                return;
-            }
+        zebra.runOnUiThread(zebra::redo);
+        if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, UNDO_REDO_TIMEOUT_MILLIS)) {
+            return;
         }
         fail("WThor game " + gameIndex + " final redo did not update the score. "
                 + "Expected: " + expectedBlackScore + "/" + expectedWhiteScore
@@ -197,24 +207,18 @@ public class WthorReplayTest extends BasicTest {
 
     private void sendUndoUntilApplied(String expectedMoves, int gameIndex)
             throws InterruptedException {
-        for (int attempt = 1; attempt <= 3; attempt++) {
-            zebra.runOnUiThread(zebra::undo);
-            if (tryWaitForMoveSequence(expectedMoves, 5_000)) {
-                return;
-            }
+        zebra.runOnUiThread(zebra::undo);
+        if (!tryWaitForMoveSequence(expectedMoves, UNDO_REDO_TIMEOUT_MILLIS)) {
+            waitForMoveSequence(expectedMoves, gameIndex);
         }
-        waitForMoveSequence(expectedMoves, gameIndex);
     }
 
     private void sendRedoUntilApplied(String expectedMoves, int gameIndex)
             throws InterruptedException {
-        for (int attempt = 1; attempt <= 3; attempt++) {
-            zebra.runOnUiThread(zebra::redo);
-            if (tryWaitForMoveSequence(expectedMoves, 5_000)) {
-                return;
-            }
+        zebra.runOnUiThread(zebra::redo);
+        if (!tryWaitForMoveSequence(expectedMoves, UNDO_REDO_TIMEOUT_MILLIS)) {
+            waitForMoveSequence(expectedMoves, gameIndex);
         }
-        waitForMoveSequence(expectedMoves, gameIndex);
     }
 
     private boolean tryWaitForMoveSequence(String expectedMoves, long timeoutMillis)
@@ -271,9 +275,19 @@ public class WthorReplayTest extends BasicTest {
                 + ", actual: " + actualMoves);
     }
 
+    // Re-sending onMakeMove every poll tick raced the engine: a move that was
+    // genuinely accepted but just hadn't propagated to getMoveSequenceAsString()
+    // yet (e.g. while practice mode's post-move eval search was still running)
+    // got sent again, and if that stray tap landed on a still-legal square in
+    // the meantime it played an extra, wrong move - producing exactly the kind
+    // of "actual diverges from expected" failures seen in CI. Only re-send
+    // after giving a single attempt real time to land.
+    private static final long MOVE_RESEND_INTERVAL_MILLIS = 2_000;
+
     private void playMoveAndWait(Move move, int moveIndex, String expectedMoves, int gameIndex,
                                  boolean finalMove) throws InterruptedException {
-        long timeout = System.currentTimeMillis() + (finalMove ? 5_000 : 30_000);
+        long timeout = System.currentTimeMillis() + (finalMove ? 10_000 : 60_000);
+        long nextSendAt = 0;
         while (System.currentTimeMillis() < timeout) {
             if (hasMoveSequence(expectedMoves)) {
                 return;
@@ -283,9 +297,10 @@ public class WthorReplayTest extends BasicTest {
             }
             if (hasOpenDialog()) {
                 confirmPassDialog();
+            } else if (System.currentTimeMillis() >= nextSendAt) {
+                zebra.runOnUiThread(() -> zebra.onMakeMove(move));
+                nextSendAt = System.currentTimeMillis() + MOVE_RESEND_INTERVAL_MILLIS;
             }
-
-            zebra.runOnUiThread(() -> zebra.onMakeMove(move));
             Thread.sleep(50);
         }
         if (finalMove) {
