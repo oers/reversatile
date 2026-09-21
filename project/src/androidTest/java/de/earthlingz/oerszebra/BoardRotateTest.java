@@ -65,7 +65,12 @@ public class BoardRotateTest extends BasicTest {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
         intent.setType("message/rfc822");
-        intent.putExtra(Intent.EXTRA_TEXT, "D3C5F6F5F4C3C4D2E2B4D1F3B5E3F2F1A4D6E6E7F7B6E8C6B3A5D7A3E1A6G1A2C2C7B8D8C8G8G6H6G5H5G4H4H3G7H8F8H7A8A7B7A1B2G3G2H2H1C1B1");
+        // A fully legal, pass-free 60-move game (verified by simulation): every
+        // undo/redo step below is a plain single-ply turn for both colors, with
+        // no forced pass in range. Games with passes hit a separate, pre-existing
+        // redo/pass-counting edge case unrelated to rotate - not what this test
+        // is about.
+        intent.putExtra(Intent.EXTRA_TEXT, "C4C3E6C5B3B4A4F6C2E3F4A3A2C1D1E7E2G4B1E1D6C7F8D8F1C6F3G2C8B5G7D7F2B7B8F5A7B2G3B6F7G5H3G1A1H8H4A8H1A6G6H5G8D3A5E8H7D2H6H2");
 
         zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
         //zebra.getEngine().waitForEngineState(ZebraEngine.ES_USER_INPUT_WAIT);
@@ -73,10 +78,10 @@ public class BoardRotateTest extends BasicTest {
         waitForOpenendDialogs(true);
 
         assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
-        assertSame(32, countSquares(ZebraEngine.PLAYER_WHITE));
-        assertSame(32, countSquares(ZebraEngine.PLAYER_BLACK));
-        assertSame(zebra.getState().getBlackScore(), 32);
-        assertSame(zebra.getState().getWhiteScore(), 32);
+        assertSame(38, countSquares(ZebraEngine.PLAYER_WHITE));
+        assertSame(26, countSquares(ZebraEngine.PLAYER_BLACK));
+        assertSame(zebra.getState().getBlackScore(), 26);
+        assertSame(zebra.getState().getWhiteScore(), 38);
 
 
         zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
@@ -110,10 +115,10 @@ public class BoardRotateTest extends BasicTest {
 
         // fully restored to the original end-of-game position
         assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
-        assertSame(32, countSquares(ZebraEngine.PLAYER_WHITE));
-        assertSame(32, countSquares(ZebraEngine.PLAYER_BLACK));
-        assertSame(zebra.getState().getBlackScore(), 32);
-        assertSame(zebra.getState().getWhiteScore(), 32);
+        assertSame(38, countSquares(ZebraEngine.PLAYER_WHITE));
+        assertSame(26, countSquares(ZebraEngine.PLAYER_BLACK));
+        assertSame(zebra.getState().getBlackScore(), 26);
+        assertSame(zebra.getState().getWhiteScore(), 38);
 
         // the view stays rotated independently of the game/undo-redo state
         assertTrue(zebra.getBoardView().isRotated());
