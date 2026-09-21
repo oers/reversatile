@@ -79,20 +79,10 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          script: |
-            set +e
-            ./gradlew connectedCheck
-            EXIT_CODE=$?
-            which adb
-            adb logcat -d > "$GITHUB_WORKSPACE/logcat-full.txt" 2>&1
-            wc -l "$GITHUB_WORKSPACE/logcat-full.txt"
-            exit $EXIT_CODE
+          script: ./gradlew connectedCheck
       - name: Print test results on failure
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;
-      - name: Print engine debug logcat on failure
-        if: failure()
-        run: grep -i "engine\b" "$GITHUB_WORKSPACE/logcat-full.txt" | tail -300
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
