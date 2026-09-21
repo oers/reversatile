@@ -470,14 +470,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 reachedDepth = gameState.getReachedDepth();
                 moveNumber = gameState.getDisksPlayed();
             }
-            String state = "IDLE";
+            String state = getString(R.string.status_state_idle);
             if(engine != null ) {
                 switch (engine.getState()) {
                     case ES_PLAY_IN_PROGRESS:
-                        state = "Thinking";
+                        state = getString(R.string.status_state_thinking);
                         break;
                     default:
-                        state = "Idle";
+                        state = getString(R.string.status_state_idle);
                 }
             }
             viewById.setText(
@@ -511,25 +511,27 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         Analytics.converse("send_mail", null);
 
         //get BlackPlayer and WhitePlayer
+        String playerLabel = getResources().getString(R.string.player_label);
+        String enginePrefix = getResources().getString(R.string.app_name) + "-";
         switch (settingsProvider.getSettingFunction()) { //TODO this might cause a problem, because settings provider is not a source of truth here. It should be taken from ZebraEngine
             case FUNCTION_HUMAN_VS_HUMAN:
-                sbBlackPlayer.append("Player");
-                sbWhitePlayer.append("Player");
+                sbBlackPlayer.append(playerLabel);
+                sbWhitePlayer.append(playerLabel);
                 break;
             case FUNCTION_ZEBRA_BLACK:
-                sbBlackPlayer.append("DroidZebra-");
+                sbBlackPlayer.append(enginePrefix);
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepth());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthExact());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthWLD());
 
-                sbWhitePlayer.append("Player");
+                sbWhitePlayer.append(playerLabel);
                 break;
             case FUNCTION_ZEBRA_WHITE:
-                sbBlackPlayer.append("Player");
+                sbBlackPlayer.append(playerLabel);
 
-                sbWhitePlayer.append("DroidZebra-");
+                sbWhitePlayer.append(enginePrefix);
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepth());
                 sbWhitePlayer.append("/");
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepthExact());
@@ -537,14 +539,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepthWLD());
                 break;
             case FUNCTION_ZEBRA_VS_ZEBRA:
-                sbBlackPlayer.append("DroidZebra-");
+                sbBlackPlayer.append(enginePrefix);
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepth());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthExact());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthWLD());
 
-                sbWhitePlayer.append("DroidZebra-");
+                sbWhitePlayer.append(enginePrefix);
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepth());
                 sbWhitePlayer.append("/");
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepthExact());
@@ -671,9 +673,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         Analytics.error(msg, gameState);
         runOnUiThread(DroidZebra.this::startNewGameAndResetUI);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        alertDialog.setTitle("Zebra Error");
+        alertDialog.setTitle(R.string.dialog_error_title);
         alertDialog.setMessage(msg);
-        alertDialog.setPositiveButton("OK", (dialog, id) -> alert = null);
+        alertDialog.setPositiveButton(R.string.dialog_ok, (dialog, id) -> alert = null);
         runOnUiThread(() -> alert = new WeakReference<>(alertDialog.show()));
     }
 

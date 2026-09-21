@@ -6,9 +6,15 @@
     <string name="dialog_quit_button_quit">Verlassen</string>
     <string name="dialog_ok">OK</string>
     <string name="dialog_pass_text">Du musst aussetzen</string>
+    <string name="dialog_error_title">Zebra-Fehler</string>
+    <string name="guess_move_generating_game_title">Spiel wird erzeugt</string>
     <string name="dialog_quit_button_cancel">Abbrechen</string>
     <string name="dialog_quit_title">Bist du sicher?</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$s)%nMid: %1$d Exact: %2$d</string>
+    <string name="status_state_idle">Bereit</string>
+    <string name="status_state_thinking">Denkt nach</string>
+    <string name="player_label">Spieler</string>
+    <string name="status_opening_placeholder">Eröffnung</string>
     <string name="gameover_choices_cancel">Brett anzeigen</string>
     <string name="gameover_choices_email">Senden/Teilen</string>
     <string name="gameover_choices_new_game">Neues Spiel</string>

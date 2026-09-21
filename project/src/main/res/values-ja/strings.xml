@@ -59,10 +59,16 @@
     <string name="dialog_quit_button_cancel">キャンセル</string>
     <string name="dialog_busy_message">&quot;まだ考え中です&#8230; タッチ操作で割り込みします&quot;</string>
     <string name="dialog_pass_text">あなたはパスです</string>
+    <string name="dialog_error_title">Zebraエラー</string>
+    <string name="guess_move_generating_game_title">対局を生成中</string>
     <string name="dialog_ok">OK</string>
     <string name="menu_item_mail">送信/共有</string>
     <string name="spash_layout_message_2">(しばらくお待ちください)</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$s)%nMid: %1$d Exact: %2$d</string>
+    <string name="status_state_idle">待機中</string>
+    <string name="status_state_thinking">思考中</string>
+    <string name="player_label">プレイヤー</string>
+    <string name="status_opening_placeholder">オープニング</string>
     <string name="settings_title">設定</string>
     <string name="mail_generated">作成：DroidZebra (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">日付:</string>

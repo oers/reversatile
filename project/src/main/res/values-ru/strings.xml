@@ -59,10 +59,16 @@
     <string name="dialog_quit_button_cancel">Отмена</string>
     <string name="dialog_busy_message">&quot;Еще думаю&#8230; Нажмите любую клавишу или коснитесь экрана чтобы остановить поиск&quot;</string>
     <string name="dialog_pass_text">Вы пропускаете ход</string>
+    <string name="dialog_error_title">Ошибка Zebra</string>
+    <string name="guess_move_generating_game_title">Создание партии</string>
     <string name="dialog_ok">OK</string>
     <string name="menu_item_mail">Отправить</string>
     <string name="spash_layout_message_2">(это займет немного времени)</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$s)%nMid: %1$d Exact: %2$d</string>
+    <string name="status_state_idle">Ожидание</string>
+    <string name="status_state_thinking">Думает</string>
+    <string name="player_label">Игрок</string>
+    <string name="status_opening_placeholder">Дебют</string>
     <string name="settings_title">Настройки</string>
     <string name="mail_generated">Сгенерировано с помощью Reversatile (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">Дата:</string>

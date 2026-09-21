@@ -57,10 +57,16 @@
     <string name="dialog_quit_button_cancel">Annuler</string>
     <string name="dialog_busy_message">&quot;Analyse en cours&#8230; Pressez une touche ou cliquez pour interrompre&quot;</string>
     <string name="dialog_pass_text">Vous passez</string>
+    <string name="dialog_error_title">Erreur Zebra</string>
+    <string name="guess_move_generating_game_title">Génération de la partie</string>
     <string name="dialog_ok">OK</string>
     <string name="menu_item_mail">Envoyer/Partager</string>
     <string name="spash_layout_message_2">(ceci peut prendre du temps)</string>
     <string name="display_depth">Move %4$d%nState: %5$s (%3$s)%nMid: %1$d Exact: %2$d</string>
+    <string name="status_state_idle">Inactif</string>
+    <string name="status_state_thinking">Réflexion</string>
+    <string name="player_label">Joueur</string>
+    <string name="status_opening_placeholder">Ouverture</string>
     <string name="settings_title">Paramètres</string>
     <string name="mail_generated">Généré par Reversatile (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra)</string>
     <string name="mail_date">Date:</string>
