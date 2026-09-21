@@ -243,12 +243,14 @@ setup_game( const char *file_name, int *side_to_move ) {
 	  break;
 	default:
 #if TEXT_BASED
-	  printf( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[pos],
+          if (buffer[token] != '\0') // Don't log if string ended
+	    printf( "%s '%c' %s\n", BAD_CHARACTER_ERROR, buffer[token],
 		  GAME_FILE_TEXT);
 #endif
 	  break;
 	}
-	token++;
+        if (buffer[token] != '\0') // Don't increment if string ended
+          token++;
       }
 
     fgets( buffer, 10, stream );
