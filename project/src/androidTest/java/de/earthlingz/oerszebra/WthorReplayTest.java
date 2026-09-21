@@ -92,6 +92,15 @@ public class WthorReplayTest extends BasicTest {
                     break;
                 case UNDO_AND_REDO:
                     playAndWaitForReplay(moves, gameIndex);
+                    // GameStateBoardModel (what captureBoard() reads) updates
+                    // asynchronously from the raw engine GameState that
+                    // playAndWaitForReplay polls on, same lag already noted
+                    // below for the post-loop score assertion - wait for it
+                    // to actually reach the known WThor score before treating
+                    // this snapshot as "the correct board", or a couple of
+                    // squares from the tail of the original playthrough can
+                    // still be mid-flight and pollute the later diff.
+                    waitForGameScore(file, gameIndex);
                     // Captured from the just-completed straight playthrough,
                     // before any undo happens - this is the known-correct
                     // final board (replayGamesFast/MoveByMove confirm this
