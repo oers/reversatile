@@ -272,6 +272,13 @@ public class WthorReplayTest extends BasicTest {
                                   byte[][] pristineStartBoard)
             throws InterruptedException {
         dismissOpenDialogIfPresent();
+        // Captured once undo is verified correct end-to-end (the per-call
+        // square check below, plus the pristine-position check after the
+        // loop) - gives a full expected board for every intermediate ply,
+        // not just the final ply (originalBoard) and the starting position
+        // (pristineStartBoard). Keyed by disksPlayed, since undoing the move
+        // at a given offset always lands on disksPlayed == offset / 2.
+        java.util.Map<Integer, byte[][]> boardsByPly = new java.util.HashMap<>();
         for (int offset = moves.length() - 2; offset >= 0; offset -= 2) {
             // The very last undo (offset 0, landing on the empty starting
             // position) used to fire without waiting for it to actually be
@@ -310,6 +317,7 @@ public class WthorReplayTest extends BasicTest {
                         + fieldName(fieldAfterUndo) + ". Move sequence now: "
                         + removePasses(zebra.getGameState().getMoveSequenceAsString()));
             }
+            boardsByPly.put(offset / 2, captureBoard());
         }
         Log.i("WthorReplayTest", "WThor game " + gameIndex
                 + " undo phase complete, engine state=" + zebra.getEngineState()
@@ -373,6 +381,32 @@ public class WthorReplayTest extends BasicTest {
                         + ") did not place " + fieldName(expectedColor) + " there - actual "
                         + fieldName(fieldAfterRedo) + ". Move sequence now: "
                         + removePasses(zebra.getGameState().getMoveSequenceAsString()));
+            }
+            // The own-square check above only proves this redo placed its
+            // own disc - it says nothing about the squares it should have
+            // flipped. Compare the *whole* board against the same ply
+            // captured during the undo pass (already proven correct by the
+            // per-call undo checks and the pristine-position check above),
+            // to catch a redo that gets its own square right but computes
+            // the wrong flip set - which is exactly how the final-ply-only
+            // 7-square diff (a5/a6/b4/b5/b6/c5/d5) could survive every
+            // per-square check above it and only surface at the very end.
+            if (offset < moves.length()) {
+                byte[][] expectedBoard = boardsByPly.get(ply);
+                String redoDiff = diffBoards(expectedBoard, captureBoard());
+                long redoDiffDeadline = System.currentTimeMillis() + 2_000;
+                while (!"<no differing squares>".equals(redoDiff)
+                        && System.currentTimeMillis() < redoDiffDeadline) {
+                    Thread.sleep(10);
+                    redoDiff = diffBoards(expectedBoard, captureBoard());
+                }
+                if (!"<no differing squares>".equals(redoDiff)) {
+                    fail("WThor game " + gameIndex + " redo of ply " + ply + " (" + redoneSquare
+                            + ") placed its own square correctly but the full board no longer "
+                            + "matches the same ply from the verified-correct undo pass: "
+                            + redoDiff + ". Move sequence now: "
+                            + removePasses(zebra.getGameState().getMoveSequenceAsString()));
+                }
             }
         }
 
