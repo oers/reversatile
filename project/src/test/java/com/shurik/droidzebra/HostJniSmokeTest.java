@@ -105,10 +105,18 @@ public class HostJniSmokeTest {
         ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
 
         AtomicReference<GameState> gameStateRef = new AtomicReference<>();
+        // OnGameStateReadyListener's method has a default body, so it isn't
+        // a functional interface (no abstract method) - a method reference
+        // doesn't compile against it, hence the anonymous class.
         engine.newGameBlocking(
                 new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
                         false, null, false, false, false, 0, 0, 0),
-                gameStateRef::set);
+                new ZebraEngine.OnGameStateReadyListener() {
+                    @Override
+                    public void onGameStateReady(GameState gameState) {
+                        gameStateRef.set(gameState);
+                    }
+                });
 
         long deadline = System.currentTimeMillis() + 20_000;
         while (gameStateRef.get() == null && System.currentTimeMillis() < deadline) {
