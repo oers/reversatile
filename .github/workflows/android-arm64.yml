@@ -1,21 +1,21 @@
-name: Build and Test (arm64, experimental)
+name: Build and Test (arm64, host JNI)
 
-# Runs a small subset of the androidTest suite against a genuine
-# arm64-v8a system image instead of the main workflow's x86 emulator.
-# GitHub-hosted runners have no KVM acceleration for a cross-architecture
-# (x86 host / arm64 guest) CPU, so this runs unaccelerated (QEMU TCG) -
-# slower, but it executes real arm64 machine code end to end through the
-# actual droidzebra-jni.c JNI entry points (via ZebraEngine's native
-# methods), unlike the main workflow's x86 emulator, which only gets
-# ARM correctness via app-level ABI translation. Kept as a separate,
-# capped-down job (a handful of WThor games, not the full 200) so an
-# unaccelerated run stays bounded; not yet proven to reliably boot on
-# GitHub-hosted infra, hence "experimental" and a generous but finite
-# timeout.
+# Exercises the real droidzebra-jni.c JNI entry points on genuine arm64
+# hardware, without an Android emulator at all.
 #
-# Lives on this PR (the Zebra engine sync) rather than the Analyze Game
-# feature PR, since this is exactly what it's meant to validate: real
-# arm64 execution of the just-resynced native engine.
+# We tried a real arm64-v8a Android emulator first (see git history): it
+# never boots on GitHub-hosted runners ("Timeout waiting for emulator to
+# boot"), matching a long-open upstream issue - GitHub's hosted runners
+# have no /dev/kvm for the Android emulator to use, arm64 host or not.
+#
+# Instead: project/hostjni/Makefile compiles the same JNI + zebra engine
+# sources Android.mk does, but for the host (glibc, system JDK's jni.h)
+# instead of the NDK (Bionic) - no Android runtime involved at all. A
+# plain JVM unit test (project/src/test/java/.../HostJniSmokeTest.java)
+# then loads that .so and drives ZebraEngine's real native methods
+# directly. Running that on an actual arm64 GitHub-hosted runner needs no
+# virtualization whatsoever - it's just a normal process on its own real
+# CPU, so none of the KVM/emulator problems above apply.
 
 on:
   push:
@@ -24,9 +24,9 @@ on:
     branches: [ development ]
 
 jobs:
-  test-arm64:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+  test-host-jni-arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -43,24 +43,19 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Enable KVM
-        run: |
-         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-         sudo udevadm control --reload-rules
-         sudo udevadm trigger --name-match=kvm
-      - name: run tests (arm64-v8a, unaccelerated)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          arch: arm64-v8a
-          ndk: 26.1.10909125
-          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.class=de.earthlingz.oerszebra.WthorReplayTest#replayGamesFast -Pandroid.testInstrumentationRunnerArguments.wthorGameLimit=5
-      - name: Print test results
-        if: failure()
-        run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;
+
+      - name: Install host build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential zlib1g-dev
+
+      - name: Build host libdroidzebra.so (arm64)
+        run: make -C project/hostjni
+
+      - name: run HostJniSmokeTest
+        run: ./gradlew test --tests "com.shurik.droidzebra.HostJniSmokeTest" --info
+
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-test-report-arm64
-          path: project/build/reports/androidTests/connected/
+          name: host-jni-test-report-arm64
+          path: project/build/reports/tests/

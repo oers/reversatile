@@ -950,6 +950,22 @@ public class ZebraEngine {
         );
     }
 
+    // Package-private: newGame() waits for ES_READY2PLAY via
+    // CompletionAsyncTask, which needs a Looper - unavailable outside an
+    // Android runtime. Plain-JVM tests (no emulator, no Android framework)
+    // use this instead: same effect, using the plain blocking
+    // waitForReadyToPlay() overload that's already used elsewhere in this
+    // class for non-AsyncTask waits.
+    void newGameBlocking(EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
+        this.onGameStateReadyListener = onGameStateReadyListener;
+        if (!isReadyToPlay()) {
+            stopGame();
+        }
+        waitForReadyToPlay();
+        loadConfig(engineConfig);
+        setEngineStatePlay();
+    }
+
     public void newGame(LinkedList<Move> fromMoves, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
         engine.setInitialGameState(fromMoves);
         newGame(engineConfig, onGameStateReadyListener);
