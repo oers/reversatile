@@ -66,9 +66,16 @@ public class AnalysisTest extends BasicTest {
         }
     }
 
+    // GameState is momentarily null while a new game is being (re)established
+    // (e.g. right after firing the moves intent, before the engine hands back
+    // the replayed GameState) - treat that as "not there yet" rather than NPEing.
     private void waitForDisksPlayed(int expected, long timeoutMillis) throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMillis;
-        while (zebra.getGameState().getDisksPlayed() != expected && System.currentTimeMillis() < deadline) {
+        while (System.currentTimeMillis() < deadline) {
+            GameState gameState = zebra.getGameState();
+            if (gameState != null && gameState.getDisksPlayed() == expected) {
+                return;
+            }
             Thread.sleep(100);
         }
     }

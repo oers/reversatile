@@ -951,18 +951,34 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * Navigates the live board to the position right after ply {@code targetDisksPlayed}
      * (as produced by {@link GameAnalyzer}), reusing the same undo/redo primitives as the
      * manual navigation buttons.
+     * <p>
+     * Steps one ply at a time instead of firing all the undo/redo calls back-to-back:
+     * {@code ZebraEngine#undoMove}/{@code redoMove} silently no-op unless the engine is
+     * back in {@code ES_USER_INPUT_WAIT} (the same guard the single-tap toolbar buttons
+     * rely on), so issuing several before the first one's board update lands drops all
+     * but the first.
      */
     void jumpToMove(int targetDisksPlayed) {
-        if (gameState == null || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
             return;
         }
-        int delta = targetDisksPlayed - gameState.getDisksPlayed();
-        for (int i = 0; i < -delta; i++) {
-            undo();
+        stepTowardMove(targetDisksPlayed);
+    }
+
+    private void stepTowardMove(int targetDisksPlayed) {
+        if (gameState == null) {
+            return;
         }
-        for (int i = 0; i < delta; i++) {
+        int current = gameState.getDisksPlayed();
+        if (current == targetDisksPlayed) {
+            return;
+        }
+        if (targetDisksPlayed < current) {
+            undo();
+        } else {
             redo();
         }
+        mBoardView.postDelayed(() -> stepTowardMove(targetDisksPlayed), 100);
     }
 
     @Override
