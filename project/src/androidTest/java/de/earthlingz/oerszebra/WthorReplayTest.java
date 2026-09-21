@@ -264,7 +264,35 @@ public class WthorReplayTest extends BasicTest {
             // silently dropped it, and the test just sat on two nested
             // timeouts (~50s) at the undo->redo transition before failing
             // with the state unchanged. Wait for it like all the others.
+            String undoneSquare = moves.substring(offset, offset + 2);
             sendUndoUntilApplied(moves.substring(0, offset), gameIndex);
+            // Bisects exactly which of the 58 undo calls first fails to
+            // clear its own square, instead of only learning "the board is
+            // wrong" after all of them - the board after undoing all the
+            // way to ply 0 was confirmed wrong (a stray disc at f5, move
+            // 1's square, plus a corrupted starting position), but that
+            // alone doesn't say whether every undo silently no-ops or only
+            // a specific one (e.g. the very last, row 1->0 transition) does.
+            int x = undoneSquare.charAt(0) - 'a';
+            int y = undoneSquare.charAt(1) - '1';
+            // GameStateBoardModel (what getFieldByte reads) updates
+            // asynchronously from the raw GameState that
+            // sendUndoUntilApplied/hasMoveSequence just waited on - give it
+            // a brief chance to catch up so a stale read doesn't look like
+            // a real failure to clear the square.
+            byte fieldAfterUndo = zebra.getState().getFieldByte(x, y);
+            long fieldWaitDeadline = System.currentTimeMillis() + 2_000;
+            while (fieldAfterUndo != ZebraEngine.PLAYER_EMPTY
+                    && System.currentTimeMillis() < fieldWaitDeadline) {
+                Thread.sleep(10);
+                fieldAfterUndo = zebra.getState().getFieldByte(x, y);
+            }
+            if (fieldAfterUndo != ZebraEngine.PLAYER_EMPTY) {
+                fail("WThor game " + gameIndex + " undo of ply " + (offset / 2 + 1)
+                        + " (" + undoneSquare + ") did not clear that square - still "
+                        + fieldName(fieldAfterUndo) + ". Move sequence now: "
+                        + removePasses(zebra.getGameState().getMoveSequenceAsString()));
+            }
         }
         Log.i("WthorReplayTest", "WThor game " + gameIndex
                 + " undo phase complete, engine state=" + zebra.getEngineState()
