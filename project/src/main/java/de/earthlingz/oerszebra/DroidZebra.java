@@ -948,54 +948,26 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     /**
-     * Navigates the live board to the position right after ply {@code targetDisksPlayed}
-     * (as produced by {@link GameAnalyzer}), reusing the same undo/redo primitives as the
-     * manual navigation buttons.
+     * Navigates the live board directly to the position right after ply
+     * {@code targetDisksPlayed} (as produced by {@link GameAnalyzer}).
      * <p>
-     * Steps one ply at a time instead of firing all the undo/redo calls back-to-back:
-     * {@code ZebraEngine#undoMove}/{@code redoMove} silently no-op unless the engine is
-     * back in {@code ES_USER_INPUT_WAIT} (the same guard the single-tap toolbar buttons
-     * rely on), so issuing several before the first one's board update lands drops all
-     * but the first.
-     * <p>
-     * A new call always wins over one still in flight: {@code navigationGeneration} is
-     * bumped up front, and each scheduled step abandons itself once it's no longer the
-     * current generation. Without this, a jump that finishes right as another one starts
-     * could leave its last scheduled step still pending; if that stale step then saw the
-     * board having moved on (from the new jump), it would fire an undo/redo of its own -
-     * fighting the new jump one step at a time, indefinitely, since each such tug leaves
-     * the stale step's own target unmet, so it keeps rescheduling itself forever.
+     * Restores it in one shot via the same "replay a move sequence up to N plies"
+     * mechanism already used to restore the live game after analysis, instead of
+     * stepping there one undo()/redo() at a time: with practice mode on (the
+     * default), every individual undo/redo pauses for a full post-move eval
+     * search before the next one can be issued, so walking e.g. 50 plies back
+     * one at a time at normal search depth could take minutes and looked like
+     * clicking a bar simply did nothing. A single replay only pauses for that
+     * search once, after landing on the target ply.
      */
-    private int navigationGeneration = 0;
-
     void jumpToMove(int targetDisksPlayed) {
-        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+        if (gameState == null || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
             return;
         }
-        int generation = ++navigationGeneration;
-        stepTowardMove(targetDisksPlayed, generation);
-    }
-
-    private void stepTowardMove(int targetDisksPlayed, int generation) {
-        if (generation != navigationGeneration || gameState == null) {
-            return;
+        if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null) {
+            analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
         }
-        int current = gameState.getDisksPlayed();
-        if (current == targetDisksPlayed) {
-            return;
-        }
-        // Only fire once the engine is actually able to take it - undo()/redo()
-        // silently no-op otherwise, so firing blindly wastes a step every time
-        // the engine is still busy (e.g. running practice mode's post-move eval
-        // search) and needlessly stretches out how long this takes to converge.
-        if (engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            if (targetDisksPlayed < current) {
-                undo();
-            } else {
-                redo();
-            }
-        }
-        mBoardView.postDelayed(() -> stepTowardMove(targetDisksPlayed, generation), 100);
+        startNewGameAndResetUI(targetDisksPlayed, gameState.exportMoveSequence());
     }
 
     @Override

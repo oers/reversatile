@@ -58,6 +58,9 @@
 		android:background="@color/board_color"
 		android:clipToPadding="false"
 		android:paddingTop="8dp"
-		android:paddingBottom="8dp" />
+		android:paddingBottom="8dp"
+		android:scrollbars="vertical"
+		android:scrollbarStyle="insideOverlay"
+		android:fadeScrollbars="false" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
