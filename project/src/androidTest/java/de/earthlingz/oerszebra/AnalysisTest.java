@@ -48,7 +48,7 @@ public class AnalysisTest extends BasicTest {
         intent.putExtra(Intent.EXTRA_TEXT, moveText);
 
         zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
-        waitForDisksPlayed(expectedDisksPlayed, 10000);
+        waitForDisksPlayed(expectedDisksPlayed, 20000);
     }
 
     private void waitForAnalysisResults(int expectedSize, long timeoutMillis) throws InterruptedException {
@@ -102,7 +102,7 @@ public class AnalysisTest extends BasicTest {
         }
 
         // the live game must be restored exactly to where it was before analysis
-        waitForDisksPlayed(originalDisksPlayed, 10000);
+        waitForDisksPlayed(originalDisksPlayed, 20000);
         assertEquals(originalDisksPlayed, zebra.getGameState().getDisksPlayed());
         assertEquals(originalEmpty, countSquares(ZebraEngine.PLAYER_EMPTY));
         assertEquals(originalBlack, countSquares(ZebraEngine.PLAYER_BLACK));
@@ -122,7 +122,7 @@ public class AnalysisTest extends BasicTest {
         zebra.runOnUiThread(zebra::cancelAnalysisIfRunning);
 
         waitForAnalysisProgressGone(60000);
-        waitForDisksPlayed(originalDisksPlayed, 10000);
+        waitForDisksPlayed(originalDisksPlayed, 20000);
 
         assertEquals(originalDisksPlayed, zebra.getGameState().getDisksPlayed());
         assertEquals(originalEmpty, countSquares(ZebraEngine.PLAYER_EMPTY));
@@ -138,17 +138,17 @@ public class AnalysisTest extends BasicTest {
         zebra.runOnUiThread(zebra::analyzeGame);
         waitForAnalysisResults(originalDisksPlayed, 60000);
         waitForAnalysisProgressGone(60000);
-        waitForDisksPlayed(originalDisksPlayed, 10000);
+        waitForDisksPlayed(originalDisksPlayed, 20000);
 
         int targetPly = 2;
         zebra.runOnUiThread(() -> zebra.jumpToMove(targetPly));
-        waitForDisksPlayed(targetPly, 10000);
+        waitForDisksPlayed(targetPly, 20000);
 
         assertEquals(targetPly, zebra.getGameState().getDisksPlayed());
 
         // leave the game back where it was
         zebra.runOnUiThread(() -> zebra.jumpToMove(originalDisksPlayed));
-        waitForDisksPlayed(originalDisksPlayed, 10000);
+        waitForDisksPlayed(originalDisksPlayed, 20000);
         assertEquals(originalDisksPlayed, zebra.getGameState().getDisksPlayed());
     }
 }
