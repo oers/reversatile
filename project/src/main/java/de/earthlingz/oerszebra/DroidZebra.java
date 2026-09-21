@@ -26,7 +26,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -43,6 +42,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -885,7 +885,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         analysisDrawerRecyclerView.setAdapter(analysisAdapter);
 
         boolean openFromLeft = "left".equals(settingsProvider.getSettingAnalysisDrawerSide());
-        int gravity = openFromLeft ? Gravity.START : Gravity.END;
+        int gravity = openFromLeft ? GravityCompat.START : GravityCompat.END;
 
         DrawerLayout.LayoutParams drawerParams =
                 (DrawerLayout.LayoutParams) analysisDrawerRecyclerView.getLayoutParams();
