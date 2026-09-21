@@ -80,3 +80,9 @@ jobs:
           api-level: 29
           ndk: 26.1.10909125
           script: ./gradlew connectedCheck
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-report
+          path: project/build/reports/androidTests/connected/
