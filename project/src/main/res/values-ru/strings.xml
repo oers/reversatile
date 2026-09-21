@@ -76,6 +76,10 @@
     <string name="guess_white_move_hint">Ход белых</string>
     <string name="menu_item_guess_move">Найти лучший ход</string>
     <string name="gameover_choices_rotate">Повернуть доску</string>
+    <string name="gameover_choices_analyze">Анализировать партию</string>
+    <string name="analysis_progress">Анализ хода %1$d из %2$d…</string>
+    <string name="settings_analysis_drawer_side_title">Сторона панели анализа</string>
+    <string name="settings_analysis_drawer_side_summary">С какой стороны открывается панель анализа</string>
     <string name="menu_item_first_move">Переиграть</string>
     <string name="gameover_beginning">Анализ игры</string>
     <string name="board_description">Игровое поле</string>
