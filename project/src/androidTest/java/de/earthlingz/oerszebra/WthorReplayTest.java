@@ -302,7 +302,23 @@ public class WthorReplayTest extends BasicTest {
         // wrong before any redo/make_move is even involved - narrows the
         // later final-score mismatch down to "broken by undo" vs
         // "broken by redo" instead of just "broken somewhere in between".
+        // Unlike the per-call checks above, this used to be a single
+        // one-shot captureBoard() right after the loop with no settle-wait -
+        // GameStateBoardModel lags the raw GameState it was just polled
+        // against (same async gap called out on fieldAfterUndo/fieldAfterRedo
+        // above), and this is the only check that ever looks at d4/d5/e4/e5:
+        // they're never a move's own target square (only flipped or restored
+        // by unmake_move), so the per-call checks above never cover them.
+        // That's why this check alone flip-flopped between runs on an
+        // otherwise identical commit (clean once, 4-5 stale squares another
+        // time) - give it the same poll the per-call checks already get.
         String postUndoDiff = diffBoards(pristineStartBoard, captureBoard());
+        long postUndoDeadline = System.currentTimeMillis() + 2_000;
+        while (!"<no differing squares>".equals(postUndoDiff)
+                && System.currentTimeMillis() < postUndoDeadline) {
+            Thread.sleep(10);
+            postUndoDiff = diffBoards(pristineStartBoard, captureBoard());
+        }
         if (!"<no differing squares>".equals(postUndoDiff)) {
             fail("WThor game " + gameIndex + " board after undoing all the way to ply 0 does "
                     + "not match the standard starting position: " + postUndoDiff);
