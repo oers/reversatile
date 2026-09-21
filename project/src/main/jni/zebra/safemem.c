@@ -3,8 +3,6 @@
 
    Created:         August 30, 1998
 
-   Modified:        November 1, 2000
-   
    Author:          Gunnar Andersson (gunnar@radagast.se)
 
    Contents:        Provides safer memory allocation than malloc().

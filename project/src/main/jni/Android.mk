@@ -50,7 +50,8 @@ LOCAL_SRC_FILES := droidzebra-jni.c \
         zebra/stable.c \
         zebra/thordb.c \
         zebra/timer.c \
-        zebra/unflip.c
+        zebra/unflip.c \
+        zebra/threads.c
      
 #DEFS =          -DINCLUDE_BOOKTOOL -DTEXT_BASED -DZLIB_STATIC -D__linux__ -D__CYGWIN__ -DANDROID
 DEFS =          -DZLIB_STATIC -D__linux__ -D__CYGWIN__ -DANDROID
@@ -60,4 +61,3 @@ LOCAL_CFLAGS += $(OPTS) $(WARNINGS) $(DEFS)
 LOCAL_LDLIBS += -L$(SYSROOT)/usr/lib -lm -lz
  
 include $(BUILD_SHARED_LIBRARY)
-

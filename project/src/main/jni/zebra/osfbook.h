@@ -3,8 +3,6 @@
 
    Created:         December 31, 1997
 
-   Modified:        December 30, 2002
-   
    Author:          Gunnar Andersson (gunnar@radagast.se)
 
    Contents:        The interface to the book module.
@@ -129,9 +127,6 @@ write_compressed_database( const char *file_name );
 
 void
 unpack_compressed_database( const char *in_name, const char *out_name );
-
-void
-unpack_compressed_database_gz( const char *in_name, const char *out_name );
 
 void
 minimax_tree( void );

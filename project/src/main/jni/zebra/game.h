@@ -3,8 +3,6 @@
 
    Created:       September 20, 1997
    
-   Modified:      December 31, 2002
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The interface to the game routines.
@@ -93,9 +91,6 @@ get_evaluated_count( void );
 EvaluatedMove
 get_evaluated( int index );
 
-void
-clear_evaluated( void );
-
 int
 compute_move( int side_to_move,
 	      int update_all,
@@ -115,6 +110,10 @@ get_search_statistics( int *max_depth,
 
 int
 get_pv( int *destin );
+
+void
+clear_evaluated( void );
+
 
 
 #ifdef __cplusplus

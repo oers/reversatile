@@ -3,8 +3,6 @@
 
    Created:      September 1, 2002
    
-   Modified:
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:

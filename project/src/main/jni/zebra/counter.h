@@ -3,8 +3,6 @@
 
    Created:       March 29, 1999
 
-   Modified:      December 25, 1999
-   
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The interface to the counter code.

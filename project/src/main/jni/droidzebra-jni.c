@@ -25,6 +25,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include <jni.h>
+#include <zlib.h>
 
 #include "droidzebra.h"
 #include "droidzebra-json.h"
@@ -38,6 +39,35 @@
 #include "zebra/learn.h"
 #include "zebra/error.h"
 #include "zebra/osfbook.h"
+#include "zebra/threads.h"
+
+void
+unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
+    char raw_name[512];
+    unsigned char buffer[8192];
+    gzFile input;
+    FILE *raw;
+    int bytes_read;
+
+    snprintf(raw_name, sizeof(raw_name), "%s.raw", out_name);
+    input = gzopen(in_name, "rb");
+    if (input == NULL)
+        fatal_error("Unable to open database '%s'\n", in_name);
+
+    raw = fopen(raw_name, "wb");
+    if (raw == NULL)
+        fatal_error("Unable to write database '%s'\n", raw_name);
+
+    while ((bytes_read = gzread(input, buffer, sizeof(buffer))) > 0) {
+        if (fwrite(buffer, 1, (size_t) bytes_read, raw) != (size_t) bytes_read)
+            fatal_error("Unable to write database '%s'\n", raw_name);
+    }
+
+    gzclose(input);
+    fclose(raw);
+    unpack_compressed_database(raw_name, out_name);
+    remove(raw_name);
+}
 #include "zebra/hash.h"
 #include "zebra/moves.h"
 #include "zebra/getcoeff.h"
@@ -162,6 +192,7 @@ JNIFn(droidzebra, ZebraEngine, zeGlobalInit)(
 	toggle_status_log(USE_LOG);
 
 	global_setup( DEFAULT_RANDOM, DEFAULT_HASH_BITS );
+	threads_init( 1 );
 	init_thor_database();
 
 	sprintf(cmpbookpath, "%s/book.cmp.z", android_files_dir);

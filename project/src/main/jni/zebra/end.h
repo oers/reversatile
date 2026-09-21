@@ -3,8 +3,6 @@
 
    Created:       June 25, 1997
 
-   Modified:      November 24, 2005
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The interface to the endgame solver.
@@ -32,7 +30,7 @@ typedef struct  {
 } MoveLink;
 
 
-extern MoveLink end_move_list[100];
+extern _Thread_local MoveLink end_move_list[100];
 extern const unsigned int quadrant_mask[100];
 
 

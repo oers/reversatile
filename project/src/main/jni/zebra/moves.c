@@ -3,8 +3,6 @@
 
    Created:           June 30, 1997
 
-   Modified:          April 24, 2001
-   
    Author:            Gunnar Andersson (gunnar@radagast.se)
 
    Contents:          The move generator.
@@ -30,9 +28,9 @@
 
 /* Global variables */
 
-int disks_played;
-int move_count[MAX_SEARCH_DEPTH];
-int move_list[MAX_SEARCH_DEPTH][64];
+_Thread_local int disks_played;
+_Thread_local int move_count[MAX_SEARCH_DEPTH];
+_Thread_local int move_list[MAX_SEARCH_DEPTH][64];
 int *first_flip_direction[100];
 int flip_direction[100][16];   /* 100 * 9 used */
 int **first_flipped_disc[100];
@@ -54,8 +52,8 @@ const int move_offset[8] = { 1, -1, 9, -9, 10, -10, 11, -11 };
 
 /* Local variables */
 
-static int flip_count[65];
-static int sweep_status[MAX_SEARCH_DEPTH];
+static _Thread_local int flip_count[65];
+static _Thread_local int sweep_status[MAX_SEARCH_DEPTH];
 
 
 
@@ -220,16 +218,6 @@ game_in_progress( void ) {
 
 INLINE int
 make_move( int side_to_move, int move, int update_hash ) {
-  if (board[move] == 0 || board[move] == 2) {
-      // This should be unreachable, but fuzzer found an instance where it happens:
-      // -r 0 -l 9 6 3 5 19 0 -repeat 4 -p 1 -b 1 -w 0 -h 19 -dev 17 75 94.33498 -g tests/resources/board.txt -time 40 48 6 24
-      // continuing here can lead to index out of bounds somewhere else, so we return 0 here.
-      // That only causes fatal error in PV completion later
-      return 0;
-  }
-  // we could replace the above if with these asserts, too
-  // assert(board[move] != 0);
-  // assert(board[move] != 2);
   int flipped;
   unsigned int diff1, diff2;
 
@@ -330,9 +318,7 @@ make_move_no_hash( int side_to_move, int move ) {
 INLINE void
 unmake_move( int side_to_move, int move ) {
   board[move] = EMPTY;
-  if (disks_played < 1 || disks_played > MAX_SEARCH_DEPTH) {
-      return;
-  }
+
   disks_played--;
 
   hash1 = hash_stored1[disks_played];

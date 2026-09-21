@@ -1,8 +1,6 @@
 /*
    File:          bitbmob.c
 
-   Modified:      November 18, 2005
-
    Authors:       Gunnar Andersson (gunnar@radagast.se)
 	          Toshihiko Okuhara
 

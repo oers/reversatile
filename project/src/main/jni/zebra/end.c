@@ -3,8 +3,6 @@
 
    Created:       1994
    
-   Modified:      December 19, 2005
-
    Authors:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The fast endgame solver.
@@ -41,6 +39,7 @@
 #include "probcut.h"
 #include "search.h"
 #include "stable.h"
+#include "threads.h"
 #include "texts.h"
 #include "timer.h"
 #include "unflip.h"
@@ -115,13 +114,13 @@ typedef enum {
 
 
 
-MoveLink end_move_list[100];
+_Thread_local MoveLink end_move_list[100];
 
 
 
 /* The parities of the regions are in the region_parity bit vector. */
 
-static unsigned int region_parity;
+static _Thread_local unsigned int region_parity;
 
 /* Pseudo-probabilities corresponding to the percentiles.
    These are taken from the normal distribution; to the percentile
@@ -137,15 +136,22 @@ static const double end_percentile[MAX_SELECTIVITY + 1] =
 
 #if USE_STABILITY
 #define  HIGH_STABILITY_THRESHOLD     24
-static const int stability_threshold[] = { 65, 65, 65, 65, 65, 46, 38, 30, 24,
-				           24, 24, 24, 0, 0, 0, 0, 0, 0, 0 };
+/* Alpha above which a stability cutoff is attempted, indexed by the
+   number of empty squares.  Proving a bound costs a stability count, so
+   it only pays when alpha is already high enough that few discs need to
+   be stable; the more empties remain, the higher that bar has to be.
+   Below 5 empties the specialized solvers take over and never consult
+   this table.  Tuned as 2 * empties on FFO #45/#48/#49/#51. */
+static const int stability_threshold[] = { 65, 65, 65, 65, 65, 10, 12, 14, 16,
+					   18, 20, 22, 24, 26, 28, 30, 32, 34,
+					   36 };
 #endif
 
 
 
 static double fast_first_mean[61][64];
 static double fast_first_sigma[61][64];
-static int best_move, best_end_root_move;
+static _Thread_local int best_move, best_end_root_move;
 static int true_found, true_val;
 static int full_output_mode;
 static int earliest_wld_solve, earliest_full_solve;
@@ -201,6 +207,99 @@ TestFlips_wrapper( int sq,
 
 
 #endif
+
+
+/*
+  Helpers that let the endgame hash zone work on the bitboards alone,
+  without maintaining the board array, the flip stack or DoFlips_hash.
+*/
+
+#if defined( __GNUC__ )
+#define FIRST_BIT_32( x )  __builtin_ctz( x )
+#else
+static int
+FIRST_BIT_32( unsigned int x ) {
+  int n = 0;
+  while ( (x & 1) == 0 ) {
+    x >>= 1;
+    n++;
+  }
+  return n;
+}
+#endif
+
+
+/*
+  END_HASH_DIFF
+  Compute the incremental hash-key update for COLOR playing SQ,
+  from the difference between the old and new bitboards of the mover.
+  Replaces the array-based DoFlips_hash.
+*/
+
+static INLINE void
+end_hash_diff( const BitBoard new_my_bits, const BitBoard my_bits,
+	       int color, int sq,
+	       unsigned int *diff1, unsigned int *diff2 ) {
+  unsigned int fl;
+  int bit, index;
+  int move_bit = 8 * (sq / 10 - 1) + (sq % 10 - 1);
+  unsigned int d1 = hash_put_value1[color][sq];
+  unsigned int d2 = hash_put_value2[color][sq];
+
+  fl = new_my_bits.low ^ my_bits.low;
+  if ( move_bit < 32 )
+    fl &= ~(1u << move_bit);
+  while ( fl != 0 ) {
+    bit = FIRST_BIT_32( fl );
+    fl &= fl - 1;
+    index = 10 * (bit / 8 + 1) + (bit % 8) + 1;
+    d1 ^= hash_flip1[index];
+    d2 ^= hash_flip2[index];
+  }
+
+  fl = new_my_bits.high ^ my_bits.high;
+  if ( move_bit >= 32 )
+    fl &= ~(1u << (move_bit - 32));
+  while ( fl != 0 ) {
+    bit = FIRST_BIT_32( fl );
+    fl &= fl - 1;
+    index = 10 * (bit / 8 + 5) + (bit % 8) + 1;
+    d1 ^= hash_flip1[index];
+    d2 ^= hash_flip2[index];
+  }
+
+  *diff1 = d1;
+  *diff2 = d2;
+}
+
+
+/*
+  BB_VALID_MOVE
+  Determine if a (hash) move is legal in the position given by the
+  bitboards.  Replaces the array-based valid_move.
+  Note: clobbers bb_flips via TestFlips_wrapper.
+*/
+
+static int
+bb_valid_move( int move, BitBoard my_bits, BitBoard opp_bits ) {
+  int row = move / 10;
+  int col = move % 10;
+  int bit;
+  unsigned int occupied;
+
+  if ( (row < 1) || (row > 8) || (col < 1) || (col > 8) )
+    return FALSE;
+
+  bit = 8 * (row - 1) + (col - 1);
+  if ( bit < 32 )
+    occupied = (my_bits.low | opp_bits.low) >> bit;
+  else
+    occupied = (my_bits.high | opp_bits.high) >> (bit - 32);
+  if ( occupied & 1 )
+    return FALSE;
+
+  return TestFlips_wrapper( move, my_bits, opp_bits ) > 0;
+}
 
 
 
@@ -786,7 +885,7 @@ solve_parity_hash( BitBoard my_bits,
   find_hash( &entry, ENDGAME_MODE );
   if ( (entry.draft == empties) &&
        (entry.selectivity == 0) &&
-       valid_move( entry.move[0], color ) &&
+       bb_valid_move( entry.move[0], my_bits, opp_bits ) &&
        (entry.flags & ENDGAME_SCORE) &&
        ((entry.flags & EXACT_VALUE) ||
 	((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
@@ -984,7 +1083,7 @@ solve_parity_hash_high( BitBoard my_bits,
   if ( entry.draft == empties ) {
     if ( (entry.selectivity == 0) &&
 	 (entry.flags & ENDGAME_SCORE) &&
-	 valid_move( entry.move[0], color ) &&
+	 bb_valid_move( entry.move[0], my_bits, opp_bits ) &&
 	 ((entry.flags & EXACT_VALUE) ||
 	  ((entry.flags & LOWER_BOUND) && entry.eval >= beta) ||
 	  ((entry.flags & UPPER_BOUND) && entry.eval <= alpha)) ) {
@@ -1076,11 +1175,7 @@ solve_parity_hash_high( BitBoard my_bits,
 
   sq = move_order[best_index];
 
-  (void) DoFlips_hash( sq, color );
-
-  board[sq] = color;
-  diff1 = hash_update1 ^ hash_put_value1[color][sq];
-  diff2 = hash_update2 ^ hash_put_value2[color][sq];
+  end_hash_diff( best_new_my_bits, my_bits, color, sq, &diff1, &diff2 );
   hash1 ^= diff1;
   hash2 ^= diff2;
 
@@ -1101,10 +1196,8 @@ solve_parity_hash_high( BitBoard my_bits,
 				     -beta, -alpha, oppcol, empties - 1,
 				     new_disc_diff, TRUE );
 
-  UndoFlips( best_flipped, oppcol );
   hash1 ^= diff1;
   hash2 ^= diff2;
-  board[sq] = EMPTY;
 
   region_parity ^= quadrant_mask[sq];
 
@@ -1144,10 +1237,7 @@ solve_parity_hash_high( BitBoard my_bits,
     flipped = TestFlips_wrapper( sq, my_bits, opp_bits );
     FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
 
-    (void) DoFlips_hash( sq, color );
-    board[sq] = color;
-    diff1 = hash_update1 ^ hash_put_value1[color][sq];
-    diff2 = hash_update2 ^ hash_put_value2[color][sq];
+    end_hash_diff( bb_flips, my_bits, color, sq, &diff1, &diff2 );
     hash1 ^= diff1;
     hash2 ^= diff2;
 
@@ -1169,10 +1259,8 @@ solve_parity_hash_high( BitBoard my_bits,
 
     region_parity ^= quadrant_mask[sq];
 
-    UndoFlips( flipped, oppcol );
     hash1 ^= diff1;
     hash2 ^= diff2;
-    board[sq] = EMPTY;
 
     end_move_list[pred].succ = sq;
     end_move_list[succ].pred = sq;
@@ -1275,6 +1363,152 @@ update_best_list( int *best_list, int move, int best_list_index,
 
 
 
+
+
+static int
+end_tree_search( int level, int max_depth, BitBoard my_bits,
+		 BitBoard opp_bits, int side_to_move, int alpha, int beta,
+		 int selectivity, int *selective_cutoff, int void_legal );
+
+
+/*
+  PARALLEL ROOT SIBLINGS
+
+  Young-brothers-wait: the first root move is searched on its own, and
+  only once it has produced a bound are the remaining moves handed out
+  to the pool.  Each of them gets a null window, which is what the
+  sequential search would have given them anyway, and the vast majority
+  fail low -- those the sequential loop can then skip outright.  A move
+  that fails high is left alone here and re-searched in order by the
+  sequential loop, so the score and the principal variation are still
+  produced by exactly the same code as before.
+*/
+
+#define MAX_ROOT_MOVES               64
+
+/* Remaining depth at or above which a node is worth splitting */
+#define PARALLEL_SPLIT_DEPTH         14
+
+typedef struct {
+  SearchState root;
+  int level;
+  int max_depth;
+  int side_to_move;
+  int alpha;                        /* null window is (alpha, alpha + 1) */
+  int selectivity;
+  int move[MAX_ROOT_MOVES];
+  int score[MAX_ROOT_MOVES];
+  int cutoff[MAX_ROOT_MOVES];
+  int valid[MAX_ROOT_MOVES];
+} SiblingBatch;
+
+
+/* Set while a thread is running a job, so that a node reached from
+   inside a job does not try to start a batch of its own -- the pool is
+   already busy with the batch this job belongs to. */
+static _Thread_local int inside_job;
+
+
+static void
+search_sibling( int index, void *context ) {
+  SiblingBatch *batch = (SiblingBatch *) context;
+  BitBoard my_bits, opp_bits, new_my_bits, new_opp_bits;
+  int move = batch->move[index];
+  int child_selective_cutoff = FALSE;
+  int score;
+  int **saved_flip_stack = flip_stack;
+
+  inside_job++;
+  search_state_load( &batch->root );
+  set_bitboards( board, batch->side_to_move, &my_bits, &opp_bits );
+
+  if ( make_move( batch->side_to_move, move, TRUE ) == 0 ) {
+    flip_stack = saved_flip_stack;   /* cannot happen; be safe anyway */
+    inside_job--;
+    return;
+  }
+  (void) TestFlips_wrapper( move, my_bits, opp_bits );
+  new_my_bits = bb_flips;
+  FULL_ANDNOT( new_opp_bits, opp_bits, bb_flips );
+
+  score = -end_tree_search( batch->level + 1, batch->max_depth,
+			    new_opp_bits, new_my_bits,
+			    OPP( batch->side_to_move ),
+			    -(batch->alpha + 1), -batch->alpha,
+			    batch->selectivity, &child_selective_cutoff,
+			    TRUE );
+
+  /* The move is never unmade, so put the flip stack back by hand;
+     leaving it advanced would overflow it after a few jobs. */
+  flip_stack = saved_flip_stack;
+  inside_job--;
+
+  if ( !is_panic_abort() && !force_return ) {
+    batch->score[index] = score;
+    batch->cutoff[index] = child_selective_cutoff;
+    batch->valid[index] = TRUE;
+  }
+}
+
+
+/*
+  DISPATCH_SIBLINGS
+  Search every legal move of this node except SEARCHED_MOVE in parallel
+  with a null window around ALPHA.  Fills PROVEN[sq] with a score for
+  each move that was proved not to beat ALPHA, which the sequential
+  loop can then take instead of searching the move itself.
+*/
+
+static void
+dispatch_siblings( BitBoard my_bits, BitBoard opp_bits,
+		   int side_to_move, int level, int max_depth, int alpha,
+		   int selectivity, int searched_move,
+		   int *proven, int *proven_score, int *proven_cutoff ) {
+  /* Only the search thread splits, and it is inside one split at a
+     time -- an inner split finishes before its parent starts one --
+     so a single batch is enough and it need not be on the stack. */
+  static SiblingBatch batch;
+  int i, j, sq, count = 0;
+
+  for ( i = 1; i <= 8; i++ )
+    for ( j = 1; j <= 8; j++ ) {
+      sq = 10 * i + j;
+      if ( (sq == searched_move) || (board[sq] != EMPTY) )
+	continue;
+      if ( TestFlips_wrapper( sq, my_bits, opp_bits ) == 0 )
+	continue;
+      if ( count < MAX_ROOT_MOVES ) {
+	batch.move[count] = sq;
+	batch.score[count] = 0;
+	batch.cutoff[count] = FALSE;
+	batch.valid[count] = FALSE;
+	count++;
+      }
+    }
+  if ( count == 0 )
+    return;
+
+  batch.level = level;
+  batch.max_depth = max_depth;
+  batch.side_to_move = side_to_move;
+  batch.alpha = alpha;
+  batch.selectivity = selectivity;
+  search_state_save( &batch.root );
+
+  threads_run( search_sibling, &batch, count );
+
+  /* The calling thread takes part in the batch, so put its own state
+     back the way the sequential search left it. */
+  search_state_load( &batch.root );
+
+  for ( i = 0; i < count; i++ )
+    if ( batch.valid[i] && (batch.score[i] <= alpha) ) {
+      proven[batch.move[i]] = TRUE;
+      proven_score[batch.move[i]] = batch.score[i];
+      proven_cutoff[batch.move[i]] = batch.cutoff[i];
+    }
+}
+
 /*
   END_TREE_SEARCH
   Plain nega-scout with fastest-first move ordering.
@@ -1311,6 +1545,9 @@ end_tree_search( int level,
   int threshold;
   int best_list_index, best_list_length;
   int best_list[4];
+  int proven[100], proven_score[100], proven_cutoff[100];
+  int siblings_dispatched = FALSE;
+  int can_split;
   HashEntry entry, mid_entry;
 #if CHECK_HASH_CODES
   unsigned int h1, h2;
@@ -1501,6 +1738,14 @@ end_tree_search( int level,
 
   exp_depth = remains;
   first = TRUE;
+  /* Split only near the top of the tree: further down a subtree is not
+     worth a batch, and only the search thread splits (see
+     threads_is_worker). */
+  can_split = (remains >= PARALLEL_SPLIT_DEPTH) && (threads_count() > 1) &&
+    !threads_is_worker() && !inside_job;
+  if ( can_split )
+    for ( i = 0; i < 100; i++ )
+      proven[i] = FALSE;
   best = -INFINITE_EVAL;
   pre_search_done = FALSE;
   curr_alpha = alpha;
@@ -1680,11 +1925,19 @@ end_tree_search( int level,
     }
     else {
       curr_alpha = MAX( best, curr_alpha );
-      curr_val =
-	-end_tree_search( level + 1, level + exp_depth,
-			  new_opp_bits, new_my_bits, OPP( side_to_move ),
-			  -(curr_alpha + 1), -curr_alpha,
-			  selectivity, &child_selective_cutoff, TRUE );
+      if ( can_split && proven[move] && (proven_score[move] <= curr_alpha) ) {
+	/* Already proved not to beat alpha; the child's selectivity flag
+	   has to come along, the caller stores it in the hash entry. */
+	curr_val = proven_score[move];
+	child_selective_cutoff = proven_cutoff[move];
+      }
+      else
+	curr_val =
+	  -end_tree_search( level + 1, level + exp_depth,
+			    new_opp_bits, new_my_bits, OPP( side_to_move ),
+			    -(curr_alpha + 1), -curr_alpha,
+			    selectivity, &child_selective_cutoff, TRUE );
+
       if ( (curr_val > curr_alpha) && (curr_val < beta) ) {
 	if ( selectivity > 0 )
 	  curr_val =
@@ -1761,6 +2014,14 @@ end_tree_search( int level,
     if ( (best_list_index >= best_list_length) && !update_pv &&
 	 (best_list_length < 4) )
       best_list[best_list_length++] = move;
+
+    if ( can_split && first && !siblings_dispatched &&
+	 !is_panic_abort() && !force_return ) {
+      siblings_dispatched = TRUE;
+      dispatch_siblings( my_bits, opp_bits, side_to_move, level,
+			 level + exp_depth, best, selectivity,
+			 move, proven, proven_score, proven_cutoff );
+    }
 
     first = FALSE;
   }
@@ -2409,7 +2670,7 @@ setup_end( void ) {
 	if ( dir_mask[pos] & (1 << k) ) {
 	  unsigned int neighbor = shift + dir_shift[k];
 	  if ( neighbor < 32 )
-	    neighborhood_mask[pos].low |= ((unsigned int)1 << ((unsigned int)neighbor));
+	    neighborhood_mask[pos].low |= (1 << neighbor);
 	  else
 	    neighborhood_mask[pos].high |= (1 << (neighbor - 32));
 	}

@@ -3,8 +3,6 @@
 
    Created:       July 1, 1997
 
-   Modified:      January 2, 2003
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      Common search routines and variables.
@@ -15,6 +13,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "constant.h"
 #include "counter.h"
@@ -23,6 +22,7 @@
 #include "globals.h"
 #include "macros.h"
 #include "moves.h"
+#include "unflip.h"
 #include "search.h"
 #include "texts.h"
 
@@ -35,11 +35,13 @@ int root_eval;
 int force_return;
 int full_pv_depth;
 int full_pv[120];
-int list_inherited[62];
-int sorted_move_order[64][64];  /* 61*60 used */
-Board evals[61];
-CounterType nodes, total_nodes;
-CounterType evaluations, total_evaluations;
+_Thread_local int list_inherited[61];
+_Thread_local int sorted_move_order[64][64];  /* 61*60 used */
+_Thread_local Board evals[61];
+_Thread_local CounterType nodes;
+CounterType total_nodes;
+_Thread_local CounterType evaluations;
+CounterType total_evaluations;
 
 /* When no other information is available, JCW's endgame
    priority order is used also in the midgame. */
@@ -64,8 +66,8 @@ int position_list[100] = {
 /* Local variables */
 
 static int pondered_move = 0;
-static int negate_eval;
-static EvaluationType last_eval;
+static _Thread_local int negate_eval;
+static _Thread_local EvaluationType last_eval;
 
 
 
@@ -82,7 +84,7 @@ init_move_lists( void ) {
     for ( j = 0; j < MOVE_ORDER_SIZE; j++ )
       sorted_move_order[i][j] = position_list[j];
   }
-  for ( i = 0; i <= 61; i++ )
+  for ( i = 0; i <= 60; i++ )
     list_inherited[i] = FALSE;
 }
 
@@ -99,9 +101,7 @@ void
 inherit_move_lists( int stage ) {
   int i;
   int last;
-    if(stage >= 61 || stage < 0) {
-        return;
-    }
+
   if ( list_inherited[stage] )
     return;
   list_inherited[stage] = TRUE;
@@ -573,4 +573,49 @@ get_current_eval( void ) {
 void
 negate_current_eval( int negate ) {
   negate_eval = negate;
+}
+
+
+/*
+  INIT_SEARCH_THREAD
+  Initialize the thread-local search state.  Must be called once by
+  every thread that runs a search, before that thread searches
+  anything; the main thread gets it from game_init().
+*/
+
+void
+init_search_thread( void ) {
+  init_flip_stack();
+}
+
+
+/*
+  SEARCH_STATE_SAVE
+*/
+
+void
+search_state_save( SearchState *state ) {
+  memcpy( state->board, board, sizeof( Board ) );
+  memcpy( state->piece_count, piece_count, sizeof( state->piece_count ) );
+  memcpy( state->sorted_move_order, sorted_move_order,
+	  sizeof( state->sorted_move_order ) );
+  state->hash1 = hash1;
+  state->hash2 = hash2;
+  state->disks_played = disks_played;
+}
+
+
+/*
+  SEARCH_STATE_LOAD
+*/
+
+void
+search_state_load( const SearchState *state ) {
+  memcpy( board, state->board, sizeof( Board ) );
+  memcpy( piece_count, state->piece_count, sizeof( state->piece_count ) );
+  memcpy( sorted_move_order, state->sorted_move_order,
+	  sizeof( state->sorted_move_order ) );
+  hash1 = state->hash1;
+  hash2 = state->hash2;
+  disks_played = state->disks_played;
 }

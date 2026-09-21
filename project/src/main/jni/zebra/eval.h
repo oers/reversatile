@@ -3,8 +3,6 @@
 
    Created:        July 1, 1997
 
-   Modified:       September 15, 2001
-
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       The interface to the evaluation function.

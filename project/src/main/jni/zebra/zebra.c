@@ -3,8 +3,6 @@
 
    Created:        June 5, 1997
    
-   Modified:       December 25, 2005
-
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       The module which controls the operation of standalone Zebra.
@@ -37,6 +35,7 @@
 #include "osfbook.h"
 #include "patterns.h"
 #include "search.h"
+#include "threads.h"
 #include "thordb.h"
 #include "timer.h"
 
@@ -63,6 +62,8 @@
 #else
 #define DEFAULT_USE_BOOK          TRUE
 #endif
+
+#define DEFAULT_THREADS           2
 
 /* Get rid of some ugly warnings by disallowing usage of the
    macro version of tolower (not time-critical anyway). */
@@ -94,7 +95,7 @@ static int wld_skill[3], exact_skill[3];
 static char *log_file_name;
 static double player_time[3], player_increment[3];
 static int skill[3];
-static int wait;
+static int wait_flag;
 static int use_book = DEFAULT_USE_BOOK;
 static int wld_only = DEFAULT_WLD_ONLY;
 static int use_learning;
@@ -148,7 +149,9 @@ Interprets the command-line parameters and starts the game.
 
 int
 main( int argc, char *argv[] ) {
+#if !SCRIPT_ONLY
   const char *game_file_name = NULL;
+#endif
   const char *script_in_file;
   const char *script_out_file;
 #if !SCRIPT_ONLY
@@ -163,8 +166,11 @@ main( int argc, char *argv[] ) {
   int repeat = 1;
 #endif
   int run_script;
+  int n_threads = DEFAULT_THREADS;
   int script_optimal_line = DEFAULT_DISPLAY_LINE;
+#if SCRIPT_ONLY
   int komi;
+#endif
   time_t timer;
 
 #if SCRIPT_ONLY
@@ -176,18 +182,22 @@ main( int argc, char *argv[] ) {
 #endif
 
   use_random = DEFAULT_RANDOM;
-  wait = DEFAULT_WAIT;
+  wait_flag = DEFAULT_WAIT;
   echo = DEFAULT_ECHO;
   display_pv = DEFAULT_DISPLAY_PV;
   use_learning = FALSE;
   use_thor = DEFAULT_USE_THOR;
   skill[BLACKSQ] = skill[WHITESQ] = -1;
   hash_bits = DEFAULT_HASH_BITS;
+#if !SCRIPT_ONLY
   game_file_name = NULL;
+#endif
   log_file_name = NULL;
   run_script = FALSE;
   script_in_file = script_out_file = FALSE;
+#if SCRIPT_ONLY
   komi = 0;
+#endif
   player_time[BLACKSQ] = player_time[WHITESQ] = INFINIT_TIME;
   player_increment[BLACKSQ] = player_increment[WHITESQ] = 0.0;
   for ( arg_index = 1, help = FALSE; (arg_index < argc) && !help;
@@ -205,6 +215,13 @@ main( int argc, char *argv[] ) {
 	continue;
       }
       hash_bits = atoi( argv[arg_index] );
+    }
+    else if ( !strcasecmp( argv[arg_index], "-n" ) ) {
+      if ( ++arg_index == argc ) {
+	help = TRUE;
+	continue;
+      }
+      n_threads = atoi( argv[arg_index] );
     }
 #if !SCRIPT_ONLY    
     else if ( !strcasecmp( argv[arg_index], "-l" ) ) {
@@ -264,7 +281,7 @@ main( int argc, char *argv[] ) {
 	help = TRUE;
 	continue;
       }
-      wait = atoi( argv[arg_index] );
+      wait_flag = atoi( argv[arg_index] );
     }
     else if ( !strcasecmp( argv[arg_index], "-p" ) ) {
       if ( ++arg_index == argc ) {
@@ -468,6 +485,9 @@ main( int argc, char *argv[] ) {
     puts( "  -e <echo?>" );
     printf( "    Toggles screen output on/off (default %d).\n\n",
 	    DEFAULT_ECHO );
+    puts( "  -n <search threads>" );
+    printf( "    Number of threads used by the endgame search (default %d).\n\n",
+	    DEFAULT_THREADS );
     puts( "  -h <bits in hash key>" );
     printf( "    Size of hash table is 2^{this value} (default %d).\n\n",
 	    DEFAULT_HASH_BITS );
@@ -488,7 +508,7 @@ main( int argc, char *argv[] ) {
     puts( "" );
 #else    
     puts( "Usage:" );
-    puts( "  zebra [-b -e -g -h -l -p -t -time -w -learn -slack -dev -log" );
+    puts( "  zebra [-b -e -g -h -l -n -p -t -time -w -learn -slack -dev -log" );
     puts( "         -keepdraw -draw2black -draw2white -draw2none" );
     puts( "         -private -public -test -seq -thor -script -analyze ?" );
     puts( "         -repeat -seqfile]" );
@@ -507,6 +527,9 @@ main( int argc, char *argv[] ) {
     puts( "" );
     puts( "  -g <game file>" );
     puts( "" );
+    puts( "  -n <search threads>" );
+    printf( "    Number of threads used by the endgame search (default %d).\n\n",
+	    DEFAULT_THREADS );
     puts( "  -h <bits in hash key>" );
     printf( "    Size of hash table is 2^{this value} (default %d).\n",
 	    DEFAULT_HASH_BITS );
@@ -607,15 +630,11 @@ main( int argc, char *argv[] ) {
   }
 
   global_setup( use_random, hash_bits );
+  threads_init( n_threads );
   init_thor_database();
 
-  if ( use_book ) {
-      char *book_filename = getenv("BOOK_PATH");
-      if (book_filename == NULL) {
-          book_filename = "book.bin";
-      }
-      init_learn(book_filename, TRUE );
-  }
+  if ( use_book )
+    init_learn( "book.bin", TRUE );
   if ( use_random && !SCRIPT_ONLY ) {
     time( &timer );
     my_srandom( timer );
@@ -658,6 +677,8 @@ main( int argc, char *argv[] ) {
     }
   }
 #endif
+
+  threads_shutdown();
 
   global_terminate();
 
@@ -770,7 +791,7 @@ play_game( const char *file_name,
   int col, row;
   int thor_position_count;
   int provided_move[61];
-  char move_vec[123];
+  char move_vec[121];
   char line_buffer[1000];
   time_t timer;
   FILE *log_file;
@@ -787,7 +808,7 @@ play_game( const char *file_name,
 
   if ( move_file != NULL ) {
     char *newline_pos;
-    line_buffer[0] = 0;
+
     fgets( line_buffer, sizeof line_buffer, move_file );
     newline_pos = strchr( line_buffer, '\n' );
     if ( newline_pos != NULL )
@@ -832,30 +853,30 @@ play_game( const char *file_name,
     /* No error checking done as it's only for testing purposes */
 
     database_start = get_real_timer();
-    (void) read_player_database( "thor/wthor.jou");
-    (void) read_tournament_database( "thor/wthor.trn" );
-    (void) read_game_database( "thor/wth_2001.wtb" );
-    (void) read_game_database( "thor/wth_2000.wtb" );
-    (void) read_game_database( "thor/wth_1999.wtb" );
-    (void) read_game_database( "thor/wth_1998.wtb" );
-    (void) read_game_database( "thor/wth_1997.wtb" );
-    (void) read_game_database( "thor/wth_1996.wtb" );
-    (void) read_game_database( "thor/wth_1995.wtb" );
-    (void) read_game_database( "thor/wth_1994.wtb" );
-    (void) read_game_database( "thor/wth_1993.wtb" );
-    (void) read_game_database( "thor/wth_1992.wtb" );
-    (void) read_game_database( "thor/wth_1991.wtb" );
-    (void) read_game_database( "thor/wth_1990.wtb" );
-    (void) read_game_database( "thor/wth_1989.wtb" );
-    (void) read_game_database( "thor/wth_1988.wtb" );
-    (void) read_game_database( "thor/wth_1987.wtb" );
-    (void) read_game_database( "thor/wth_1986.wtb" );
-    (void) read_game_database( "thor/wth_1985.wtb" );
-    (void) read_game_database( "thor/wth_1984.wtb" );
-    (void) read_game_database( "thor/wth_1983.wtb" );
-    (void) read_game_database( "thor/wth_1982.wtb" );
-    (void) read_game_database( "thor/wth_1981.wtb" );
-    (void) read_game_database( "thor/wth_1980.wtb" );
+    (void) read_player_database( "thor\\wthor.jou");
+    (void) read_tournament_database( "thor\\wthor.trn" );
+    (void) read_game_database( "thor\\wth_2001.wtb" );
+    (void) read_game_database( "thor\\wth_2000.wtb" );
+    (void) read_game_database( "thor\\wth_1999.wtb" );
+    (void) read_game_database( "thor\\wth_1998.wtb" );
+    (void) read_game_database( "thor\\wth_1997.wtb" );
+    (void) read_game_database( "thor\\wth_1996.wtb" );
+    (void) read_game_database( "thor\\wth_1995.wtb" );
+    (void) read_game_database( "thor\\wth_1994.wtb" );
+    (void) read_game_database( "thor\\wth_1993.wtb" );
+    (void) read_game_database( "thor\\wth_1992.wtb" );
+    (void) read_game_database( "thor\\wth_1991.wtb" );
+    (void) read_game_database( "thor\\wth_1990.wtb" );
+    (void) read_game_database( "thor\\wth_1989.wtb" );
+    (void) read_game_database( "thor\\wth_1988.wtb" );
+    (void) read_game_database( "thor\\wth_1987.wtb" );
+    (void) read_game_database( "thor\\wth_1986.wtb" );
+    (void) read_game_database( "thor\\wth_1985.wtb" );
+    (void) read_game_database( "thor\\wth_1984.wtb" );
+    (void) read_game_database( "thor\\wth_1983.wtb" ); 
+    (void) read_game_database( "thor\\wth_1982.wtb" );
+    (void) read_game_database( "thor\\wth_1981.wtb" );
+    (void) read_game_database( "thor\\wth_1980.wtb" );
     database_stop = get_real_timer();
 #if FULL_ANALYSIS
     frequency_analysis( get_total_game_count() );
@@ -989,7 +1010,7 @@ play_game( const char *file_name,
 
       (void) choose_thor_opening_move( board, side_to_move, echo );
 
-      if ( echo && wait )
+      if ( echo && wait_flag )
 	dumpch();
       if ( disks_played >= provided_move_count ) {
 	if ( skill[side_to_move] == 0 ) {
@@ -1264,7 +1285,7 @@ analyze_game( const char *move_string ) {
 
       (void) choose_thor_opening_move( board, side_to_move, echo );
 
-      if ( echo && wait )
+      if ( echo && wait_flag )
 	dumpch();
 
       start_move( player_time[side_to_move],

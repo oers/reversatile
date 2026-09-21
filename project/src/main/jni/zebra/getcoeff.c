@@ -3,8 +3,6 @@
 
    Created:       November 19, 1997
 
-   Modified:      January 3, 2003
-   
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      Unpacks the coefficient file, computes final-stage
@@ -44,6 +42,10 @@
 #include "safemem.h"
 #include "search.h"
 #include "texts.h"
+
+#ifdef ANDROID
+extern char android_files_dir[256];
+#endif
 
 
 
@@ -1045,20 +1047,18 @@ init_coeffs( void ) {
 
 
 
+#if TIME_EVAL
 static long long int
 rdtsc( void ) {
-#ifdef _X64_
-  #if defined(__GNUC__)
-    long long a;
-    asm volatile("rdtsc":"=A" (a));
-    return a;
-  #else
-    return 0;
-  #endif
+#if defined(__GNUC__) && defined(__i386__)
+  long long a;
+  asm volatile("rdtsc":"=A" (a));
+  return a;
 #else
   return 0;
 #endif
 }
+#endif
 
 
 
@@ -1072,7 +1072,7 @@ rdtsc( void ) {
 #include "display.h"
 #endif
 
-short pattern_score;
+_Thread_local short pattern_score;
 
 INLINE int
 pattern_evaluation( int side_to_move ) {

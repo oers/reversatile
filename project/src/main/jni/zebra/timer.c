@@ -3,8 +3,6 @@
 
    Created:      September 28, 1997
    
-   Modified:     November 13, 2001
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     The time control mechanism.
@@ -16,11 +14,17 @@
 /* CRON_SUPPORTED should be enabled when Zebra is compiled for
    a Unix system which supports the Cron daemon. */
 
+#if defined( __linux__ ) || defined( __APPLE__ )
+#define CRON_SUPPORTED
+#endif
+
 /* GTC_SUPPORTED should be enabled when Zebra is compiled for
    Windows 95/98/NT and the compiler supports the function
    GetTickCount() and keeps the definition in <windows.h>. */
 
 #include "porting.h"
+
+#define GTC_SUPPORTED
 
 
 
