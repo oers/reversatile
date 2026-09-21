@@ -409,11 +409,12 @@ droidzebra_msg_candidate_evals(void)
 		eval_l = candidate_eval_text(emove.eval);
 
 		buffer_pos += sprintf(buffer+buffer_pos,
-				"{\"move\":%d,\"best\":%d,\"eval_s\":\"%s\",\"eval_l\":\"%s\"},",
+				"{\"move\":%d,\"best\":%d,\"eval_s\":\"%s\",\"eval_l\":\"%s\",\"score\":%d},",
 				emove.move,
 				compare_eval(best, emove.eval)==0? 1 : 0,
 				eval_s,
-				eval_l
+				eval_l,
+				emove.eval.score
 		);
 
 		free(eval_s);
