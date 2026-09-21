@@ -44,6 +44,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # ubuntu-24.04-arm has no Android SDK preinstalled (unlike ubuntu-latest,
+      # which GitHub images with one). We only need it so AGP can configure
+      # the project and compile resources for the unit-test variant - no
+      # assemble/connectedCheck runs here, so a minimal cmdline-tools install
+      # is enough. The cmdline-tools themselves are plain Java (run fine on
+      # arm64); the native aapt2 that resource-compilation actually calls is
+      # fetched by Gradle separately, as a Maven artifact matching the host
+      # arch (os.arch), not the sdkmanager-installed build-tools binary.
+      - name: Install Android SDK cmdline-tools
+        env:
+          ANDROID_HOME: /home/runner/android-sdk
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -sSL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+
       - name: Install host build dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential zlib1g-dev
 
