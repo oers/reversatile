@@ -24,6 +24,7 @@
 #include "osfbook.h"
 #include "patterns.h"
 #include "search.h"
+#include "error.h"
 #include "timer.h"
 
 
