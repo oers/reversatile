@@ -86,6 +86,23 @@ public class WthorReplayTest extends BasicTest {
         // only) to check whether undoing all the way back to ply 0 actually
         // restores this exact position, or whether unmake_move() itself
         // already leaves the board subtly wrong before any redo even starts.
+        //
+        // GameStateBoardModel (what captureBoard() reads) is only populated
+        // once the native engine thread fires its first onBoard() callback -
+        // BasicTest#init()'s zebra.initialized() check says the activity is
+        // up, not that this first callback has already landed. Capturing
+        // here without waiting for it raced ahead of that callback in CI,
+        // reading default/empty field values at all four center squares
+        // instead of the real starting position - which then showed up as
+        // "d4/d5/e4/e5 expected EMPTY" in the post-undo diff below, and
+        // stayed perfectly reproducible even after adding a settle-wait to
+        // that check, because the corruption was in this snapshot itself,
+        // not in a transient read of the post-undo board. Wait for the
+        // actual starting position (2 black + 2 white discs) first.
+        if (mode == ReplayMode.UNDO_AND_REDO) {
+            waitForSquareCount(ZebraEngine.PLAYER_BLACK, 2, 5_000);
+            waitForSquareCount(ZebraEngine.PLAYER_WHITE, 2, 5_000);
+        }
         byte[][] pristineStartBoard = mode == ReplayMode.UNDO_AND_REDO ? captureBoard() : null;
 
         int gamesToRun = getGameLimit(gameCount);
