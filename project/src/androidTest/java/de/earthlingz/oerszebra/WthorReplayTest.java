@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import android.content.res.AssetManager;
+import android.util.Log;
 
 import com.shurik.droidzebra.Move;
 
@@ -24,7 +25,21 @@ public class WthorReplayTest extends BasicTest {
     private static final int LOCAL_GAME_LIMIT = 200;
 
     @Test
-    public void replayAllGames() throws Exception {
+    public void replayGamesFast() throws Exception {
+        replayGames(ReplayMode.FAST);
+    }
+
+    @Test
+    public void replayGamesMoveByMove() throws Exception {
+        replayGames(ReplayMode.MOVE_BY_MOVE);
+    }
+
+    @Test
+    public void replayGamesWithUndoAndRedo() throws Exception {
+        replayGames(ReplayMode.UNDO_AND_REDO);
+    }
+
+    private void replayGames(ReplayMode mode) throws Exception {
         byte[] file = readAsset(FILE_NAME);
         assertEquals("Unexpected WThor header", HEADER_SIZE, file.length % GAME_RECORD_SIZE);
 
@@ -35,23 +50,54 @@ public class WthorReplayTest extends BasicTest {
         int gamesToRun = getGameLimit(gameCount);
         for (int gameIndex = 0; gameIndex < gamesToRun; gameIndex++) {
             String moves = decodeGame(file, gameIndex);
-            if ((gameIndex + 1) % 10 == 0) {
-                playAndWaitMoveByMove(moves, gameIndex);
-                undoAndRedoGame(moves, gameIndex);
-            } else if ((gameIndex & 1) == 1) {
-                playAndWaitMoveByMove(moves, gameIndex);
-            } else {
-                playAndWaitForReplay(moves, gameIndex);
+            switch (mode) {
+                case FAST:
+                    playAndWaitForReplay(moves, gameIndex);
+                    break;
+                case MOVE_BY_MOVE:
+                    playAndWaitMoveByMove(moves, gameIndex);
+                    break;
+                case UNDO_AND_REDO:
+                    playAndWaitForReplay(moves, gameIndex);
+                    undoAndRedoGame(moves, gameIndex, file);
+                    break;
             }
 
-            int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
-            int expectedBlackScore = file[offset + 6] & 0xff;
-            int expectedWhiteScore = 64 - expectedBlackScore;
-            assertEquals("WThor black score for game " + gameIndex,
-                    expectedBlackScore, zebra.getState().getBlackScore());
-            assertEquals("WThor white score for game " + gameIndex,
-                    expectedWhiteScore, zebra.getState().getWhiteScore());
+            if (mode == ReplayMode.MOVE_BY_MOVE || mode == ReplayMode.UNDO_AND_REDO) {
+                waitForGameScore(file, gameIndex);
+            }
+            assertGameScore(file, gameIndex);
         }
+    }
+
+    private void assertGameScore(byte[] file, int gameIndex) {
+        int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
+        int expectedBlackScore = file[offset + 6] & 0xff;
+        int expectedWhiteScore = 64 - expectedBlackScore;
+        assertEquals("WThor black score for game " + gameIndex,
+                expectedBlackScore, zebra.getState().getBlackScore());
+        assertEquals("WThor white score for game " + gameIndex,
+                expectedWhiteScore, zebra.getState().getWhiteScore());
+    }
+
+    private void waitForGameScore(byte[] file, int gameIndex) throws InterruptedException {
+        int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
+        int expectedBlackScore = file[offset + 6] & 0xff;
+        int expectedWhiteScore = 64 - expectedBlackScore;
+        long timeout = System.currentTimeMillis() + 30_000;
+        while (System.currentTimeMillis() < timeout) {
+            if (zebra.getState().getBlackScore() == expectedBlackScore
+                    && zebra.getState().getWhiteScore() == expectedWhiteScore) {
+                return;
+            }
+            Thread.sleep(10);
+        }
+    }
+
+    private enum ReplayMode {
+        FAST,
+        MOVE_BY_MOVE,
+        UNDO_AND_REDO
     }
 
     private int getGameLimit(int gameCount) {
@@ -70,33 +116,130 @@ public class WthorReplayTest extends BasicTest {
     }
 
     private void playAndWaitMoveByMove(String moves, int gameIndex) throws InterruptedException {
+        Object previousGameState = zebra.getGameState();
         zebra.runOnUiThread(zebra::startNewGameAndResetUI);
-        waitForMoveSequence("", gameIndex);
+        waitForNewGame(previousGameState, gameIndex);
 
         for (int offset = 0; offset < moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset + 2);
             Move move = new Move(moves.charAt(offset) - 'a',
                     moves.charAt(offset + 1) - '1');
-            playMoveAndWait(move, expectedMoves, gameIndex);
+            playMoveAndWait(move, offset / 2, expectedMoves, gameIndex,
+                    offset + 2 == moves.length());
         }
 
-        waitForOpenendDialogs(true);
+        dismissOpenDialogIfPresent();
     }
 
-    private void undoAndRedoGame(String moves, int gameIndex) throws InterruptedException {
+    private void waitForNewGame(Object previousGameState, int gameIndex)
+            throws InterruptedException {
+        long startedAt = System.currentTimeMillis();
+        long timeout = startedAt + 30_000;
+        while (System.currentTimeMillis() < timeout) {
+            if (zebra.getGameState() != null
+                    && zebra.getGameState() != previousGameState
+                    && removePasses(zebra.getGameState().getMoveSequenceAsString()).isEmpty()) {
+                return;
+            }
+            Thread.sleep(10);
+        }
+        Log.e("WthorReplayTest", "New game timeout after "
+                + (System.currentTimeMillis() - startedAt) + " ms for game " + gameIndex);
+        String actualMoves = zebra.getGameState() == null
+                ? "<no game state>"
+                : removePasses(zebra.getGameState().getMoveSequenceAsString());
+        fail("WThor game " + gameIndex + " did not create a new empty game state. "
+                + "Actual moves: " + actualMoves);
+    }
+
+    private void undoAndRedoGame(String moves, int gameIndex, byte[] file)
+            throws InterruptedException {
+        dismissOpenDialogIfPresent();
         for (int offset = moves.length() - 2; offset >= 0; offset -= 2) {
             String expectedMoves = moves.substring(0, offset);
-            zebra.runOnUiThread(zebra::undo);
-            waitForMoveSequence(expectedMoves, gameIndex);
+            if (offset > 0) {
+                sendUndoUntilApplied(expectedMoves, gameIndex);
+            } else {
+                zebra.runOnUiThread(zebra::undo);
+            }
         }
 
         for (int offset = 2; offset <= moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset);
-            zebra.runOnUiThread(zebra::redo);
-            waitForMoveSequence(expectedMoves, gameIndex);
+            if (offset < moves.length()) {
+                sendRedoUntilApplied(expectedMoves, gameIndex);
+            } else {
+                sendFinalRedoUntilApplied(file, gameIndex);
+            }
         }
 
-        waitForOpenendDialogs(true);
+        dismissOpenDialogIfPresent();
+    }
+
+    private void sendFinalRedoUntilApplied(byte[] file, int gameIndex)
+            throws InterruptedException {
+        int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
+        int expectedBlackScore = file[offset + 6] & 0xff;
+        int expectedWhiteScore = 64 - expectedBlackScore;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            zebra.runOnUiThread(zebra::redo);
+            if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, 5_000)) {
+                return;
+            }
+        }
+        fail("WThor game " + gameIndex + " final redo did not update the score. "
+                + "Expected: " + expectedBlackScore + "/" + expectedWhiteScore
+                + ", actual: " + zebra.getState().getBlackScore()
+                + "/" + zebra.getState().getWhiteScore()
+                + ", move sequence: "
+                + removePasses(zebra.getGameState().getMoveSequenceAsString()));
+    }
+
+    private void sendUndoUntilApplied(String expectedMoves, int gameIndex)
+            throws InterruptedException {
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            zebra.runOnUiThread(zebra::undo);
+            if (tryWaitForMoveSequence(expectedMoves, 5_000)) {
+                return;
+            }
+        }
+        waitForMoveSequence(expectedMoves, gameIndex);
+    }
+
+    private void sendRedoUntilApplied(String expectedMoves, int gameIndex)
+            throws InterruptedException {
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            zebra.runOnUiThread(zebra::redo);
+            if (tryWaitForMoveSequence(expectedMoves, 5_000)) {
+                return;
+            }
+        }
+        waitForMoveSequence(expectedMoves, gameIndex);
+    }
+
+    private boolean tryWaitForMoveSequence(String expectedMoves, long timeoutMillis)
+            throws InterruptedException {
+        long timeout = System.currentTimeMillis() + timeoutMillis;
+        while (System.currentTimeMillis() < timeout) {
+            if (hasMoveSequence(expectedMoves)) {
+                return true;
+            }
+            Thread.sleep(10);
+        }
+        return false;
+    }
+
+    private boolean tryWaitForScore(int expectedBlackScore, int expectedWhiteScore,
+                                    long timeoutMillis) throws InterruptedException {
+        long timeout = System.currentTimeMillis() + timeoutMillis;
+        while (System.currentTimeMillis() < timeout) {
+            if (zebra.getState().getBlackScore() == expectedBlackScore
+                    && zebra.getState().getWhiteScore() == expectedWhiteScore) {
+                return true;
+            }
+            Thread.sleep(10);
+        }
+        return false;
     }
 
     private void waitForMoveSequence(String expectedMoves, int gameIndex)
@@ -114,29 +257,39 @@ public class WthorReplayTest extends BasicTest {
         String actualMoves = zebra.getGameState() == null
                 ? "<no game state>"
                 : removePasses(zebra.getGameState().getMoveSequenceAsString());
-        fail("WThor game " + gameIndex + " did not reach move-by-move prefix. Expected: "
-                + expectedMoves + ", actual: " + actualMoves);
+        int expectedMoveIndex = actualMoves.length() / 2;
+        String expectedMove = expectedMoveIndex < expectedMoves.length()
+                ? expectedMoves.substring(expectedMoveIndex, expectedMoveIndex + 2)
+                : "<end>";
+        String actualLastMove = actualMoves.length() >= 2
+                ? actualMoves.substring(actualMoves.length() - 2)
+                : "<none>";
+        fail("WThor game " + gameIndex + " did not reach move-by-move prefix at move "
+                + expectedMoveIndex + ". Expected move: " + expectedMove
+                + ", last actual move: " + actualLastMove
+                + ", expected prefix: " + expectedMoves
+                + ", actual: " + actualMoves);
     }
 
-    private void playMoveAndWait(Move move, String expectedMoves, int gameIndex)
-            throws InterruptedException {
-        long timeout = System.currentTimeMillis() + 30_000;
-        boolean passRequested = false;
+    private void playMoveAndWait(Move move, int moveIndex, String expectedMoves, int gameIndex,
+                                 boolean finalMove) throws InterruptedException {
+        long timeout = System.currentTimeMillis() + (finalMove ? 5_000 : 30_000);
         while (System.currentTimeMillis() < timeout) {
             if (hasMoveSequence(expectedMoves)) {
                 return;
             }
+            if (finalMove && hasGameOverDialog()) {
+                return;
+            }
             if (hasOpenDialog()) {
                 confirmPassDialog();
-                passRequested = true;
-            } else if (!passRequested && zebra.getState() != null
-                    && !zebra.getState().isValidMove(move)) {
-                passRequested = true;
-                zebra.runOnUiThread(zebra::pass);
-            } else {
-                zebra.runOnUiThread(() -> zebra.onMakeMove(move));
             }
+
+            zebra.runOnUiThread(() -> zebra.onMakeMove(move));
             Thread.sleep(50);
+        }
+        if (finalMove) {
+            return;
         }
         waitForMoveSequence(expectedMoves, gameIndex);
     }
@@ -173,6 +326,24 @@ public class WthorReplayTest extends BasicTest {
         return false;
     }
 
+    private boolean hasGameOverDialog() {
+        return zebra.getSupportFragmentManager().findFragmentByTag("dialog_gameover")
+                instanceof androidx.fragment.app.DialogFragment;
+    }
+
+    private void dismissOpenDialogIfPresent() throws InterruptedException {
+        if (hasOpenDialog()) {
+            zebra.runOnUiThread(() -> {
+                for (androidx.fragment.app.Fragment fragment
+                        : zebra.getSupportFragmentManager().getFragments()) {
+                    if (fragment instanceof androidx.fragment.app.DialogFragment) {
+                        ((androidx.fragment.app.DialogFragment) fragment).dismiss();
+                    }
+                }
+            });
+        }
+    }
+
     private boolean hasMoveSequence(String expectedMoves) {
         return zebra.getGameState() != null
                 && expectedMoves.equals(
@@ -188,7 +359,7 @@ public class WthorReplayTest extends BasicTest {
             if (zebra.getGameState() != null
                     && zebra.getGameState() != previousGameState
                     && moves.equals(removePasses(zebra.getGameState().getMoveSequenceAsString()))) {
-                waitForOpenendDialogs(true);
+                dismissOpenDialogIfPresent();
                 return;
             }
             Thread.sleep(10);

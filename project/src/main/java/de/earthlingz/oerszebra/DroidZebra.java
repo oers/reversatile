@@ -597,10 +597,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         showDialog(newFragment, "dialog_pass");
     }
 
-    void pass() {
-        engine.pass(gameState, engineConfig);
-    }
-
     public void showGameOverDialog() {
         DialogFragment newFragment = DialogGameOver.newInstance();
         showDialog(newFragment, "dialog_gameover");
