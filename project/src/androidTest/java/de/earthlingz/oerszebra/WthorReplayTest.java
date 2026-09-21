@@ -310,10 +310,36 @@ public class WthorReplayTest extends BasicTest {
 
         for (int offset = 2; offset <= moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset);
+            String redoneSquare = moves.substring(offset - 2, offset);
+            int ply = offset / 2; // 1-based: odd plies are black, even are white
+            byte expectedColor = (ply % 2 == 1) ? ZebraEngine.PLAYER_BLACK : ZebraEngine.PLAYER_WHITE;
             if (offset < moves.length()) {
                 sendRedoUntilApplied(expectedMoves, gameIndex);
             } else {
                 sendFinalRedoUntilApplied(file, gameIndex, originalBoard);
+            }
+            // Mirrors the undo-phase per-call check above: does the square
+            // this redo call just placed actually show the mover's color?
+            // The final 7-square board diff (a5, a6, b4, b5, b6, c5, d5)
+            // includes several squares that were directly played, not just
+            // captured (c5=ply3, b5=ply10, b6=ply15, a6=ply17, b4=ply21) -
+            // if one of those specific redo calls doesn't even place its
+            // own disc correctly, that's the culprit; if it does and only
+            // OTHER (captured) squares end up wrong, the bug is in that
+            // move's flip computation instead.
+            int x = redoneSquare.charAt(0) - 'a';
+            int y = redoneSquare.charAt(1) - '1';
+            byte fieldAfterRedo = zebra.getState().getFieldByte(x, y);
+            long fieldWaitDeadline = System.currentTimeMillis() + 2_000;
+            while (fieldAfterRedo != expectedColor && System.currentTimeMillis() < fieldWaitDeadline) {
+                Thread.sleep(10);
+                fieldAfterRedo = zebra.getState().getFieldByte(x, y);
+            }
+            if (fieldAfterRedo != expectedColor) {
+                fail("WThor game " + gameIndex + " redo of ply " + ply + " (" + redoneSquare
+                        + ") did not place " + fieldName(expectedColor) + " there - actual "
+                        + fieldName(fieldAfterRedo) + ". Move sequence now: "
+                        + removePasses(zebra.getGameState().getMoveSequenceAsString()));
             }
         }
 
