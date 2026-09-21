@@ -79,12 +79,9 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          # TEMPORARY: validate the undo->redo race fix in WthorReplayTest,
-          # isolated from other test classes, capped to 5 WThor games.
-          # Revert to plain `./gradlew connectedCheck` once read.
-          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.class=de.earthlingz.oerszebra.WthorReplayTest#replayGamesWithUndoAndRedo -Pandroid.testInstrumentationRunnerArguments.wthorGameLimit=5
+          script: ./gradlew connectedCheck
       - name: Print test results
-        if: always()
+        if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;
       - name: Upload test report
         if: always()

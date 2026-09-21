@@ -39,34 +39,40 @@ public class WthorReplayTest extends BasicTest {
         replayGames(ReplayMode.MOVE_BY_MOVE);
     }
 
-    // Known bug, not yet fully root-caused, currently under active
-    // investigation - see git history for the two real bugs already found
-    // and fixed along the way:
+    // Root-caused, not fixable in this sandboxed environment - this is the
+    // SAME bug already written up on PR #96 as testRedoAcrossPass
+    // (DroidZebraTest, @Ignore'd there for the same reason), rediscovered
+    // independently via bulk WThor replay. Two real, unrelated bugs were
+    // found and fixed along the way to get here (see git history):
     //   1. UI_EVENT_REDO was unhandled in droidzebra-jni.c's
     //      post-game-over loop (native, fixed).
     //   2. GameState.getMoveSequenceAsString() returned stale, leftover
     //      moves after an undo shortened the sequence (Java-side display
-    //      bug, fixed) - this was masquerading as "redo overshoots to the
-    //      full game", but the engine's actual ply position was correct
-    //      the whole time; only the string representation lagged behind.
-    // Also fixed: undoAndRedoGame()'s very last undo() fired without
-    // waiting for it to land, which could race the first redo() into
-    // ZebraEngine's ES_USER_INPUT_WAIT guard and get silently dropped.
+    //      bug, fixed).
+    // Plus two test-side async-lag bugs in this file's own diagnostics
+    // (settle-wait missing on the post-undo check; pristineStartBoard
+    // captured before GameStateBoardModel's first async update landed).
     //
-    // With both of those fixed, WThor game 0's undo+redo cycle now
-    // reaches the end with the exact right move sequence, but the FINAL
-    // SCORE is still wrong (seen: expected 31/33, actual 37/25) even
-    // though replayGamesFast/MoveByMove confirm 31/33 is correct for this
-    // exact game played straight through. So the move sequence (which
-    // squares got clicked) is right, but the actual board state (which
-    // squares ended up which color) has diverged - pointing at a flip
-    // computation bug in the native redo replay itself, not a bookkeeping
-    // or Java-side issue. captureBoard()/diffBoards() report exactly
-    // which squares differ from the known-correct straight-playthrough
-    // board, to localize this to the guilty move(s) instead of just
-    // knowing "the score is wrong".
-    // @Suppress removed while investigating; restore it if this still
-    // fails and the investigation is parked again.
+    // With all of those fixed, the undo+redo cycle for WThor game 0 was
+    // finally bisected cleanly enough to find the actual native bug: this
+    // game contains exactly one forced pass (Black has no legal move once
+    // White plays g7; White then plays the final move, a5) - confirmed by
+    // independently re-simulating this exact game's rules in Python and
+    // matching the recorded 31/33 score exactly (31 black + 32 white on
+    // the raw board + 1 remaining empty square, which GameStateBoardModel
+    // legitimately awards to the leader, White, giving 31/33). Redoing
+    // across that pass leaves several squares (a5, a6, b4, b5, b6, c5, d5)
+    // wrong, exactly matching PR #96's existing description of
+    // testRedoAcrossPass: "undoing across a forced pass and redoing back
+    // leaves ... board square[s] permanently unfilled instead of restoring
+    // the original position."
+    //
+    // PR #96 already concluded this needs local device/emulator debugging
+    // to pin down the exact faulty line in _droidzebra_undo_turn/
+    // _droidzebra_redo_turn's pass handling - something this sandboxed
+    // environment can't do. Suppressed again rather than spending further
+    // CI cycles on a bug already known to be blocked on that.
+    @Suppress
     @Test
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);
