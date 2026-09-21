@@ -175,6 +175,12 @@ public class GameState {
 
 
     private void updateMoveSequence(MoveList blackMoveList, MoveList whiteMoveList) {
+        // Only the first blackMoveList.length()/whiteMoveList.length() slots
+        // get overwritten below, so after an undo shortens either list, the
+        // now-stale bytes from the previous (longer) sequence would
+        // otherwise linger past the new end - clear the whole array first
+        // so every slot beyond the current lists is unambiguously empty.
+        Arrays.fill(moveSequence, (byte) 0);
         for (int i = 0; i < blackMoveList.length(); i++) {
             moveSequence[2 * i] = blackMoveList.getMoveByte(i);
         }
@@ -188,15 +194,17 @@ public class GameState {
     public String getMoveSequenceAsString() {
         StringBuilder sbMoves = new StringBuilder();
 
+        // Bounded by disksPlayed (same pattern as exportMoveSequence()),
+        // not by scanning for a byte equal to lastMove: at disksPlayed==0
+        // lastMove is PASS, a value that never appears in moveSequence, so
+        // that scan never found its break condition and fell through to
+        // printing the entire fixed-size array - including any stale
+        // trailing bytes left over from a longer sequence before an undo.
         if (moveSequence != null) {
-
-            for (byte move1 : moveSequence) {
+            for (int i = 0; i < disksPlayed && i < moveSequence.length; i++) {
+                byte move1 = moveSequence[i];
                 if (move1 != 0x00) {
-                    Move move = new Move(move1);
-                    sbMoves.append(move.getText());
-                    if (move1 == lastMove) {
-                        break;
-                    }
+                    sbMoves.append(new Move(move1).getText());
                 }
             }
         }

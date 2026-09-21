@@ -400,6 +400,15 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         return gameState;
     }
 
+    // Package-private: lets androidTest diagnostics (WthorReplayTest) report
+    // the engine's ENGINE_STATE in a timeout failure message, so a silently
+    // dropped undo()/redo() (the guard in ZebraEngine#undoMove/redoMove
+    // no-ops outside ES_USER_INPUT_WAIT) is distinguishable at a glance from
+    // one that was genuinely applied but landed on the wrong position.
+    ZebraEngine.ENGINE_STATE getEngineState() {
+        return engine.getState();
+    }
+
     private void startNewGameAndResetUI(int moves_played_count, byte[] moves_played) {
         Analytics.log("new_game", new GameState(8, moves_played, moves_played_count).getMoveSequenceAsString());
         engine.newGame(moves_played, moves_played_count, engineConfig, new ZebraEngine.OnGameStateReadyListener() {

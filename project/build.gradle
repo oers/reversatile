@@ -15,8 +15,8 @@ android {
 
     defaultConfig {
         multiDexEnabled false
-        versionName androidGitVersion.name()
-        versionCode androidGitVersion.code()
+        versionName androidGitVersion.name() ?: "thor-test"
+        versionCode Math.max(1017004, androidGitVersion.code())
         ndk {
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
         }
@@ -54,6 +54,11 @@ android {
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             outputFileName = "reversatile-${variant.name}-${variant.versionName}${variant.signingReady? "-signed" : "-unsigned"}.apk"
+        }
+    }
+    sourceSets {
+        androidTest {
+            assets.srcDirs = ['src/androidTest']
         }
     }
     compileOptions {
