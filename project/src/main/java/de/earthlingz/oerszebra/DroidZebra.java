@@ -957,16 +957,27 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * back in {@code ES_USER_INPUT_WAIT} (the same guard the single-tap toolbar buttons
      * rely on), so issuing several before the first one's board update lands drops all
      * but the first.
+     * <p>
+     * A new call always wins over one still in flight: {@code navigationGeneration} is
+     * bumped up front, and each scheduled step abandons itself once it's no longer the
+     * current generation. Without this, a jump that finishes right as another one starts
+     * could leave its last scheduled step still pending; if that stale step then saw the
+     * board having moved on (from the new jump), it would fire an undo/redo of its own -
+     * fighting the new jump one step at a time, indefinitely, since each such tug leaves
+     * the stale step's own target unmet, so it keeps rescheduling itself forever.
      */
+    private int navigationGeneration = 0;
+
     void jumpToMove(int targetDisksPlayed) {
         if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
             return;
         }
-        stepTowardMove(targetDisksPlayed);
+        int generation = ++navigationGeneration;
+        stepTowardMove(targetDisksPlayed, generation);
     }
 
-    private void stepTowardMove(int targetDisksPlayed) {
-        if (gameState == null) {
+    private void stepTowardMove(int targetDisksPlayed, int generation) {
+        if (generation != navigationGeneration || gameState == null) {
             return;
         }
         int current = gameState.getDisksPlayed();
@@ -984,7 +995,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 redo();
             }
         }
-        mBoardView.postDelayed(() -> stepTowardMove(targetDisksPlayed), 100);
+        mBoardView.postDelayed(() -> stepTowardMove(targetDisksPlayed, generation), 100);
     }
 
     @Override
