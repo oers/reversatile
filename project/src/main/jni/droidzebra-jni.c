@@ -1021,10 +1021,12 @@ void _droidzebra_undo_all(int* side_to_move)
 
 	if(score_sheet_row==0 && *side_to_move==BLACKSQ) return;
 
-
+	// push once for the whole jump, same as _droidzebra_undo_turn: a single
+	// redo() should replay the entire undo-all in one shot, not one ply at a
+	// time (which used to leave redo landing mid-AI-turn and other oddities)
+	_droidzebra_undo_stack_push(disks_played);
 
 	do {
-        _droidzebra_undo_stack_push(disks_played);
 		*side_to_move = OPP(*side_to_move);
 
 		if ( *side_to_move == WHITESQ )
