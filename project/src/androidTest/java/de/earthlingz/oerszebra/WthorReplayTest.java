@@ -11,6 +11,7 @@ import android.util.Log;
 import androidx.test.filters.Suppress;
 
 import com.shurik.droidzebra.Move;
+import com.shurik.droidzebra.ZebraEngine;
 
 import org.junit.Test;
 
@@ -47,14 +48,22 @@ public class WthorReplayTest extends BasicTest {
     // itself, not a test-order or timing artifact. A genuine, separate bug
     // was found and fixed along the way (UI_EVENT_REDO was unhandled in
     // droidzebra-jni.c's post-game-over loop), but it wasn't the full
-    // story. Root-causing the rest needs live-device/logcat debugging,
-    // which this sandboxed environment can't do (see also
-    // testRedoAcrossPass in DroidZebraTest, the same class of bug in a
-    // different scenario).
-    // @Suppress (not @Ignore) because AGP's androidTest XML report
-    // surfaces a plain-@Ignore'd test as an unexplained empty failure.
+    // story.
+    //
+    // TEMPORARY: @Suppress removed again to test a real fix - the very
+    // last undo() in undoAndRedoGame() fired without waiting for it to be
+    // applied (unlike every other call here), which could race the first
+    // redo() straight into ZebraEngine's ES_USER_INPUT_WAIT guard and get
+    // silently dropped. undoAndRedoGame/sendUndoUntilApplied now wait for
+    // that undo too, and every timeout failure now reports the engine's
+    // ENGINE_STATE right before the call and at failure time, so a
+    // dropped call (state wasn't ES_USER_INPUT_WAIT before the call) is
+    // now distinguishable at a glance from a call that was applied but
+    // landed on the wrong position. Restore @Suppress if this still
+    // fails; if the failure message shows a non-ES_USER_INPUT_WAIT state
+    // before the call, that confirms the dropped-event race rather than
+    // the redo-overshoot bug.
     @Test
-    @Suppress
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);
     }
@@ -178,13 +187,19 @@ public class WthorReplayTest extends BasicTest {
             throws InterruptedException {
         dismissOpenDialogIfPresent();
         for (int offset = moves.length() - 2; offset >= 0; offset -= 2) {
-            String expectedMoves = moves.substring(0, offset);
-            if (offset > 0) {
-                sendUndoUntilApplied(expectedMoves, gameIndex);
-            } else {
-                zebra.runOnUiThread(zebra::undo);
-            }
+            // The very last undo (offset 0, landing on the empty starting
+            // position) used to fire without waiting for it to actually be
+            // applied, unlike every other undo/redo call in this method -
+            // if the first redo() below then arrived before that undo had
+            // landed, ZebraEngine#redoMove's ES_USER_INPUT_WAIT guard
+            // silently dropped it, and the test just sat on two nested
+            // timeouts (~50s) at the undo->redo transition before failing
+            // with the state unchanged. Wait for it like all the others.
+            sendUndoUntilApplied(moves.substring(0, offset), gameIndex);
         }
+        Log.i("WthorReplayTest", "WThor game " + gameIndex
+                + " undo phase complete, engine state=" + zebra.getEngineState()
+                + " - starting redo phase");
 
         for (int offset = 2; offset <= moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset);
@@ -213,6 +228,7 @@ public class WthorReplayTest extends BasicTest {
         int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
         int expectedBlackScore = file[offset + 6] & 0xff;
         int expectedWhiteScore = 64 - expectedBlackScore;
+        ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
         zebra.runOnUiThread(zebra::redo);
         if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, UNDO_REDO_TIMEOUT_MILLIS)) {
             return;
@@ -222,22 +238,30 @@ public class WthorReplayTest extends BasicTest {
                 + ", actual: " + zebra.getState().getBlackScore()
                 + "/" + zebra.getState().getWhiteScore()
                 + ", move sequence: "
-                + removePasses(zebra.getGameState().getMoveSequenceAsString()));
+                + removePasses(zebra.getGameState().getMoveSequenceAsString())
+                + ", engine state before redo()/now: " + stateBeforeCall
+                + "/" + zebra.getEngineState());
     }
 
     private void sendUndoUntilApplied(String expectedMoves, int gameIndex)
             throws InterruptedException {
+        ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
+        Log.i("WthorReplayTest", "game " + gameIndex + " undo() -> target ply "
+                + expectedMoves.length() / 2 + ", engine state before call: " + stateBeforeCall);
         zebra.runOnUiThread(zebra::undo);
         if (!tryWaitForMoveSequence(expectedMoves, UNDO_REDO_TIMEOUT_MILLIS)) {
-            waitForMoveSequence(expectedMoves, gameIndex);
+            waitForMoveSequence(expectedMoves, gameIndex, "undo", stateBeforeCall);
         }
     }
 
     private void sendRedoUntilApplied(String expectedMoves, int gameIndex)
             throws InterruptedException {
+        ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
+        Log.i("WthorReplayTest", "game " + gameIndex + " redo() -> target ply "
+                + expectedMoves.length() / 2 + ", engine state before call: " + stateBeforeCall);
         zebra.runOnUiThread(zebra::redo);
         if (!tryWaitForMoveSequence(expectedMoves, UNDO_REDO_TIMEOUT_MILLIS)) {
-            waitForMoveSequence(expectedMoves, gameIndex);
+            waitForMoveSequence(expectedMoves, gameIndex, "redo", stateBeforeCall);
         }
     }
 
@@ -266,7 +290,13 @@ public class WthorReplayTest extends BasicTest {
         return false;
     }
 
-    private void waitForMoveSequence(String expectedMoves, int gameIndex)
+    private void waitForMoveSequence(String expectedMoves, int gameIndex, String callLabel)
+            throws InterruptedException {
+        waitForMoveSequence(expectedMoves, gameIndex, callLabel, null);
+    }
+
+    private void waitForMoveSequence(String expectedMoves, int gameIndex, String callLabel,
+                                      ZebraEngine.ENGINE_STATE stateBeforeCall)
             throws InterruptedException {
         long timeout = System.currentTimeMillis() + 30_000;
         while (System.currentTimeMillis() < timeout) {
@@ -288,11 +318,19 @@ public class WthorReplayTest extends BasicTest {
         String actualLastMove = actualMoves.length() >= 2
                 ? actualMoves.substring(actualMoves.length() - 2)
                 : "<none>";
-        fail("WThor game " + gameIndex + " did not reach move-by-move prefix at move "
+        // Engine state right before the triggering call, and again now: if
+        // it was already something other than ES_USER_INPUT_WAIT before the
+        // call, ZebraEngine's guard silently dropped the undo()/redo() and
+        // nothing was ever queued - a fundamentally different failure than
+        // the call having been applied but landing on the wrong position.
+        fail("WThor game " + gameIndex + " " + callLabel
+                + "() did not reach move-by-move prefix at move "
                 + expectedMoveIndex + ". Expected move: " + expectedMove
                 + ", last actual move: " + actualLastMove
                 + ", expected prefix: " + expectedMoves
-                + ", actual: " + actualMoves);
+                + ", actual: " + actualMoves
+                + ", engine state before " + callLabel + "()/now: " + stateBeforeCall
+                + "/" + zebra.getEngineState());
     }
 
     // Re-sending onMakeMove every poll tick raced the engine: a move that was
@@ -326,7 +364,7 @@ public class WthorReplayTest extends BasicTest {
         if (finalMove) {
             return;
         }
-        waitForMoveSequence(expectedMoves, gameIndex);
+        waitForMoveSequence(expectedMoves, gameIndex, "move");
     }
 
     private void confirmPassDialog() throws InterruptedException {
