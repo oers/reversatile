@@ -78,8 +78,11 @@ jobs:
       - name: Build host libdroidzebra.so (arm64)
         run: make -C project/hostjni
 
+      # "test" is Android's lifecycle aggregator task (plain Task, not a
+      # Test-type task), so it doesn't accept --tests - target the actual
+      # per-variant unit test task instead.
       - name: run HostJniSmokeTest
-        run: ./gradlew test --tests "com.shurik.droidzebra.HostJniSmokeTest" --info
+        run: ./gradlew testDebugUnitTest --tests "com.shurik.droidzebra.HostJniSmokeTest" --info
 
       - name: Upload test report
         if: always()
