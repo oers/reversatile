@@ -995,6 +995,16 @@ AGAIN:
 			if ( side_to_move == BLACKSQ )
 				score_sheet_row--;
 			goto AGAIN;
+		} else if( evt.type==UI_EVENT_REDO ) {
+			// Was missing here: redo after a game has ended (the only place
+			// this loop is reached from) was silently swallowed - the loop
+			// just went back to waiting for the next event instead of
+			// applying it, unlike UNDO/UNDO_ALL right above.
+			_droidzebra_redo_turn(&side_to_move);
+			// adjust for increment at the beginning of the game loop
+			if ( side_to_move == BLACKSQ )
+				score_sheet_row--;
+			goto AGAIN;
 		}
 		else if( evt.type==UI_EVENT_SETTINGS_CHANGE ) {
 			_droidzebra_on_settings_change();
