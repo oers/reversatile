@@ -44,22 +44,26 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # AGP's aapt2 (needed to compile resources/generate R.java, which the
-      # unit-test variant's compile depends on) is only published as an
-      # x86_64 Linux binary - there's no linux-aarch64 build. Without this,
-      # the kernel can't exec it on this arm64 runner and the shell
-      # misinterprets the raw ELF bytes as a script ("Syntax error: word
-      # unexpected"). QEMU user-mode emulation lets that one short-lived
-      # x86_64 binary run transparently; it does NOT need /dev/kvm (unlike
-      # the Android emulator we abandoned) since it's not virtualizing a
-      # whole guest OS, just interpreting one foreign-arch process. Our
-      # actual native zebra engine (project/hostjni) still compiles and
-      # runs 100% natively for this runner's real arm64 CPU - this only
-      # covers AGP's own build-time tooling.
-      - name: Set up QEMU (AGP's aapt2 is x86_64-only for Linux)
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: amd64
+      # AGP's own aapt2 (needed to compile resources/generate R.java, which
+      # the unit-test variant's compile depends on) is only published as an
+      # x86_64 Linux binary - there's no linux-aarch64 build, so the kernel
+      # can't exec it here at all ("Syntax error: word unexpected", the
+      # shell misreading the raw x86_64 ELF bytes as a script). We tried
+      # QEMU user-mode emulation for it next, but that binary needs an
+      # x86_64 loader/libc alongside it that isn't present on an arm64
+      # rootfs ("Could not open '/lib64/ld-linux-x86-64.so.2'"), so it still
+      # doesn't run without a full multiarch sysroot.
+      #
+      # Ubuntu's own `aapt` package is compiled natively per-architecture
+      # (unlike AGP's Maven-fetched one) and ships a real arm64 aapt2 binary
+      # at /usr/bin/aapt2. AGP lets us point at it directly via the
+      # android.aapt2FromMavenOverride project property instead of using
+      # its own x86_64 copy. Our actual native zebra engine (project/hostjni)
+      # is unaffected either way - it already compiles and runs 100%
+      # natively for this runner's real arm64 CPU; this only covers AGP's
+      # own build-time tooling.
+      - name: Install native arm64 aapt2
+        run: sudo apt-get update && sudo apt-get install -y aapt
 
       # ubuntu-24.04-arm has no Android SDK preinstalled (unlike ubuntu-latest,
       # which GitHub images with one). We only need it so AGP can configure
@@ -96,7 +100,7 @@ jobs:
       # Test-type task), so it doesn't accept --tests - target the actual
       # per-variant unit test task instead.
       - name: run HostJniSmokeTest
-        run: ./gradlew testDebugUnitTest --tests "com.shurik.droidzebra.HostJniSmokeTest" --info
+        run: ./gradlew -Pandroid.aapt2FromMavenOverride=/usr/bin/aapt2 testDebugUnitTest --tests "com.shurik.droidzebra.HostJniSmokeTest" --info
 
       - name: Upload test report
         if: always()
