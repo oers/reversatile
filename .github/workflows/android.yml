@@ -79,10 +79,18 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          script: ./gradlew connectedCheck
+          script: |
+            set +e
+            ./gradlew connectedCheck
+            EXIT_CODE=$?
+            adb logcat -d -s engine:D > logcat-engine.txt
+            exit $EXIT_CODE
       - name: Print test results on failure
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;
+      - name: Print engine debug logcat on failure
+        if: failure()
+        run: cat logcat-engine.txt
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4

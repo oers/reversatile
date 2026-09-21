@@ -150,6 +150,43 @@ public class DroidZebraTest extends BasicTest{
 
     }
 
+    // Investigation test for a suspected pre-existing bug: this sequence has
+    // exactly one forced pass (black has no legal move at ply 58, verified by
+    // simulation). Undoing across that pass and redoing back leaves one square
+    // permanently unfilled instead of fully restoring the original position.
+    // Expected to fail for now - the engine debug logcat (printed by CI on
+    // failure) is what's needed to pin down where undo/redo mis-accounts for
+    // the pass.
+    @Test
+    public void testRedoAcrossPass() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "D3C5F6F5F4C3C4D2E2B4D1F3B5E3F2F1A4D6E6E7F7B6E8C6B3A5D7A3E1A6G1A2C2C7B8D8C8G8G6H6G5H5G4H4H3G7H8F8H7A8A7B7A1B2G3G2H2H1C1B1");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+        waitForOpenendDialogs(true);
+
+        assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
+
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+
+        waitForSquareCount(ZebraEngine.PLAYER_EMPTY, 0, 5000);
+        assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
+    }
+
     @Test
     public void testCrash3() throws InterruptedException {
         Intent intent = new Intent();
