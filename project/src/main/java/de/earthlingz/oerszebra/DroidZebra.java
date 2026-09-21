@@ -116,6 +116,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private GameAnalyzer gameAnalyzer;
     private boolean suppressNextGameOverDialog = false;
     private List<MoveEval> lastAnalysisResults = Collections.emptyList();
+    // The full move sequence of the game analysis last ran on, captured once
+    // up front - NOT re-derived from gameState.exportMoveSequence() at jump
+    // time, since after a first jump gameState only reflects the (shorter)
+    // position navigated to, which would truncate any later jump forward.
+    private byte[] analyzedGameMoves;
+    private int analyzedGameMovesCount;
     private DrawerLayout analysisDrawerLayout;
     private RecyclerView analysisDrawerRecyclerView;
     private Button analysisDrawerHandle;
@@ -821,6 +827,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         final byte[] originalMoves = gameState.exportMoveSequence();
         final List<MoveEval> resultsSoFar = new ArrayList<>();
 
+        analyzedGameMoves = originalMoves;
+        analyzedGameMovesCount = originalDisksPlayed;
+
         setAnalysisProgressVisible(true);
         gameAnalyzer = new GameAnalyzer(engine);
         gameAnalyzer.start(gameState, engineConfig, new GameAnalyzer.Listener() {
@@ -940,6 +949,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     private void clearAnalysisResults() {
         lastAnalysisResults = Collections.emptyList();
+        analyzedGameMoves = null;
         if (analysisAdapter != null) {
             analysisAdapter.clear();
         }
@@ -966,13 +976,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * search once, after landing on the target ply.
      */
     void jumpToMove(int targetDisksPlayed) {
-        if (gameState == null || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
+        if (gameState == null || analyzedGameMoves == null
+                || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
             return;
         }
         if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null) {
             analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
         }
-        startNewGameAndResetUI(targetDisksPlayed, gameState.exportMoveSequence());
+        startNewGameAndResetUI(targetDisksPlayed, analyzedGameMoves);
     }
 
     @Override
