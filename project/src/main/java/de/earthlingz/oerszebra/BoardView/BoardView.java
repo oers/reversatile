@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
@@ -66,6 +67,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     private BitmapShader mShaderV = null;
     private BitmapShader mShaderH = null;
     private Path mPath = null;
+    private final Paint mDiscPaint = new Paint();
 
     private Move mMoveSelection = new Move(0, 0);
     private boolean mShowSelection = false; // highlight selection rectangle
@@ -178,6 +180,10 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     protected void onDraw(Canvas canvas) {
 
         // draw borders
+        // reset color left over from the previous frame's grid/overlay drawing so it
+        // doesn't tint the wood texture shader below (e.g. dark green board_line when
+        // no last-move marker was drawn, such as right after "undo to beginning")
+        mPaint.setColor(Color.WHITE);
         mPaint.setShader(mShaderV);
 
         mPath.reset();
@@ -368,16 +374,15 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
                 center.y + mDiscRadius
         );
 
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setColor(mColors.playerColor(disc.getPlayer()));
+        mDiscPaint.setAntiAlias(true);
+        mDiscPaint.setColor(mColors.playerColor(disc.getPlayer()));
 
         // swap circle color if in animation is less than 50% done (flipping black->white and vice versa)
         if (flip_angle < 0.5) {
-            paint.setColor(mColors.playerColor(disc.getOpponent()));
+            mDiscPaint.setColor(mColors.playerColor(disc.getOpponent()));
         }
 
-        canvas.drawOval(oval_bounds, paint);
+        canvas.drawOval(oval_bounds, mDiscPaint);
     }
 
     private boolean shouldDisplayEvals() {
