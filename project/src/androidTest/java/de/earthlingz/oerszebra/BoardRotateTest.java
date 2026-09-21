@@ -104,7 +104,9 @@ public class BoardRotateTest extends BasicTest {
         zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
         zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
 
-        Thread.sleep(500);
+        // the last redo's board update arrives asynchronously from the native
+        // engine thread; wait for it instead of racing a fixed sleep against it
+        waitForSquareCount(ZebraEngine.PLAYER_EMPTY, 0, 5000);
 
         // fully restored to the original end-of-game position
         assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
