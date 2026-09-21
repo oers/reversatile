@@ -38,22 +38,24 @@ public class WthorReplayTest extends BasicTest {
 
     // Known bug, not yet root-caused: redo sometimes overshoots straight to
     // the fully-completed game instead of advancing one ply (reproduced
-    // reliably on WThor game 0's second redo call, identical at the
-    // shallowest search depth, so it's not a timing issue). A genuine,
-    // separate bug was found and fixed along the way (UI_EVENT_REDO was
-    // unhandled in droidzebra-jni.c's post-game-over loop), but it wasn't
-    // the full story. Three attempts at getting CI to dump the native
-    // engine's debug logcat on failure produced no usable output (the
-    // emulator-runner action's script step appears to stop executing
-    // anything after a failing gradlew call despite `set +e`, so the
-    // logcat dump after it never ran) - not worth a fourth blind attempt.
-    // Root-causing the rest needs live-device/logcat debugging, which
-    // this sandboxed environment can't do (see also testRedoAcrossPass in
-    // DroidZebraTest, the same class of bug in a different scenario).
-    // @Suppress (not @Ignore) because AGP's androidTest XML report
-    // surfaces a plain-@Ignore'd test as an unexplained empty failure.
+    // reliably on WThor game 0's second redo call in the full CI suite,
+    // identical at the shallowest search depth). A genuine, separate bug
+    // was found and fixed along the way (UI_EVENT_REDO was unhandled in
+    // droidzebra-jni.c's post-game-over loop), but it wasn't the full
+    // story.
+    //
+    // TEMPORARY: @Suppress removed and CI's test job pinned (via
+    // testInstrumentationRunnerArguments.class in android.yml) to run only
+    // this one method, to test a specific hypothesis: ZebraEngine is a
+    // static singleton backed by one long-lived native thread, so an
+    // entire instrumented test run shares its state across every test
+    // class - if this method only fails after other tests (crash-repro
+    // cases, the other two replayGames* methods) have already driven the
+    // engine, but passes running alone, that's state leaking between
+    // tests rather than a bug in the redo logic itself. Restore @Suppress
+    // and the plain `./gradlew connectedCheck` script once this diagnostic
+    // run's result is read.
     @Test
-    @Suppress
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);
     }

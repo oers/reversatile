@@ -79,9 +79,14 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          script: ./gradlew connectedCheck
-      - name: Print test results on failure
-        if: failure()
+          # TEMPORARY diagnostic: run only replayGamesWithUndoAndRedo, alone,
+          # so ZebraEngine's static-singleton native state has no history
+          # from any other test class or method when it starts - see the
+          # comment on that test in WthorReplayTest.java. Revert to plain
+          # `./gradlew connectedCheck` once this run's result is read.
+          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.class=de.earthlingz.oerszebra.WthorReplayTest#replayGamesWithUndoAndRedo -Pandroid.testInstrumentationRunnerArguments.wthorGameLimit=2
+      - name: Print test results
+        if: always()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;
       - name: Upload test report
         if: always()
