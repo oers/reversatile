@@ -6,7 +6,6 @@ import androidx.test.filters.SmallTest;
 import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.ZebraEngine;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
@@ -125,8 +124,13 @@ public class DroidZebraTest extends BasicTest{
 
     }
 
+    // Regression test for #86 ("Crash on during evaluation"): the crash was an
+    // out-of-bounds write on the native undo/redo stack (s_undo_stack[64]),
+    // because undoAll() used to push one entry per undone ply instead of once
+    // for the whole jump - a long game with lots of passes could push well past
+    // the buffer's size. That's fixed in _droidzebra_undo_all (droidzebra-jni.c),
+    // so this no longer needs @Ignore.
     @Test
-    @Ignore
     public void testCrash86() throws InterruptedException {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
