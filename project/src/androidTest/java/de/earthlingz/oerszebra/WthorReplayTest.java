@@ -77,8 +77,7 @@ public class WthorReplayTest extends BasicTest {
             String expectedMoves = moves.substring(0, offset + 2);
             Move move = new Move(moves.charAt(offset) - 'a',
                     moves.charAt(offset + 1) - '1');
-            zebra.runOnUiThread(() -> zebra.onMakeMove(move));
-            waitForMoveSequence(expectedMoves, gameIndex);
+            playMoveAndWait(move, expectedMoves, gameIndex);
         }
 
         waitForOpenendDialogs(true);
@@ -117,6 +116,67 @@ public class WthorReplayTest extends BasicTest {
                 : removePasses(zebra.getGameState().getMoveSequenceAsString());
         fail("WThor game " + gameIndex + " did not reach move-by-move prefix. Expected: "
                 + expectedMoves + ", actual: " + actualMoves);
+    }
+
+    private void playMoveAndWait(Move move, String expectedMoves, int gameIndex)
+            throws InterruptedException {
+        long timeout = System.currentTimeMillis() + 30_000;
+        boolean passRequested = false;
+        while (System.currentTimeMillis() < timeout) {
+            if (hasMoveSequence(expectedMoves)) {
+                return;
+            }
+            if (hasOpenDialog()) {
+                confirmPassDialog();
+                passRequested = true;
+            } else if (!passRequested && zebra.getState() != null
+                    && !zebra.getState().isValidMove(move)) {
+                passRequested = true;
+                zebra.runOnUiThread(zebra::pass);
+            } else {
+                zebra.runOnUiThread(() -> zebra.onMakeMove(move));
+            }
+            Thread.sleep(50);
+        }
+        waitForMoveSequence(expectedMoves, gameIndex);
+    }
+
+    private void confirmPassDialog() throws InterruptedException {
+        zebra.runOnUiThread(() -> {
+            androidx.fragment.app.Fragment fragment = zebra.getSupportFragmentManager()
+                    .findFragmentByTag("dialog_pass");
+            if (fragment instanceof DroidZebra.DialogPass) {
+                android.app.Dialog dialog = ((androidx.fragment.app.DialogFragment) fragment)
+                        .getDialog();
+                if (dialog instanceof android.app.AlertDialog) {
+                    android.widget.Button button = ((android.app.AlertDialog) dialog).getButton(
+                            android.content.DialogInterface.BUTTON_POSITIVE);
+                    if (button != null) {
+                        button.performClick();
+                    }
+                }
+            }
+        });
+        long timeout = System.currentTimeMillis() + 5_000;
+        while (hasOpenDialog() && System.currentTimeMillis() < timeout) {
+            Thread.sleep(10);
+        }
+    }
+
+    private boolean hasOpenDialog() {
+        for (androidx.fragment.app.Fragment fragment
+                : zebra.getSupportFragmentManager().getFragments()) {
+            if (fragment instanceof androidx.fragment.app.DialogFragment) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasMoveSequence(String expectedMoves) {
+        return zebra.getGameState() != null
+                && expectedMoves.equals(
+                removePasses(zebra.getGameState().getMoveSequenceAsString()));
     }
 
     private void playAndWaitForReplay(String moves, int gameIndex) throws InterruptedException {
