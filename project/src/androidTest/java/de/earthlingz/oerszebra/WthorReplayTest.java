@@ -13,6 +13,8 @@ import androidx.test.filters.Suppress;
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
+import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
+
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -37,32 +39,34 @@ public class WthorReplayTest extends BasicTest {
         replayGames(ReplayMode.MOVE_BY_MOVE);
     }
 
-    // Known bug, not yet root-caused: redo sometimes overshoots straight to
-    // the fully-completed game instead of advancing one ply. Reproduced
-    // reliably on WThor game 0's second redo call, identical at the
-    // shallowest search depth AND when the test is pinned to run in total
-    // isolation (no other test class, capped to 2 games - see git history
-    // for the diagnostic CI config) - same failure, same ~54s, every time.
-    // That rules out state leaking from earlier tests via the ZebraEngine
-    // singleton as the cause; this is a deterministic bug in the redo path
-    // itself, not a test-order or timing artifact. A genuine, separate bug
-    // was found and fixed along the way (UI_EVENT_REDO was unhandled in
-    // droidzebra-jni.c's post-game-over loop), but it wasn't the full
-    // story.
+    // Known bug, not yet fully root-caused, currently under active
+    // investigation - see git history for the two real bugs already found
+    // and fixed along the way:
+    //   1. UI_EVENT_REDO was unhandled in droidzebra-jni.c's
+    //      post-game-over loop (native, fixed).
+    //   2. GameState.getMoveSequenceAsString() returned stale, leftover
+    //      moves after an undo shortened the sequence (Java-side display
+    //      bug, fixed) - this was masquerading as "redo overshoots to the
+    //      full game", but the engine's actual ply position was correct
+    //      the whole time; only the string representation lagged behind.
+    // Also fixed: undoAndRedoGame()'s very last undo() fired without
+    // waiting for it to land, which could race the first redo() into
+    // ZebraEngine's ES_USER_INPUT_WAIT guard and get silently dropped.
     //
-    // TEMPORARY: @Suppress removed again to test a real fix - the very
-    // last undo() in undoAndRedoGame() fired without waiting for it to be
-    // applied (unlike every other call here), which could race the first
-    // redo() straight into ZebraEngine's ES_USER_INPUT_WAIT guard and get
-    // silently dropped. undoAndRedoGame/sendUndoUntilApplied now wait for
-    // that undo too, and every timeout failure now reports the engine's
-    // ENGINE_STATE right before the call and at failure time, so a
-    // dropped call (state wasn't ES_USER_INPUT_WAIT before the call) is
-    // now distinguishable at a glance from a call that was applied but
-    // landed on the wrong position. Restore @Suppress if this still
-    // fails; if the failure message shows a non-ES_USER_INPUT_WAIT state
-    // before the call, that confirms the dropped-event race rather than
-    // the redo-overshoot bug.
+    // With both of those fixed, WThor game 0's undo+redo cycle now
+    // reaches the end with the exact right move sequence, but the FINAL
+    // SCORE is still wrong (seen: expected 31/33, actual 37/25) even
+    // though replayGamesFast/MoveByMove confirm 31/33 is correct for this
+    // exact game played straight through. So the move sequence (which
+    // squares got clicked) is right, but the actual board state (which
+    // squares ended up which color) has diverged - pointing at a flip
+    // computation bug in the native redo replay itself, not a bookkeeping
+    // or Java-side issue. captureBoard()/diffBoards() report exactly
+    // which squares differ from the known-correct straight-playthrough
+    // board, to localize this to the guilty move(s) instead of just
+    // knowing "the score is wrong".
+    // @Suppress removed while investigating; restore it if this still
+    // fails and the investigation is parked again.
     @Test
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);
@@ -88,7 +92,14 @@ public class WthorReplayTest extends BasicTest {
                     break;
                 case UNDO_AND_REDO:
                     playAndWaitForReplay(moves, gameIndex);
-                    undoAndRedoGame(moves, gameIndex, file);
+                    // Captured from the just-completed straight playthrough,
+                    // before any undo happens - this is the known-correct
+                    // final board (replayGamesFast/MoveByMove confirm this
+                    // exact sequence produces the WThor-recorded score every
+                    // run), so a mismatch after undo+redo can be pinned down
+                    // to specific squares instead of just "score is wrong".
+                    byte[][] originalBoard = captureBoard();
+                    undoAndRedoGame(moves, gameIndex, file, originalBoard);
                     break;
             }
 
@@ -99,6 +110,46 @@ public class WthorReplayTest extends BasicTest {
             waitForGameScore(file, gameIndex);
             assertGameScore(file, gameIndex);
         }
+    }
+
+    private byte[][] captureBoard() {
+        GameStateBoardModel model = zebra.getState();
+        int width = model.getBoardRowWidth();
+        int height = model.getBoardHeight();
+        byte[][] board = new byte[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                board[x][y] = model.getFieldByte(x, y);
+            }
+        }
+        return board;
+    }
+
+    private String diffBoards(byte[][] expected, byte[][] actual) {
+        StringBuilder diff = new StringBuilder();
+        for (int x = 0; x < expected.length; x++) {
+            for (int y = 0; y < expected[x].length; y++) {
+                if (expected[x][y] != actual[x][y]) {
+                    if (diff.length() > 0) {
+                        diff.append(", ");
+                    }
+                    diff.append(new Move(x, y).getText())
+                            .append(": expected ").append(fieldName(expected[x][y]))
+                            .append(", actual ").append(fieldName(actual[x][y]));
+                }
+            }
+        }
+        return diff.length() == 0 ? "<no differing squares>" : diff.toString();
+    }
+
+    private String fieldName(byte field) {
+        if (field == ZebraEngine.PLAYER_BLACK) {
+            return "BLACK";
+        }
+        if (field == ZebraEngine.PLAYER_WHITE) {
+            return "WHITE";
+        }
+        return "EMPTY";
     }
 
     private void assertGameScore(byte[] file, int gameIndex) {
@@ -183,7 +234,7 @@ public class WthorReplayTest extends BasicTest {
                 + "Actual moves: " + actualMoves);
     }
 
-    private void undoAndRedoGame(String moves, int gameIndex, byte[] file)
+    private void undoAndRedoGame(String moves, int gameIndex, byte[] file, byte[][] originalBoard)
             throws InterruptedException {
         dismissOpenDialogIfPresent();
         for (int offset = moves.length() - 2; offset >= 0; offset -= 2) {
@@ -206,7 +257,7 @@ public class WthorReplayTest extends BasicTest {
             if (offset < moves.length()) {
                 sendRedoUntilApplied(expectedMoves, gameIndex);
             } else {
-                sendFinalRedoUntilApplied(file, gameIndex);
+                sendFinalRedoUntilApplied(file, gameIndex, originalBoard);
             }
         }
 
@@ -223,7 +274,7 @@ public class WthorReplayTest extends BasicTest {
     // Fire once and give it a single generous wait instead of racing retries.
     private static final long UNDO_REDO_TIMEOUT_MILLIS = 20_000;
 
-    private void sendFinalRedoUntilApplied(byte[] file, int gameIndex)
+    private void sendFinalRedoUntilApplied(byte[] file, int gameIndex, byte[][] originalBoard)
             throws InterruptedException {
         int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
         int expectedBlackScore = file[offset + 6] & 0xff;
@@ -233,6 +284,13 @@ public class WthorReplayTest extends BasicTest {
         if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, UNDO_REDO_TIMEOUT_MILLIS)) {
             return;
         }
+        // The move sequence can be bit-for-bit correct (every square that
+        // was clicked matches the original game) while the actual disc
+        // colors on the board still diverge, if some redo step's make_move
+        // computed the wrong flips - diffing against the board captured
+        // right after the original straight playthrough (known-correct,
+        // confirmed every run by replayGamesFast/MoveByMove) pins down
+        // exactly which squares, instead of just "the score is wrong".
         fail("WThor game " + gameIndex + " final redo did not update the score. "
                 + "Expected: " + expectedBlackScore + "/" + expectedWhiteScore
                 + ", actual: " + zebra.getState().getBlackScore()
@@ -240,7 +298,9 @@ public class WthorReplayTest extends BasicTest {
                 + ", move sequence: "
                 + removePasses(zebra.getGameState().getMoveSequenceAsString())
                 + ", engine state before redo()/now: " + stateBeforeCall
-                + "/" + zebra.getEngineState());
+                + "/" + zebra.getEngineState()
+                + ", board diff vs. original playthrough: "
+                + diffBoards(originalBoard, captureBoard()));
     }
 
     private void sendUndoUntilApplied(String expectedMoves, int gameIndex)
