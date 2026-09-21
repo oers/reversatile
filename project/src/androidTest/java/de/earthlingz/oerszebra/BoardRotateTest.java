@@ -1,10 +1,18 @@
 package de.earthlingz.oerszebra;
 
 import android.content.Intent;
+import android.graphics.RectF;
+import com.shurik.droidzebra.GameState;
+import com.shurik.droidzebra.InvalidMove;
+import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
+import de.earthlingz.oerszebra.BoardView.BoardView;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 
 public class BoardRotateTest extends BasicTest {
@@ -27,9 +35,17 @@ public class BoardRotateTest extends BasicTest {
         assertSame(zebra.getState().getBlackScore(), 3);
         assertSame(zebra.getState().getWhiteScore(), 61);
 
+        assertFalse("board should start unrotated", zebra.getBoardView().isRotated());
+        GameState gameStateBeforeRotate = zebra.getGameState();
+
         zebra.runOnUiThread(() -> zebra.rotate());
 
         Thread.sleep(3000);
+
+        // rotate is a pure view transform: the engine/game state must be the exact
+        // same instance afterwards, not a freshly restarted game
+        assertSame("rotate must not restart the engine/game", gameStateBeforeRotate, zebra.getGameState());
+        assertTrue("rotate must flip the view flag", zebra.getBoardView().isRotated());
 
         assertSame(3, countSquares(ZebraEngine.PLAYER_EMPTY));
         assertSame(58, countSquares(ZebraEngine.PLAYER_WHITE));
@@ -37,6 +53,10 @@ public class BoardRotateTest extends BasicTest {
         assertSame(zebra.getState().getBlackScore(), 3);
         assertSame(zebra.getState().getWhiteScore(), 61);
 
+        // rotating again flips back
+        zebra.runOnUiThread(() -> zebra.rotate());
+        Thread.sleep(500);
+        assertFalse("rotating twice returns to unrotated", zebra.getBoardView().isRotated());
     }
 
 
@@ -64,28 +84,55 @@ public class BoardRotateTest extends BasicTest {
         zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
         zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
 
-
+        // rotating in the middle of the undo history must not disturb it in any way
         zebra.runOnUiThread(() -> zebra.rotate());Thread.sleep(500);
+        assertTrue(zebra.getBoardView().isRotated());
 
 
         zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
         zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
 
 
+        // redo all 6 undone moves - all the way back to the end of the game.
+        // This used to be impossible for anything undone before rotate() was
+        // called, since rotate() used to restart the whole engine and silently
+        // drop the redo history; now it must fully succeed.
         zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
         zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
-
-
-        //no redo possible, yet, but no exception either
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
         zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
         zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
 
         Thread.sleep(500);
 
-        assertSame(4, countSquares(ZebraEngine.PLAYER_EMPTY));
-        assertSame(29, countSquares(ZebraEngine.PLAYER_WHITE));
-        assertSame(31, countSquares(ZebraEngine.PLAYER_BLACK));
-        assertSame(zebra.getState().getBlackScore(), 31);
-        assertSame(zebra.getState().getWhiteScore(), 29);
+        // fully restored to the original end-of-game position
+        assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
+        assertSame(32, countSquares(ZebraEngine.PLAYER_WHITE));
+        assertSame(32, countSquares(ZebraEngine.PLAYER_BLACK));
+        assertSame(zebra.getState().getBlackScore(), 32);
+        assertSame(zebra.getState().getWhiteScore(), 32);
+
+        // the view stays rotated independently of the game/undo-redo state
+        assertTrue(zebra.getBoardView().isRotated());
+    }
+
+    @Test
+    public void testRotatedTouchMapsToMirroredCell() throws InvalidMove, InterruptedException {
+        BoardView boardView = zebra.getBoardView();
+
+        RectF topLeft = boardView.getCellRect(0, 0);
+        Move unrotatedMove = boardView.getMoveFromCoord(topLeft.centerX(), topLeft.centerY());
+        assertEquals(0, unrotatedMove.getX());
+        assertEquals(0, unrotatedMove.getY());
+
+        zebra.runOnUiThread(() -> zebra.rotate());
+        Thread.sleep(200);
+
+        // tapping the exact same physical point must now resolve to the
+        // mirrored cell (bottom-right instead of top-left on an 8x8 board)
+        Move rotatedMove = boardView.getMoveFromCoord(topLeft.centerX(), topLeft.centerY());
+        assertEquals(7, rotatedMove.getX());
+        assertEquals(7, rotatedMove.getY());
     }
 }

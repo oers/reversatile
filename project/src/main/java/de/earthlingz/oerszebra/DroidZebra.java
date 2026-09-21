@@ -314,6 +314,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         mBoardView.setBoardViewModel(getState());
         mBoardView.setOnMakeMoveListener(this);
         mBoardView.requestFocus();
+        if (savedInstanceState != null) {
+            mBoardView.setRotated(savedInstanceState.getBoolean("board_rotated", false));
+        }
 
         //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
         ViewCompat.setOnApplyWindowInsetsListener(mBoardView, (v, windowInsets) -> {
@@ -677,12 +680,19 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             outState.putInt("moves_played_count", moves.length);
             outState.putInt("version", 1);
         }
+        if (mBoardView != null) {
+            outState.putBoolean("board_rotated", mBoardView.isRotated());
+        }
 
         super.onSaveInstanceState(outState);
     }
 
     public GameStateBoardModel getState() {
         return state;
+    }
+
+    public BoardView getBoardView() {
+        return mBoardView;
     }
 
     @Override
@@ -787,8 +797,11 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     public void rotate() {
-        byte[] rotate = gameState.rotate();
-        startNewGameAndResetUI(gameState.getDisksPlayed(), rotate);
+        // A pure view-layer transform (see BoardView#setRotated): the engine, its
+        // move history, and the undo/redo stack are never touched, so rotating
+        // always works and never loses undo/redo state, regardless of when it's
+        // called (mid-game, after undo, while the engine is thinking, ...).
+        mBoardView.setRotated(!mBoardView.isRotated());
     }
 
     public void undo(View view) {
