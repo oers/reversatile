@@ -65,10 +65,12 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
 
-      - name: Install Android SDK packages
-        run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+      # Accept licenses only - don't install a specific platform/build-tools
+      # version by hand (compileSdk 37 may not match a real sdkmanager
+      # package id yet). With licenses accepted, AGP auto-downloads whatever
+      # SDK components the build actually needs during the Gradle run.
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null || true
 
       - name: Install host build dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential zlib1g-dev
