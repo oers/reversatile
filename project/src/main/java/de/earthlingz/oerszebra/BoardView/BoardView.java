@@ -107,6 +107,22 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     private boolean displayLastMove = false;
     private boolean displayMoves = false;
 
+    // Purely a view-layer transform (180 degrees) for pass-and-play, e.g. so the
+    // second player sees the board upright after physically turning the device.
+    // The underlying game/engine state and its undo/redo history are untouched.
+    private boolean mRotated = false;
+
+    public void setRotated(boolean rotated) {
+        if (this.mRotated != rotated) {
+            this.mRotated = rotated;
+            invalidate();
+        }
+    }
+
+    public boolean isRotated() {
+        return mRotated;
+    }
+
     public BoardView(Context context) {
         super(context);
         initBoardView();
@@ -168,16 +184,33 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     }
 
     public Move getMoveFromCoord(float x, float y) throws InvalidMove {
-        int bx = (int) Math.floor((x - mBoardRect.left) / mSizeCell);
-        int by = (int) Math.floor((y - mBoardRect.top) / mSizeCell);
+        float touchX = toLogicalX(x);
+        float touchY = toLogicalY(y);
+        int bx = (int) Math.floor((touchX - mBoardRect.left) / mSizeCell);
+        int by = (int) Math.floor((touchY - mBoardRect.top) / mSizeCell);
         if (bx < 0 || bx >= boardViewModel.getBoardSize() || by < 0 || by >= boardViewModel.getBoardSize()) {
             throw new InvalidMove();
         }
         return new Move(bx, by);
     }
 
+    // Touch/trackball/key coordinates arrive in physical screen space; when the
+    // board is visually rotated 180 degrees (see setRotated), map them back into
+    // the same logical space the drawing code and mBoardRect use.
+    private float toLogicalX(float physicalX) {
+        return mRotated ? mSizeX - physicalX : physicalX;
+    }
+
+    private float toLogicalY(float physicalY) {
+        return mRotated ? mSizeY - physicalY : physicalY;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
+        int rotateSave = canvas.save();
+        if (mRotated) {
+            canvas.rotate(180, mSizeX / 2f, mSizeY / 2f);
+        }
 
         // draw borders
         // reset color left over from the previous frame's grid/overlay drawing so it
@@ -295,6 +328,7 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
             canvas.drawRect(cellRT, mPaint);
         }
         if(boardViewModel == null) {
+            canvas.restoreToCount(rotateSave);
             return;
         }
 
@@ -339,6 +373,8 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
             mPaint.setColor(mColors.LastMoveMarker);
             canvas.drawCircle(cellRT.left + mSizeCell / 10, cellRT.bottom - mSizeCell / 10, mSizeCell / 10, mPaint);
         }
+
+        canvas.restoreToCount(rotateSave);
     }
 
     private void drawDiscs(Canvas canvas, BoardViewModel board_view) {
@@ -448,18 +484,19 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         int newMX = mMoveSelection.getX();
         int newMY = mMoveSelection.getY();
 
+        int step = mRotated ? -1 : 1;
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
-                newMX--;
+                newMX -= step;
                 break;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
-                newMX++;
+                newMX += step;
                 break;
             case KeyEvent.KEYCODE_DPAD_UP:
-                newMY--;
+                newMY -= step;
                 break;
             case KeyEvent.KEYCODE_DPAD_DOWN:
-                newMY++;
+                newMY += step;
                 break;
         }
 
@@ -481,8 +518,8 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     public boolean onTouchEvent(MotionEvent event) {
 
         int action = event.getAction();
-        int bx = (int) Math.floor((event.getX() - mBoardRect.left) / mSizeCell);
-        int by = (int) Math.floor((event.getY() - mBoardRect.top) / mSizeCell);
+        int bx = (int) Math.floor((toLogicalX(event.getX()) - mBoardRect.left) / mSizeCell);
+        int by = (int) Math.floor((toLogicalY(event.getY()) - mBoardRect.top) / mSizeCell);
         switch (action) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
@@ -500,8 +537,8 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
 
     @Override
     public boolean onTrackballEvent(MotionEvent event) {
-        float tx = event.getX();
-        float ty = event.getY();
+        float tx = mRotated ? -event.getX() : event.getX();
+        float ty = mRotated ? -event.getY() : event.getY();
 
         // Log.d("BoardView", String.format("trackball event: %d %f %f", event.getAction(), tx, ty));
 
