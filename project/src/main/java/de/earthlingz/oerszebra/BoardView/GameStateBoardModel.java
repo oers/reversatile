@@ -21,6 +21,12 @@ public class GameStateBoardModel extends AbstractBoardViewModel {
     };
     private ByteBoard currentBoard = new ByteBoard(8);
     private ByteBoard previousBoard = currentBoard;
+    private int currentDisksPlayed = 0;
+    private int previousDisksPlayed = 0;
+    // true only when the board update is a genuine single move forward (a real move or a
+    // single redo); false for undo/undo-all/redo-multiple/game-load jumps, where comparing
+    // two unrelated board snapshots does not represent real disc flips
+    private boolean wasSingleMoveStep = false;
 
 
 
@@ -58,6 +64,8 @@ public class GameStateBoardModel extends AbstractBoardViewModel {
         lastMove = null;
         whiteScore = blackScore = 0;
         previousBoard = currentBoard = new ByteBoard(8);
+        previousDisksPlayed = currentDisksPlayed = 0;
+        wasSingleMoveStep = false;
     }
 
     @Override
@@ -110,10 +118,13 @@ public class GameStateBoardModel extends AbstractBoardViewModel {
         ByteBoard board = gameState.getByteBoard();
         boolean changed = !currentBoard.isSameAs(board);
 
-
         if (changed) {
             this.previousBoard = currentBoard;
             this.currentBoard = board;
+
+            this.previousDisksPlayed = currentDisksPlayed;
+            this.currentDisksPlayed = gameState.getDisksPlayed();
+            this.wasSingleMoveStep = currentDisksPlayed == previousDisksPlayed + 1;
         }
         return changed;
 
@@ -140,6 +151,9 @@ public class GameStateBoardModel extends AbstractBoardViewModel {
 
     @Override
     public boolean isFieldFlipped(int x, int y) {
+        if (!wasSingleMoveStep) {
+            return false;
+        }
         byte currentField = currentBoard.get(x, y);
         byte previousField = previousBoard.get(x, y);
         return currentField != PLAYER_EMPTY && previousField != PLAYER_EMPTY && currentField != previousField;
