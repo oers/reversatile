@@ -95,6 +95,8 @@
     <string name="analysis_progress">Analyzing move %1$d of %2$d…</string>
     <string name="analysis_drawer_handle_closed" translatable="false">≡</string>
     <string name="analysis_drawer_handle_open" translatable="false">×</string>
+    <string name="analysis_pending_score" translatable="false">…</string>
+    <string name="analysis_timed_out">Analysis stopped responding for one move and was cancelled. Your game is unaffected.</string>
     <string name="settings_analysis_drawer_side_title">Analysis panel side</string>
     <string name="settings_analysis_drawer_side_summary">Which edge the game-analysis panel opens from</string>
     <string name="settings_analysis_preferences">Analysis</string>

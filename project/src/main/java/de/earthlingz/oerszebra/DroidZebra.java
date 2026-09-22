@@ -851,6 +851,18 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         gameAnalyzer = new GameAnalyzer(engine);
         gameAnalyzer.start(gameState, engineConfig, new GameAnalyzer.Listener() {
             @Override
+            public void onPlyStarted(int ply, int total) {
+                // Show the ply currently being computed right away, as a
+                // placeholder row ahead of whatever's already finished,
+                // instead of only appearing once its result lands.
+                MoveEval pending = MoveEval.pending(ply, new Move(analyzedGameMoves[ply - 1]));
+                List<MoveEval> withPending = new ArrayList<>(resultsSoFar.size() + 1);
+                withPending.add(pending);
+                withPending.addAll(resultsSoFar);
+                updateAnalysisDrawer(withPending, resultsSoFar.isEmpty());
+            }
+
+            @Override
             public void onProgress(int done, int total, MoveEval latest) {
                 updateAnalysisProgress(done, total);
                 resultsSoFar.add(latest);
@@ -858,7 +870,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             }
 
             @Override
-            public void onFinished(List<MoveEval> results, boolean wasCancelled) {
+            public void onFinished(List<MoveEval> results, boolean wasCancelled, boolean timedOut) {
                 lastAnalysisResults = results;
                 setAnalysisProgressVisible(false);
                 updateAnalysisDrawer(results, false);
@@ -868,10 +880,21 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                     jumpToMove(targetPly);
                     return;
                 }
+                if (timedOut) {
+                    showAnalysisTimedOutDialog();
+                }
                 suppressNextGameOverDialog = true;
                 startNewGameAndResetUI(originalDisksPlayed, originalMoves);
             }
         });
+    }
+
+    private void showAnalysisTimedOutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_error_title)
+                .setMessage(R.string.analysis_timed_out)
+                .setPositiveButton(R.string.dialog_ok, (dialog, id) -> { })
+                .show();
     }
 
     /** Stops any in-progress analysis; a no-op if none is running. */

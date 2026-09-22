@@ -30,10 +30,21 @@ import de.earthlingz.oerszebra.GameSettingsConstants;
  */
 public class GameAnalyzer {
 
+    // Safety net, not a performance guarantee: some configured search depths
+    // can legitimately take a while per position, but a position that never
+    // calls back at all (seen in practice - the analyzer just sat there
+    // indefinitely with no progress) needs to eventually give up rather than
+    // leave the drawer stuck on "Analyzing..." forever with no way out
+    // short of force-closing the app.
+    private static final long PLY_TIMEOUT_MILLIS = 60_000;
+
     public interface Listener {
+        /** Fires once, right before ply's evaluation starts, so the UI can show it as "in progress". */
+        void onPlyStarted(int ply, int total);
+
         void onProgress(int done, int total, MoveEval latest);
 
-        void onFinished(List<MoveEval> results, boolean wasCancelled);
+        void onFinished(List<MoveEval> results, boolean wasCancelled, boolean timedOut);
     }
 
     private final ZebraEngine engine;
@@ -48,6 +59,11 @@ public class GameAnalyzer {
     private List<MoveEval> results;
     private int finalBlackDiscs;
     private int finalWhiteDiscs;
+    // Bumped every time a new ply's engine.newGame() call is issued, so a
+    // watchdog (or a stray callback) scheduled for an earlier ply can tell
+    // it's stale once that ply has already resolved and analysis has moved
+    // on, instead of acting on/aborting the wrong (now current) attempt.
+    private int currentAttemptId;
 
     public GameAnalyzer(ZebraEngine engine) {
         this.engine = engine;
@@ -79,9 +95,10 @@ public class GameAnalyzer {
 
         cancelled.set(false);
         running.set(true);
+        currentAttemptId = 0;
 
         if (totalMoves == 0) {
-            finish(false);
+            finish(false, false);
             return;
         }
         // Analyze most-recent-move-first (totalMoves down to 1) rather than
@@ -101,7 +118,7 @@ public class GameAnalyzer {
 
     private void analyzePly(int ply) {
         if (cancelled.get()) {
-            finish(true);
+            finish(true, false);
             return;
         }
 
@@ -113,12 +130,19 @@ public class GameAnalyzer {
             return;
         }
 
+        final int attemptId = ++currentAttemptId;
+        notifyPlyStarted(ply);
+        mainHandler.postDelayed(() -> onPlyTimedOut(attemptId), PLY_TIMEOUT_MILLIS);
+
         engine.newGame(moves, ply, analysisConfig, new OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState) {
                 gameState.setGameStateListener(new GameStateListener() {
                     @Override
                     public void onBoard(GameState board) {
+                        if (attemptId != currentAttemptId) {
+                            return; // stale - this attempt already timed out
+                        }
                         CandidateMove best = board.getBestMove();
                         if (best != null && best.hasEval) {
                             gameState.removeGameStateListener();
@@ -133,6 +157,9 @@ public class GameAnalyzer {
                         // (shouldn't normally happen before the last ply of
                         // an already-completed game) - fall back to the
                         // known final score rather than stalling.
+                        if (attemptId != currentAttemptId) {
+                            return;
+                        }
                         gameState.removeGameStateListener();
                         addResult(ply, exactFinalScore());
                         advance(ply);
@@ -142,9 +169,16 @@ public class GameAnalyzer {
         });
     }
 
+    private void onPlyTimedOut(int attemptId) {
+        if (attemptId != currentAttemptId) {
+            return; // this ply already resolved (or analysis already stopped)
+        }
+        finish(true, true);
+    }
+
     private void advance(int justFinishedPly) {
         if (justFinishedPly <= 1) {
-            finish(false);
+            finish(false, false);
         } else {
             analyzePly(justFinishedPly - 1);
         }
@@ -156,6 +190,14 @@ public class GameAnalyzer {
 
     private static int normalizeToWhite(int rawScore, int sideToMove) {
         return sideToMove == ZebraEngine.PLAYER_WHITE ? rawScore : -rawScore;
+    }
+
+    private void notifyPlyStarted(int ply) {
+        mainHandler.post(() -> {
+            if (listener != null) {
+                listener.onPlyStarted(ply, totalMoves);
+            }
+        });
     }
 
     private void addResult(int ply, int whiteScore) {
@@ -171,12 +213,16 @@ public class GameAnalyzer {
         });
     }
 
-    private void finish(boolean wasCancelled) {
-        running.set(false);
+    private void finish(boolean wasCancelled, boolean timedOut) {
+        // Idempotent: a watchdog firing at nearly the same moment as a ply
+        // that just legitimately resolved could otherwise call this twice.
+        if (!running.compareAndSet(true, false)) {
+            return;
+        }
         List<MoveEval> finalResults = Collections.unmodifiableList(new ArrayList<>(results));
         mainHandler.post(() -> {
             if (listener != null) {
-                listener.onFinished(finalResults, wasCancelled);
+                listener.onFinished(finalResults, wasCancelled, timedOut);
             }
         });
     }

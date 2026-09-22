@@ -82,6 +82,7 @@
     <string name="gameover_choices_rotate">Brett umdrehen</string>
     <string name="gameover_choices_analyze">Partie analysieren</string>
     <string name="analysis_progress">Analysiere Zug %1$d von %2$d…</string>
+    <string name="analysis_timed_out">Die Analyse hat auf einen Zug nicht mehr reagiert und wurde abgebrochen. Dein Spiel ist davon nicht betroffen.</string>
     <string name="settings_analysis_drawer_side_title">Seite der Analyseleiste</string>
     <string name="settings_analysis_drawer_side_summary">Von welcher Seite sich die Analyseleiste öffnet</string>
     <string name="settings_analysis_preferences">Analyse</string>

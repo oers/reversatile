@@ -85,17 +85,29 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
 
         void bind(MoveEval eval, OnMoveSelectedListener listener) {
             plyLabel.setText(String.valueOf(eval.getPly()));
-            double discs = eval.getDiscs();
-            scoreLabel.setText(String.format(Locale.getDefault(), "%+.2f", discs));
 
-            double fraction = Math.min(Math.abs(discs) / MAX_MAGNITUDE_DISCS, 1.0);
-            float blackWeight = discs < 0 ? (float) fraction : 0f;
-            float whiteWeight = discs > 0 ? (float) fraction : 0f;
+            if (eval.isPending()) {
+                // Score not known yet - no bar to draw, just a placeholder so
+                // the row this ply will end up in is visible right away
+                // instead of only appearing once the result lands.
+                scoreLabel.setText(R.string.analysis_pending_score);
+                setWeight(blackSpacer, 1f);
+                setWeight(blackBar, 0f);
+                setWeight(whiteBar, 0f);
+                setWeight(whiteSpacer, 1f);
+            } else {
+                double discs = eval.getDiscs();
+                scoreLabel.setText(String.format(Locale.getDefault(), "%+.2f", discs));
 
-            setWeight(blackSpacer, 1f - blackWeight);
-            setWeight(blackBar, blackWeight);
-            setWeight(whiteBar, whiteWeight);
-            setWeight(whiteSpacer, 1f - whiteWeight);
+                double fraction = Math.min(Math.abs(discs) / MAX_MAGNITUDE_DISCS, 1.0);
+                float blackWeight = discs < 0 ? (float) fraction : 0f;
+                float whiteWeight = discs > 0 ? (float) fraction : 0f;
+
+                setWeight(blackSpacer, 1f - blackWeight);
+                setWeight(blackBar, blackWeight);
+                setWeight(whiteBar, whiteWeight);
+                setWeight(whiteSpacer, 1f - whiteWeight);
+            }
 
             itemView.setContentDescription(eval.getMove().getText());
             itemView.setOnClickListener(v -> {

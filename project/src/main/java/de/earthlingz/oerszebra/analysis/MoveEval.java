@@ -11,11 +11,27 @@ public class MoveEval {
     private final int ply;
     private final Move move;
     private final int score;
+    private final boolean pending;
 
     public MoveEval(int ply, Move move, int score) {
+        this(ply, move, score, false);
+    }
+
+    private MoveEval(int ply, Move move, int score, boolean pending) {
         this.ply = ply;
         this.move = move;
         this.score = score;
+        this.pending = pending;
+    }
+
+    /** A placeholder row for a ply whose evaluation is still being computed. */
+    public static MoveEval pending(int ply, Move move) {
+        return new MoveEval(ply, move, 0, true);
+    }
+
+    /** True if this is a {@link #pending} placeholder, not a real evaluation. */
+    public boolean isPending() {
+        return pending;
     }
 
     /** 1-based move number within the game. */
