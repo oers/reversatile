@@ -896,6 +896,18 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             return;
         }
 
+        // The drawer is a direct child of the edge-to-edge DrawerLayout (see
+        // mBoardView's inset handling above), so without this its top row
+        // renders underneath the status bar instead of below it.
+        final int drawerBasePaddingTop = analysisDrawerRecyclerView.getPaddingTop();
+        final int drawerBasePaddingBottom = analysisDrawerRecyclerView.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(analysisDrawerRecyclerView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), drawerBasePaddingTop + insets.top,
+                    v.getPaddingRight(), drawerBasePaddingBottom + insets.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
+
         analysisDrawerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         analysisAdapter = new AnalysisAdapter(moveEval -> {
             if (gameAnalyzer == null || !gameAnalyzer.isRunning()) {
@@ -943,12 +955,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     private void updateAnalysisDrawer(List<MoveEval> results, boolean autoOpen) {
         if (analysisAdapter != null) {
-            // Newest move first: as analysis progresses the latest evaluated
-            // ply appears at the top instead of pushing older ones further
-            // and further out of view.
-            List<MoveEval> newestFirst = new ArrayList<>(results);
-            Collections.reverse(newestFirst);
-            analysisAdapter.setItems(newestFirst);
+            // GameAnalyzer now analyzes newest-move-first (see its start()),
+            // so results already arrive in the newest-first order this
+            // drawer wants to display - no reversal needed.
+            analysisAdapter.setItems(results);
         }
         if (analysisDrawerHandle != null && !results.isEmpty()) {
             analysisDrawerHandle.setVisibility(View.VISIBLE);

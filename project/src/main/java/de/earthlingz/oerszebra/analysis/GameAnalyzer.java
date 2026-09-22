@@ -84,7 +84,14 @@ public class GameAnalyzer {
             finish(false);
             return;
         }
-        analyzePly(1);
+        // Analyze most-recent-move-first (totalMoves down to 1) rather than
+        // in game order: each ply's evaluation is independent (newGame(...)
+        // always replays from scratch), and the drawer displays newest-first
+        // (see DroidZebra#updateAnalysisDrawer), so analyzing in that same
+        // order lets each result land in its final row immediately and the
+        // list fill top-to-bottom, instead of every new result briefly
+        // becoming the top row before being pushed down by the next one.
+        analyzePly(totalMoves);
     }
 
     /** Stops the analysis after whatever ply is currently in flight finishes. */
@@ -98,11 +105,11 @@ public class GameAnalyzer {
             return;
         }
 
-        if (ply >= totalMoves) {
+        if (ply == totalMoves) {
             // Terminal position: no further move to search from, so use the
             // exact final score instead of an engine search.
             addResult(ply, exactFinalScore());
-            finish(false);
+            advance(ply);
             return;
         }
 
@@ -116,7 +123,7 @@ public class GameAnalyzer {
                         if (best != null && best.hasEval) {
                             gameState.removeGameStateListener();
                             addResult(ply, normalizeToWhite(best.score, board.getSideToMove()));
-                            analyzePly(ply + 1);
+                            advance(ply);
                         }
                     }
 
@@ -128,11 +135,19 @@ public class GameAnalyzer {
                         // known final score rather than stalling.
                         gameState.removeGameStateListener();
                         addResult(ply, exactFinalScore());
-                        analyzePly(ply + 1);
+                        advance(ply);
                     }
                 });
             }
         });
+    }
+
+    private void advance(int justFinishedPly) {
+        if (justFinishedPly <= 1) {
+            finish(false);
+        } else {
+            analyzePly(justFinishedPly - 1);
+        }
     }
 
     private int exactFinalScore() {
@@ -146,9 +161,12 @@ public class GameAnalyzer {
     private void addResult(int ply, int whiteScore) {
         MoveEval eval = new MoveEval(ply, new Move(moves[ply - 1]), whiteScore);
         results.add(eval);
+        // Plies are no longer analyzed in ascending order (see start()), so
+        // the completed count is results.size(), not ply itself.
+        int done = results.size();
         mainHandler.post(() -> {
             if (listener != null) {
-                listener.onProgress(ply, totalMoves, eval);
+                listener.onProgress(done, totalMoves, eval);
             }
         });
     }

@@ -109,8 +109,10 @@ public class AnalysisTest extends BasicTest {
 
         List<MoveEval> results = zebra.getLastAnalysisResults();
         assertEquals("one MoveEval per played move", originalDisksPlayed, results.size());
+        // GameAnalyzer evaluates most-recent-move-first (see its start()) so
+        // results come back newest-first, matching the drawer's display order.
         for (int i = 0; i < results.size(); i++) {
-            assertEquals("plies must come back in order", i + 1, results.get(i).getPly());
+            assertEquals("plies must come back newest-first", originalDisksPlayed - i, results.get(i).getPly());
         }
 
         // the live game must be restored exactly to where it was before analysis
