@@ -127,13 +127,23 @@ public class GameAnalyzer {
         return running.get();
     }
 
+    // True when start() was called on a game that had actually ended -
+    // set by start(), read by pollForReady's very first call to decide
+    // whether the landing position's "eval" can be taken as the exact,
+    // already-known final disc differential (only valid once the game is
+    // truly over) or needs a real search-based eval like every other ply
+    // (e.g. when "Analyze Game" is invoked mid-game from the options menu).
+    private boolean isGameOver;
+
     /**
      * Starts analyzing {@code finishedGame}. {@code baseConfig} supplies the
      * search-strength settings to evaluate with; engine function and
      * practice mode are overridden internally so every position pauses for
-     * an eval instead of auto-playing.
+     * an eval instead of auto-playing. {@code isGameOver} must reflect
+     * whether {@code finishedGame} had actually finished - it decides how
+     * the most-recent ply's evaluation is obtained (see {@link #isGameOver}).
      */
-    public void start(GameState finishedGame, EngineConfig baseConfig, Listener listener) {
+    public void start(GameState finishedGame, EngineConfig baseConfig, boolean isGameOver, Listener listener) {
         if (running.get()) {
             return;
         }
@@ -144,6 +154,7 @@ public class GameAnalyzer {
                 .alterPracticeMode(true);
         this.listener = listener;
         this.results = new ArrayList<>();
+        this.isGameOver = isGameOver;
         this.finalBlackDiscs = finishedGame.getBlackPlayer().getDiscCount();
         this.finalWhiteDiscs = finishedGame.getWhitePlayer().getDiscCount();
 
@@ -185,10 +196,15 @@ public class GameAnalyzer {
                         onBoardUpdate(board);
                     }
                 });
-                // The terminal position needs no search - see pollForReady's
-                // requireEval - so this just waits for the replay of the
-                // whole move sequence to finish landing on it.
-                pollForReady(attemptId, totalMoves, false);
+                // A genuinely terminal position needs no search - see
+                // pollForReady's requireEval - so this just waits for the
+                // replay of the whole move sequence to finish landing on
+                // it. When the game isn't actually over (mid-game
+                // analysis), this landing position is just like any other
+                // ply and needs a real search-based eval instead of the
+                // exact-final-score shortcut, which would otherwise report
+                // the raw current disc count as if it were the result.
+                pollForReady(attemptId, totalMoves, !isGameOver);
             }
         });
     }

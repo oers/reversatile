@@ -27,12 +27,18 @@ class BasicTest {
         getInstrumentation().waitForIdleSync();
     }
 
-    // Subclasses that trigger extra engine searches per test (e.g. analyzing
-    // every move of a game) can override this with a shallow depth to keep
-    // CI fast; the default matches the strong, deterministic depth the
-    // existing tests were written against.
+    // Shallow on purpose, and shared by every BasicTest subclass unless it
+    // overrides this: practice mode (on by default) recomputes evals for
+    // every legal move after every human-vs-human position change -
+    // including undo/redo and the WThor replay tests' many per-move steps.
+    // At a deeper depth those searches piled up enough under CI load to
+    // make replay/undo/redo steps miss their fixed wait windows (seen in
+    // CI: WThor redo/move-by-move replay, and plain undo/redo tests using
+    // fixed sleeps, consistently landing short). Subclasses that need a
+    // different depth (or that assert on evaluation quality) can still
+    // override this.
     protected String getTestSearchDepth() {
-        return "22|20|0";
+        return "1|1|1";
     }
 
     void waitForOpenendDialogs(boolean dismiss) throws InterruptedException {
