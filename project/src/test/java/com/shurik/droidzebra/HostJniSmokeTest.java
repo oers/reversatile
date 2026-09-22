@@ -551,16 +551,37 @@ public class HostJniSmokeTest {
         File assetsDir = findAssetsDir();
         Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
                 assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
 
         ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
 
+        // A raw fresh-start search was found (in real CI) to yield only a
+        // single eval update for the opening position specifically - most
+        // likely some book/move-ordering pre-pass short-circuiting the
+        // per-candidate-move loop for that one well-known position, separate
+        // from the restored callback itself (all other tests in this suite,
+        // none of which start from a fresh game in practice mode, still pass
+        // either way). Sidestep that entirely - and better match the user's
+        // real complaint, about analysis at high search depth generally, not
+        // specifically the opening move - by replaying a real tournament
+        // game's first few plies (bulk replay only, no search) and starting
+        // the timed search from that genuine, out-of-book mid-game position.
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        byte[] fullGameMoves = decodeGameMoveInts(file, PASSLESS_GAME_INDEX);
+        int prefixLength = 16;
+        Assume.assumeTrue("WThor game " + PASSLESS_GAME_INDEX + " is shorter than the " + prefixLength
+                        + "-ply prefix this test replays - the bundled " + WTHOR_FILE_NAME + " may have changed",
+                fullGameMoves.length >= prefixLength);
+
         AtomicReference<GameState> gameStateRef = new AtomicReference<>();
         AtomicInteger evalUpdateCount = new AtomicInteger(0);
-        // Depth deep enough that the opening position's 4 legal moves get
+        // Depth deep enough that this position's several legal moves get
         // re-evaluated across several iterative-deepening passes - plenty
         // of opportunities for the per-candidate-move callback to fire -
         // while staying fast (well under a second at this depth).
-        engine.newGameBlocking(
+        engine.newGameBlocking(fullGameMoves, prefixLength,
                 new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 6, 0, 0,
                         false, null, false, true, false, 0, 0, 0),
                 new ZebraEngine.OnGameStateReadyListener() {
@@ -609,9 +630,9 @@ public class HostJniSmokeTest {
             fail("practice-mode search never reached ES_USER_INPUT_WAIT within " + WAIT_TIMEOUT_MILLIS + "ms");
         }
 
-        // With the callback present, the opening position alone yields well
-        // over a dozen updates (4 legal moves x several depths). If it's
-        // missing, only the one guaranteed-final update from
+        // With the callback present, this mid-game position alone yields
+        // well over a dozen updates (several legal moves x several depths).
+        // If it's missing, only the one guaranteed-final update from
         // _droidzebra_compute_evals() (droidzebra-jni.c, a separate call
         // site this bug doesn't touch) would ever arrive.
         assertTrue("expected multiple progressive eval updates during the search (only "
