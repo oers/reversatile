@@ -57,8 +57,8 @@
 		android:layout_gravity="end"
 		android:background="@color/board_color"
 		android:clipToPadding="false"
-		android:paddingTop="8dp"
-		android:paddingBottom="8dp"
+		android:paddingTop="4dp"
+		android:paddingBottom="4dp"
 		android:scrollbars="vertical"
 		android:scrollbarStyle="insideOverlay"
 		android:fadeScrollbars="false" />

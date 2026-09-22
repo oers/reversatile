@@ -39,9 +39,34 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
     }
 
     public void setItems(List<MoveEval> newItems) {
+        // The common case while analysis runs (in-flight-row updates for
+        // the ply being analyzed, and that ply's own finalization) only
+        // ever changes the *last* item - DroidZebra always rebuilds the
+        // list as "the same resultsSoFar prefix" + one trailing row, so
+        // the earlier entries are the literal same MoveEval instances each
+        // time. Detecting that and updating just that one row is far
+        // cheaper than a full notifyDataSetChanged() (which rebinds and
+        // re-lays-out every attached row), and the saving matters more the
+        // longer the list has grown - a full-game analysis has up to 60
+        // rows by the time the earliest plies are reached.
+        if (items.size() == newItems.size() && !items.isEmpty() && sameExceptLast(newItems)) {
+            int lastIndex = items.size() - 1;
+            items.set(lastIndex, newItems.get(lastIndex));
+            notifyItemChanged(lastIndex);
+            return;
+        }
         items.clear();
         items.addAll(newItems);
         notifyDataSetChanged();
+    }
+
+    private boolean sameExceptLast(List<MoveEval> newItems) {
+        for (int i = 0; i < items.size() - 1; i++) {
+            if (items.get(i) != newItems.get(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void clear() {
@@ -113,9 +138,13 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
             }
 
             // Make the ply currently being analyzed stand out from already-
-            // finished rows - views get recycled, so both branches must be
-            // set explicitly rather than only applying the highlight.
-            if (eval.isPending()) {
+            // finished rows - isInProgress() (not isPending()) covers both
+            // the initial placeholder and every interim update afterward,
+            // so this stays lit for the whole ply instead of turning off
+            // the moment the first real score arrives. Views get recycled,
+            // so both branches must be set explicitly rather than only
+            // applying the highlight.
+            if (eval.isInProgress()) {
                 itemView.setBackgroundColor(
                         ContextCompat.getColor(itemView.getContext(), R.color.analysis_in_progress_highlight));
                 plyLabel.setTypeface(plyLabel.getTypeface(), Typeface.BOLD);

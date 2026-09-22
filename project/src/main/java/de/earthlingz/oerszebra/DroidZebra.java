@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -939,6 +940,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         return lastAnalysisResults;
     }
 
+    private int resolveActionBarHeight() {
+        TypedValue typedValue = new TypedValue();
+        if (getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true)) {
+            return TypedValue.complexToDimensionPixelSize(typedValue.data, getResources().getDisplayMetrics());
+        }
+        return 0;
+    }
+
     private void setupAnalysisDrawer() {
         analysisDrawerLayout = findViewById(R.id.board_drawer_layout);
         analysisDrawerRecyclerView = findViewById(R.id.analysis_drawer);
@@ -949,14 +958,22 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         }
 
         // The drawer is a direct child of the edge-to-edge DrawerLayout (see
-        // mBoardView's inset handling above), so without this its top row
-        // renders underneath the status bar instead of below it.
-        final int drawerBasePaddingTop = analysisDrawerRecyclerView.getPaddingTop();
-        final int drawerBasePaddingBottom = analysisDrawerRecyclerView.getPaddingBottom();
+        // mBoardView's inset handling above) and, as a Material drawer,
+        // defaults to sliding out full-height - covering the action bar,
+        // not just the status bar behind it. Padding alone (the previous
+        // approach) only pushed the *content* down, leaving the drawer's
+        // own opaque background painted over the action bar; use a top
+        // margin instead (matching mBoardView's own fix), sized to clear
+        // both the status bar inset and the action bar's height, so the
+        // drawer's bounds - not just its first row - start below the
+        // header, the same as the board does.
+        final int actionBarHeight = resolveActionBarHeight();
         ViewCompat.setOnApplyWindowInsetsListener(analysisDrawerRecyclerView, (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), drawerBasePaddingTop + insets.top,
-                    v.getPaddingRight(), drawerBasePaddingBottom + insets.bottom);
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.topMargin = insets.top + actionBarHeight;
+            mlp.bottomMargin = insets.bottom;
+            v.setLayoutParams(mlp);
             return WindowInsetsCompat.CONSUMED;
         });
 

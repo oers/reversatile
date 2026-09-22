@@ -316,7 +316,7 @@ public class GameAnalyzer {
     }
 
     private void notifyPlyEvalUpdated(int ply, int whiteScore) {
-        MoveEval interim = new MoveEval(ply, new Move(moves[ply - 1]), whiteScore);
+        MoveEval interim = MoveEval.interim(ply, new Move(moves[ply - 1]), whiteScore);
         mainHandler.post(() -> {
             if (listener != null) {
                 listener.onPlyEvalUpdated(ply, totalMoves, interim);
