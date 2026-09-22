@@ -112,8 +112,8 @@ public class WthorReplayTest extends BasicTest {
         }
         byte[][] pristineStartBoard = mode == ReplayMode.UNDO_AND_REDO ? captureBoard() : null;
 
-        int gamesToRun = getGameLimit(gameCount);
-        for (int gameIndex = 0; gameIndex < gamesToRun; gameIndex++) {
+        int[] gameIndices = gameIndicesFor(mode, gameCount);
+        for (int gameIndex : gameIndices) {
             String moves = decodeGame(file, gameIndex);
             switch (mode) {
                 case FAST:
@@ -236,6 +236,38 @@ public class WthorReplayTest extends BasicTest {
             }
         }
         return Math.min(gameCount, LOCAL_GAME_LIMIT);
+    }
+
+    // MOVE_BY_MOVE and UNDO_AND_REDO drive every step through the real app
+    // (Activity, UI thread, GameStateBoardModel, dialogs) - what they're
+    // actually proving is that this Android integration layer works, not
+    // engine correctness. Engine correctness (make_move/undo_turn/
+    // redo_turn across the whole bundled WThor corpus) is now covered
+    // exhaustively and far more cheaply by the arm64 host-JNI test
+    // (HostJniSmokeTest#allWthorGamesUndoRedoRoundTripCleanly, no
+    // emulator), so running all ~200 games through those two modes here
+    // added emulator time and flakiness surface without adding real
+    // coverage. A handful of games chosen to cover distinct situations is
+    // enough to prove the integration layer itself works: no pass (4),
+    // exactly one forced pass - the exact game the undo/redo-across-a-
+    // forced-pass bug was found and fixed on (0), several passes across a
+    // full 60-move game (97), and a short game that ends early after
+    // repeated passes (155).
+    private static final int[] CURATED_GAME_INDICES = {4, 0, 97, 155};
+
+    private int[] gameIndicesFor(ReplayMode mode, int gameCount) {
+        // An explicit wthorGameLimit override (e.g. a manual full-corpus
+        // run) still applies to any mode, same as before this change.
+        boolean hasExplicitLimit = getArguments().getString("wthorGameLimit") != null;
+        if (mode == ReplayMode.FAST || hasExplicitLimit) {
+            int limit = getGameLimit(gameCount);
+            int[] indices = new int[limit];
+            for (int i = 0; i < limit; i++) {
+                indices[i] = i;
+            }
+            return indices;
+        }
+        return CURATED_GAME_INDICES;
     }
 
     private void playAndWaitMoveByMove(String moves, int gameIndex) throws InterruptedException {

@@ -26,7 +26,11 @@ on:
 jobs:
   test-host-jni-arm64:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 20
+    # Bumped from 20: HostJniSmokeTest now includes a full undo/redo round
+    # trip (whole-board diff at every ply) over up to 200 WThor games -
+    # ~8-9 minutes alone on this sandbox's x86_64 dev machine, on top of
+    # SDK/aapt2 setup and the native build.
+    timeout-minutes: 30
     steps:
       - name: checkout
         uses: actions/checkout@v4

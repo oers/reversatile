@@ -188,6 +188,10 @@ public class HostJniSmokeTest {
     private static final int WTHOR_HEADER_SIZE = 16;
     private static final int WTHOR_GAME_HEADER_SIZE = 8;
     private static final int WTHOR_GAME_RECORD_SIZE = 68;
+    // Matches WthorReplayTest's old default game count, now that the
+    // exhaustive-corpus coverage lives here instead (see
+    // allWthorGamesUndoRedoRoundTripCleanly).
+    private static final int WTHOR_GAME_LIMIT = 200;
     private static final long WAIT_TIMEOUT_MILLIS = 20_000;
 
     // WThor game #4 from the bundled database: a real, complete (60-ply)
@@ -222,16 +226,65 @@ public class HostJniSmokeTest {
                 60, moveSequence.length() / 2);
 
         ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        verifyUndoRedoRoundTrip(engine, file, PASSLESS_GAME_INDEX);
+    }
+
+    // Same corpus WthorReplayTest#replayGamesWithUndoAndRedo used to walk
+    // in full (up to 200 games) through the real app on an emulator. That
+    // test now only exercises a handful of curated games, since what it's
+    // actually proving at that point is the Android integration layer
+    // (Activity/UI thread/GameStateBoardModel), not engine correctness -
+    // this test is what covers engine correctness (make_move/undo_turn/
+    // redo_turn) across the whole bundled corpus now, and does so far
+    // more cheaply since it needs no emulator: real arm64 hardware, no
+    // virtualization, seconds per game.
+    @Test
+    public void allWthorGamesUndoRedoRoundTripCleanly() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        int gameCount = littleEndianInt(file, 4);
+        int gamesToRun = Math.min(gameCount, WTHOR_GAME_LIMIT);
+
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        for (int gameIndex = 0; gameIndex < gamesToRun; gameIndex++) {
+            try {
+                verifyUndoRedoRoundTrip(engine, file, gameIndex);
+            } catch (AssertionError e) {
+                throw new AssertionError("WThor game " + gameIndex + ": " + e.getMessage(), e);
+            }
+        }
+    }
+
+    // Bulk-replays one WThor game, then undoes it all the way back to the
+    // standard starting position and redoes it all the way forward again,
+    // one ply at a time, diffing the *whole* board (not just move-sequence
+    // text) at every step against boards captured during the undo pass -
+    // catches a redo that gets its own square right but computes the
+    // wrong flip set, not just a wrong final square. Works for any game
+    // regardless of how many forced passes it contains.
+    private static void verifyUndoRedoRoundTrip(ZebraEngine engine, byte[] wthorFile, int gameIndex)
+            throws InterruptedException {
+        String moveSequence = decodeGameMoveText(wthorFile, gameIndex);
+        int realMoveCount = moveSequence.length() / 2;
+
         // Captured from the engine's own fresh-game initialization, before
         // any moves - the real standard starting position (2 black + 2
         // white center discs), not an empty board. Used below (after
         // undoing the whole game) to check whether unmake_move() actually
         // restores this exact position.
         byte[][] pristineStart = capturePristineStartBoard(engine);
-        GameState gameState = replayGame(engine, file, PASSLESS_GAME_INDEX);
+        GameState gameState = replayGame(engine, wthorFile, gameIndex);
 
         waitForMoveSequence(gameState, moveSequence);
-        assertEquals(60, gameState.getDisksPlayed());
         byte[][] finalBoard = captureBoard(gameState);
 
         // Undo all the way back to the empty starting position, one ply at
@@ -241,14 +294,14 @@ public class HostJniSmokeTest {
         // only shows up mid-game (not just at the very end) is still
         // caught below.
         Map<Integer, byte[][]> boardsByPly = new HashMap<>();
-        boardsByPly.put(60, finalBoard);
-        for (int ply = 60; ply >= 1; ply--) {
+        boardsByPly.put(realMoveCount, finalBoard);
+        for (int ply = realMoveCount; ply >= 1; ply--) {
             String expectedAfterUndo = moveSequence.substring(0, (ply - 1) * 2);
             undoOnce(engine, gameState, expectedAfterUndo, ply);
             boardsByPly.put(ply - 1, captureBoard(gameState));
         }
 
-        // If undoing all 60 plies doesn't restore the exact standard
+        // If undoing all the way doesn't restore the exact standard
         // starting position, unmake_move() itself already leaves the board
         // wrong before redo is even involved.
         String startDiff = diffBoards(pristineStart, captureBoard(gameState));
@@ -258,10 +311,8 @@ public class HostJniSmokeTest {
         // Redo all the way forward again, checking both the redone square's
         // own color and the *whole* board against the same ply captured
         // during the undo pass above (already proven correct by the
-        // pristine-start check) - catches a redo that places its own disc
-        // right but computes the wrong flip set, not just a wrong final
-        // square.
-        for (int ply = 1; ply <= 60; ply++) {
+        // pristine-start check).
+        for (int ply = 1; ply <= realMoveCount; ply++) {
             String expectedAfterRedo = moveSequence.substring(0, ply * 2);
             redoOnce(engine, gameState, expectedAfterRedo, ply);
             byte[][] expectedBoard = boardsByPly.get(ply);
@@ -271,7 +322,6 @@ public class HostJniSmokeTest {
         }
 
         assertEquals(moveSequence, removePasses(gameState.getMoveSequenceAsString()));
-        assertEquals(60, gameState.getDisksPlayed());
         String finalDiff = diffBoards(finalBoard, captureBoard(gameState));
         assertEquals("board after redoing back to the end does not match the original "
                 + "playthrough: " + finalDiff, "<no differing squares>", finalDiff);
@@ -314,39 +364,23 @@ public class HostJniSmokeTest {
 
         // The bundled WThor file only ever records real moves - a forced
         // pass isn't something a player "chose", so it's never encoded in
-        // the file itself, only inferred during replay. moveSequence here
-        // is deliberately the passless, real-moves-only text (same as
-        // decodeGameMoveText is used elsewhere in this class): the sanity
-        // check below for the known pass has to look at the engine's own
-        // replayed sequence instead, not this raw text.
+        // the file itself, only inferred during replay. Sanity-check the
+        // known pass is still there before handing off to the shared
+        // full-cycle verification below - if the bundled WThor database
+        // ever changes, fail loudly here instead of silently testing a
+        // now-passless game that wouldn't exercise this bug at all.
         int gameIndex = 0;
         byte[] file = Files.readAllBytes(wthorFile.toPath());
         String moveSequence = decodeGameMoveText(file, gameIndex);
 
         ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
-        byte[][] pristineStart = capturePristineStartBoard(engine);
         GameState gameState = replayGame(engine, file, gameIndex);
         waitForMoveSequence(gameState, moveSequence);
         assertEquals("WThor game " + gameIndex + " no longer contains the known forced pass "
                         + "this test was written against - the bundled " + WTHOR_FILE_NAME + " may have changed",
                 true, gameState.getMoveSequenceAsString().contains("--"));
-        byte[][] finalBoard = captureBoard(gameState);
 
-        int plyCount = moveSequence.length() / 2;
-        for (int ply = plyCount; ply >= 1; ply--) {
-            String expectedAfterUndo = moveSequence.substring(0, (ply - 1) * 2);
-            undoOnce(engine, gameState, expectedAfterUndo, ply);
-        }
-        String startDiff = diffBoards(pristineStart, captureBoard(gameState));
-        assertEquals("<no differing squares>", startDiff);
-
-        for (int ply = 1; ply <= plyCount; ply++) {
-            String expectedAfterRedo = moveSequence.substring(0, ply * 2);
-            redoOnce(engine, gameState, expectedAfterRedo, ply);
-        }
-        String finalDiff = diffBoards(finalBoard, captureBoard(gameState));
-        assertEquals("board after redoing across the forced pass back to the end does not "
-                + "match the original playthrough: " + finalDiff, "<no differing squares>", finalDiff);
+        verifyUndoRedoRoundTrip(engine, file, gameIndex);
     }
 
     // ------------------------------------------------------------------
@@ -524,5 +558,12 @@ public class HostJniSmokeTest {
             moves.append(new Move(column - 1, row - 1).getText());
         }
         return moves.toString();
+    }
+
+    private static int littleEndianInt(byte[] bytes, int offset) {
+        return (bytes[offset] & 0xff)
+                | ((bytes[offset + 1] & 0xff) << 8)
+                | ((bytes[offset + 2] & 0xff) << 16)
+                | ((bytes[offset + 3] & 0xff) << 24);
     }
 }
