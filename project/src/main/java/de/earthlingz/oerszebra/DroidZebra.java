@@ -845,11 +845,21 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         @Override
         @Nonnull
         public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Not cancelable: passing isn't a choice being offered (there's
+            // no legal move), it's a forced action the engine is already
+            // blocked waiting for (see ZebraEngine's MSG_PASS handling,
+            // which blocks in waitForEngineState(ES_PLAY) until pass() is
+            // called) - dismissing this via the back button or a tap
+            // outside used to look like it closed the dialog while actually
+            // leaving the game stuck waiting for an acknowledgement that
+            // never came, since only the positive button and (unreliably,
+            // depending on how the dialog was dismissed) the cancel/dismiss
+            // listeners called pass().
             return new AlertDialog.Builder(getActivity())
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.dialog_pass_text)
+                    .setCancelable(false)
                     .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
-                    .setOnCancelListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
                     .setOnDismissListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
                     .create();
         }
