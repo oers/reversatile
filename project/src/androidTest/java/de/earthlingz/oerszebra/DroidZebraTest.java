@@ -2,7 +2,6 @@ package de.earthlingz.oerszebra;
 
 import android.content.Intent;
 import androidx.test.filters.SmallTest;
-import androidx.test.filters.Suppress;
 
 import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.ZebraEngine;
@@ -151,25 +150,21 @@ public class DroidZebraTest extends BasicTest{
 
     }
 
-    // Reproduces a pre-existing bug: this sequence has exactly one forced pass
-    // (black has no legal move at ply 58, verified by simulation). Undoing
-    // across that pass and redoing back leaves one square permanently
-    // unfilled instead of fully restoring the original position. Confirmed
-    // independent of the rotate work (found while writing BoardRotateTest).
-    // Root cause not yet pinned down in _droidzebra_undo_turn/
-    // _droidzebra_redo_turn (droidzebra-jni.c) - static analysis of the pass
-    // bookkeeping didn't turn up the exact spot, and CI has no reliable way
-    // to surface the native engine's debug logcat for further tracing.
-    // Needs local device/emulator debugging to take further. Left suppressed
-    // rather than failing so it doesn't block unrelated CI runs. Uses
-    // androidx.test's own @Suppress instead of plain JUnit @Ignore: the
-    // latter is only reported through the instrumentation status protocol as
-    // "ignored" rather than a proper suppression, which Gradle's merged
-    // androidTest XML then renders as an empty, message-less <failure/>
-    // instead of <skipped/> - failing the connectedCheck task even though
-    // the test body never actually ran (confirmed: reported time 0.002s).
+    // Reproduces a bug that used to exist: this sequence has exactly one
+    // forced pass (black has no legal move at ply 58, verified by
+    // simulation). Undoing across that pass and redoing back used to leave
+    // one square permanently unfilled instead of fully restoring the
+    // original position. Root cause: _droidzebra_redo_turn (droidzebra-jni.c)
+    // stopped exactly at its numeric disks_played target even when that
+    // landed on a forced-pass position, unlike _droidzebra_undo_turn, which
+    // already symmetrically absorbed a pass into the same call - the
+    // trailing pass was left to the main game loop's own async auto-pass
+    // handling, which raced the next redo() call. Fixed in #99 by making
+    // _droidzebra_redo_turn absorb a trailing forced pass itself, symmetric
+    // with undo (see also HostJniSmokeTest#undoRedoAcrossForcedPassWorksCorrectly
+    // and WthorReplayTest, which cover this more exhaustively). No longer
+    // needs @Suppress.
     @Test
-    @Suppress
     public void testRedoAcrossPass() throws InterruptedException {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
