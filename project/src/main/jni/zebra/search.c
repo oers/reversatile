@@ -33,8 +33,8 @@
 double total_time;
 int root_eval;
 int force_return;
-int full_pv_depth;
-int full_pv[120];
+_Thread_local int full_pv_depth;
+_Thread_local int full_pv[120];
 _Thread_local int list_inherited[61];
 _Thread_local int sorted_move_order[64][64];  /* 61*60 used */
 _Thread_local Board evals[61];

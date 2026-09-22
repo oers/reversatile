@@ -85,9 +85,13 @@ extern _Thread_local Board evals[61];
 /* Move lists */
 extern _Thread_local int sorted_move_order[64][64];  /* 61*60 used */
 
-/* The principal variation including passes */
-extern int full_pv_depth;
-extern int full_pv[120];
+/* The principal variation including passes - written by complete_pv(),
+   which (like pv/pv_depth it reads from) needs to be per-thread now that
+   the search can run on a worker pool (threads.c): a shared, non-thread-
+   local full_pv/full_pv_depth would let two threads' complete_pv() calls
+   corrupt each other's output. */
+extern _Thread_local int full_pv_depth;
+extern _Thread_local int full_pv[120];
 
 /* JCW's move order */
 extern int position_list[100];
