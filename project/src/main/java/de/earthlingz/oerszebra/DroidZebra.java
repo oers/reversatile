@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -834,6 +835,16 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     // Pass Dialog
     public static class DialogPass extends DialogFragment {
 
+        // The engine's MSG_PASS handling (ZebraEngine.java) blocks
+        // synchronously in waitForEngineState(ES_PLAY) once it shows this
+        // dialog, waiting for engine.pass(...) to be called - the only
+        // thing that unblocks it. Passing isn't actually a choice being
+        // offered (there's no legal move - it's forced), so tapping outside
+        // or pressing back should do exactly what OK does, not nothing:
+        // guarded with passed so however this ends up dismissed, pass() is
+        // called exactly once.
+        private boolean passed = false;
+
         public static DialogPass newInstance() {
             return new DialogPass();
         }
@@ -845,23 +856,42 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         @Override
         @Nonnull
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Not cancelable: passing isn't a choice being offered (there's
-            // no legal move), it's a forced action the engine is already
-            // blocked waiting for (see ZebraEngine's MSG_PASS handling,
-            // which blocks in waitForEngineState(ES_PLAY) until pass() is
-            // called) - dismissing this via the back button or a tap
-            // outside used to look like it closed the dialog while actually
-            // leaving the game stuck waiting for an acknowledgement that
-            // never came, since only the positive button and (unreliably,
-            // depending on how the dialog was dismissed) the cancel/dismiss
-            // listeners called pass().
             return new AlertDialog.Builder(getActivity())
                     .setTitle(R.string.app_name)
                     .setMessage(R.string.dialog_pass_text)
-                    .setCancelable(false)
-                    .setPositiveButton(R.string.dialog_ok, (dialog, id) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
-                    .setOnDismissListener((dialog) -> getDroidZebra().engine.pass(getDroidZebra().gameState, getDroidZebra().engineConfig))
+                    .setPositiveButton(R.string.dialog_ok, (dialog, id) -> pass())
                     .create();
+        }
+
+        // Overriding the fragment's own onCancel/onDismiss instead of
+        // relying only on AlertDialog.Builder's setOnCancelListener/
+        // setOnDismissListener: those are plain Dialog-level listeners
+        // layered on top of DialogFragment's own dismiss/cancel bookkeeping,
+        // and didn't reliably end up calling pass() for a tap-outside/back
+        // dismissal in practice (reported: the dialog visually closed but
+        // the game never continued). These fragment lifecycle callbacks are
+        // the dialog's own, guaranteed path, whichever way it closes.
+        @Override
+        public void onCancel(@Nonnull DialogInterface dialog) {
+            super.onCancel(dialog);
+            pass();
+        }
+
+        @Override
+        public void onDismiss(@Nonnull DialogInterface dialog) {
+            super.onDismiss(dialog);
+            pass();
+        }
+
+        private void pass() {
+            if (passed) {
+                return;
+            }
+            passed = true;
+            DroidZebra zebra = getDroidZebra();
+            if (zebra != null) {
+                zebra.engine.pass(zebra.gameState, zebra.engineConfig);
+            }
         }
     }
 
