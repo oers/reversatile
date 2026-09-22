@@ -966,6 +966,15 @@ public class ZebraEngine {
         setEngineStatePlay();
     }
 
+    // Blocking counterpart of newGame(byte[], int, EngineConfig, listener),
+    // for the same reason as newGameBlocking(EngineConfig, listener) above -
+    // lets a plain-JVM test bulk-replay a known move list (the engine drives
+    // straight through it, no search) without an Android Looper.
+    void newGameBlocking(byte[] fromMoves, int movesCount, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
+        engine.setInitialGameState(movesCount, fromMoves);
+        newGameBlocking(engineConfig, onGameStateReadyListener);
+    }
+
     public void newGame(LinkedList<Move> fromMoves, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
         engine.setInitialGameState(fromMoves);
         newGame(engineConfig, onGameStateReadyListener);
