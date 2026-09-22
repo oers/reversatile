@@ -53,18 +53,12 @@ public class AnalysisTest extends BasicTest {
     }
 
     private void waitForAnalysisResults(int expectedSize, long timeoutMillis) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + timeoutMillis;
-        while (zebra.getLastAnalysisResults().size() != expectedSize && System.currentTimeMillis() < deadline) {
-            Thread.sleep(100);
-        }
+        waitUntil(() -> zebra.getLastAnalysisResults().size() == expectedSize, timeoutMillis);
     }
 
     private void waitForAnalysisProgressGone(long timeoutMillis) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + timeoutMillis;
         TextView progress = zebra.findViewById(R.id.status_analysis_progress);
-        while (progress != null && progress.getVisibility() != View.GONE && System.currentTimeMillis() < deadline) {
-            Thread.sleep(100);
-        }
+        waitUntil(() -> progress == null || progress.getVisibility() == View.GONE, timeoutMillis);
     }
 
     // GameState is momentarily null while a new game is being (re)established
@@ -80,17 +74,12 @@ public class AnalysisTest extends BasicTest {
     // - even though disksPlayed already read 4). These test games never pass,
     // so total discs is always 4 (the opening position) plus plies played.
     private void waitForDisksPlayed(int expected, long timeoutMillis) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + timeoutMillis;
         int expectedDiscs = 4 + expected;
-        while (System.currentTimeMillis() < deadline) {
+        waitUntil(() -> {
             GameState gameState = zebra.getGameState();
-            if (gameState != null && gameState.getDisksPlayed() == expected
-                    && zebra.getState().getBlackScore() + zebra.getState().getWhiteScore()
-                            == expectedDiscs) {
-                return;
-            }
-            Thread.sleep(100);
-        }
+            return gameState != null && gameState.getDisksPlayed() == expected
+                    && zebra.getState().getBlackScore() + zebra.getState().getWhiteScore() == expectedDiscs;
+        }, timeoutMillis);
     }
 
     @Test

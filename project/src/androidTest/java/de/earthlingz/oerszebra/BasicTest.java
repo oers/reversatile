@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Rule;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 class BasicTest {
     DroidZebra zebra = null;
@@ -66,8 +67,15 @@ class BasicTest {
     // elapses, instead of guessing a fixed sleep duration - undo/redo board
     // updates arrive asynchronously from the native engine thread.
     void waitForSquareCount(byte color, int expectedCount, long timeoutMillis) throws InterruptedException {
+        waitUntil(() -> countSquares(color) == expectedCount, timeoutMillis);
+    }
+
+    // Shared poll-until-timeout shape for any condition that settles
+    // asynchronously (native engine callbacks, UI updates) - avoids
+    // reimplementing the same deadline/sleep loop at every call site.
+    void waitUntil(BooleanSupplier condition, long timeoutMillis) throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMillis;
-        while (countSquares(color) != expectedCount && System.currentTimeMillis() < deadline) {
+        while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
             Thread.sleep(100);
         }
     }

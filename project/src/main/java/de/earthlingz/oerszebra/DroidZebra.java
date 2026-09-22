@@ -134,7 +134,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     // time, since after a first jump gameState only reflects the (shorter)
     // position navigated to, which would truncate any later jump forward.
     private byte[] analyzedGameMoves;
-    private int analyzedGameMovesCount;
     // Set when a drawer row is tapped while analysis is still running:
     // jumpToMove() can't fire immediately without racing whatever ply's
     // engine.newGame() call is currently in flight, so the tap is deferred
@@ -149,6 +148,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private RecyclerView analysisDrawerRecyclerView;
     private Button analysisDrawerHandle;
     private AnalysisAdapter analysisAdapter;
+    private TextView analysisProgressView;
 
 
     public void resetStatusView() {
@@ -866,19 +866,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * in the branchier midgame.
      */
     private EngineConfig buildAnalysisConfig() {
-        return new EngineConfig(
-                engineConfig.engineFunction,
+        return engineConfig.alterDepths(
                 settingsProvider.getSettingAnalysisDepth(),
                 settingsProvider.getSettingAnalysisDepthExact(),
-                settingsProvider.getSettingAnalysisDepthWLD(),
-                engineConfig.autoForcedMoves,
-                engineConfig.forcedOpening,
-                engineConfig.humanOpenings,
-                engineConfig.practiceMode,
-                engineConfig.useBook,
-                engineConfig.slack,
-                engineConfig.perturbation,
-                engineConfig.computerMoveDelay);
+                settingsProvider.getSettingAnalysisDepthWLD());
     }
 
     /**
@@ -902,7 +893,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         final boolean wasGameOver = liveGameIsOver;
 
         analyzedGameMoves = originalMoves;
-        analyzedGameMovesCount = originalDisksPlayed;
 
         setAnalysisProgressVisible(true);
         gameAnalyzer = new GameAnalyzer(engine);
@@ -988,16 +978,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     private void updateAnalysisProgress(int done, int total) {
-        TextView view = findViewById(R.id.status_analysis_progress);
-        if (view != null) {
-            view.setText(getString(R.string.analysis_progress, done, total));
+        if (analysisProgressView != null) {
+            analysisProgressView.setText(getString(R.string.analysis_progress, done, total));
         }
     }
 
     private void setAnalysisProgressVisible(boolean visible) {
-        TextView view = findViewById(R.id.status_analysis_progress);
-        if (view != null) {
-            view.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (analysisProgressView != null) {
+            analysisProgressView.setVisibility(visible ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -1009,6 +997,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         analysisDrawerLayout = findViewById(R.id.board_drawer_layout);
         analysisDrawerRecyclerView = findViewById(R.id.analysis_drawer);
         analysisDrawerHandle = findViewById(R.id.analysis_drawer_handle);
+        analysisProgressView = findViewById(R.id.status_analysis_progress);
 
         if (analysisDrawerLayout == null || analysisDrawerRecyclerView == null) {
             return;
@@ -1167,7 +1156,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         EngineConfig walkConfig = engineConfig
                 .alterEngineFunction(FUNCTION_HUMAN_VS_HUMAN)
                 .alterPracticeMode(false);
-        engine.newGame(analyzedGameMoves, analyzedGameMovesCount, walkConfig, new ZebraEngine.OnGameStateReadyListener() {
+        engine.newGame(analyzedGameMoves, analyzedGameMoves.length, walkConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState freshGameState) {
                 if (attemptId != jumpAttemptId) {
@@ -1175,7 +1164,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 }
                 gameState = freshGameState;
                 gameState.setGameStateListener(handler);
-                walkToPly(attemptId, freshGameState, analyzedGameMovesCount, targetDisksPlayed);
+                walkToPly(attemptId, freshGameState, analyzedGameMoves.length, targetDisksPlayed);
             }
         });
     }
