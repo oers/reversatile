@@ -25,10 +25,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class AnalysisTest extends BasicTest {
 
-    // Keep the engine search shallow: GameAnalyzer runs one practice-mode
-    // search per played move, so the base class's strong "22|20|0" test
-    // depth would multiply into many full-strength searches and make this
-    // test very slow.
+    // Keep the engine search shallow: GameAnalyzer restarts the engine once
+    // per played move, so the base class's strong "22|20|0" test depth would
+    // multiply into many full-strength searches and make this test very slow.
     @Override
     protected String getTestSearchDepth() {
         return "1|1|1";

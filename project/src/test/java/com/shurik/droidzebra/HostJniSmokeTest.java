@@ -620,7 +620,7 @@ public class HostJniSmokeTest {
         // droidzebra-jni.c's game loop: this state is set only after
         // _droidzebra_compute_evals() returns) - the same "search is truly
         // done" signal GameAnalyzer's own poll loop relies on (see
-        // GameAnalyzer#pollForReady on #96).
+        // GameAnalyzer#pollForReadyToAdvance on #96).
         long searchDeadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
         while (engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
                 && System.currentTimeMillis() < searchDeadline) {
