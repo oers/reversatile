@@ -165,4 +165,28 @@ public class AnalysisTest extends BasicTest {
         waitForDisksPlayed(originalDisksPlayed, 20000);
         assertEquals(originalDisksPlayed, zebra.getGameState().getDisksPlayed());
     }
+
+    // Regression test: tapping a result while analysis is still running used
+    // to silently do nothing (the tap was ignored outright). requestJumpToMove
+    // is what the drawer's row click actually calls; this exercises its
+    // deferred path specifically by requesting a jump immediately after
+    // starting analysis, well before it can have finished on its own.
+    @Test
+    public void testRequestJumpToMoveDuringAnalysisJumpsOnceSettled() throws InterruptedException {
+        loadGame(SHORT_LEGAL_GAME, SHORT_LEGAL_GAME_MOVES);
+        int originalDisksPlayed = zebra.getGameState().getDisksPlayed();
+
+        zebra.runOnUiThread(zebra::analyzeGame);
+        int targetPly = 2;
+        zebra.runOnUiThread(() -> zebra.requestJumpToMove(targetPly));
+
+        waitForAnalysisProgressGone(60000);
+        waitForDisksPlayed(targetPly, 20000);
+        assertEquals(targetPly, zebra.getGameState().getDisksPlayed());
+
+        // leave the game back where it was
+        zebra.runOnUiThread(() -> zebra.jumpToMove(originalDisksPlayed));
+        waitForDisksPlayed(originalDisksPlayed, 20000);
+        assertEquals(originalDisksPlayed, zebra.getGameState().getDisksPlayed());
+    }
 }

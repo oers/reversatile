@@ -122,6 +122,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     // position navigated to, which would truncate any later jump forward.
     private byte[] analyzedGameMoves;
     private int analyzedGameMovesCount;
+    // Set when a drawer row is tapped while analysis is still running:
+    // jumpToMove() can't fire immediately without racing whatever ply's
+    // engine.newGame() call is currently in flight, so the tap is deferred
+    // until analyzeGame()'s onFinished confirms the analyzer has actually
+    // stopped. Null when no jump is pending.
+    private Integer pendingAnalysisJumpPly;
     private DrawerLayout analysisDrawerLayout;
     private RecyclerView analysisDrawerRecyclerView;
     private Button analysisDrawerHandle;
@@ -856,6 +862,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 lastAnalysisResults = results;
                 setAnalysisProgressVisible(false);
                 updateAnalysisDrawer(results, false);
+                if (pendingAnalysisJumpPly != null) {
+                    int targetPly = pendingAnalysisJumpPly;
+                    pendingAnalysisJumpPly = null;
+                    jumpToMove(targetPly);
+                    return;
+                }
                 suppressNextGameOverDialog = true;
                 startNewGameAndResetUI(originalDisksPlayed, originalMoves);
             }
@@ -909,11 +921,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         });
 
         analysisDrawerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        analysisAdapter = new AnalysisAdapter(moveEval -> {
-            if (gameAnalyzer == null || !gameAnalyzer.isRunning()) {
-                jumpToMove(moveEval.getPly());
-            }
-        });
+        analysisAdapter = new AnalysisAdapter(moveEval -> requestJumpToMove(moveEval.getPly()));
         analysisDrawerRecyclerView.setAdapter(analysisAdapter);
 
         boolean openFromLeft = "left".equals(settingsProvider.getSettingAnalysisDrawerSide());
@@ -980,6 +988,24 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null
                 && analysisDrawerLayout.isDrawerOpen(analysisDrawerRecyclerView)) {
             analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+        }
+    }
+
+    /**
+     * Handles a tap on an analysis result. If analysis is still running,
+     * this is an action like any other (undo, redo, a move, rotate...) and
+     * should cancel it - but unlike those, jumping needs its own
+     * engine.newGame() call, which can't safely fire while the analyzer's
+     * own in-flight ply might still land and race it. The jump is deferred
+     * until analyzeGame()'s onFinished confirms the analyzer has actually
+     * settled; otherwise it happens immediately.
+     */
+    void requestJumpToMove(int targetPly) {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+            pendingAnalysisJumpPly = targetPly;
+            cancelAnalysisIfRunning();
+        } else {
+            jumpToMove(targetPly);
         }
     }
 
