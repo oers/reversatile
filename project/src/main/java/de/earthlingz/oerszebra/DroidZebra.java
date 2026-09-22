@@ -838,6 +838,29 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * in the analysis drawer. The live game is left exactly as it was once
      * this completes (or is cancelled via {@link #cancelAnalysisIfRunning()}).
      */
+    /**
+     * Same as the live game's engineConfig, except for the search depth,
+     * which uses the "Analysis Search Depth" setting instead - independent
+     * of live play's strength, since it's the deciding factor in how long
+     * each of the (up to 60) searches analyzeGame() runs takes, especially
+     * in the branchier midgame.
+     */
+    private EngineConfig buildAnalysisConfig() {
+        return new EngineConfig(
+                engineConfig.engineFunction,
+                settingsProvider.getSettingAnalysisDepth(),
+                settingsProvider.getSettingAnalysisDepthExact(),
+                settingsProvider.getSettingAnalysisDepthWLD(),
+                engineConfig.autoForcedMoves,
+                engineConfig.forcedOpening,
+                engineConfig.humanOpenings,
+                engineConfig.practiceMode,
+                engineConfig.useBook,
+                engineConfig.slack,
+                engineConfig.perturbation,
+                engineConfig.computerMoveDelay);
+    }
+
     public void analyzeGame() {
         if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
             return;
@@ -851,7 +874,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
         setAnalysisProgressVisible(true);
         gameAnalyzer = new GameAnalyzer(engine);
-        gameAnalyzer.start(gameState, engineConfig, new GameAnalyzer.Listener() {
+        gameAnalyzer.start(gameState, buildAnalysisConfig(), new GameAnalyzer.Listener() {
             @Override
             public void onPlyStarted(int ply, int total) {
                 // Show the ply currently being computed right away, as a

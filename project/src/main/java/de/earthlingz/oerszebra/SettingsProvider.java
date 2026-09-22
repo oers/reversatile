@@ -38,6 +38,13 @@ public interface SettingsProvider {
 
     int getSettingZebraDepthWLD();
 
+    /** Search depth used for "Analyze Game" specifically - independent of live play's strength setting. */
+    int getSettingAnalysisDepth();
+
+    int getSettingAnalysisDepthExact();
+
+    int getSettingAnalysisDepthWLD();
+
     int getSettingSlack();
 
     int getSettingPerturbation();

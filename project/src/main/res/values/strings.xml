@@ -43,6 +43,10 @@
     </string>
     <string name="settings_strength_preference_title">Search Depth</string>
     <string name="settings_strength_dialog_title">Choose One</string>
+    <string name="setting_analysis_strength_preference_summary">Engine strength used only for "Analyze Game" - lower is
+        faster, especially in the midgame
+    </string>
+    <string name="settings_analysis_strength_preference_title">Analysis Search Depth</string>
     <string name="app_name">Reversatile</string>
 
     <string name="settings_engine_preferences">Engine Preferences</string>

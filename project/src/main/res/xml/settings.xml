@@ -53,6 +53,14 @@
             android:key="settings_engine_strength"
             android:summary="@string/setting_strength_preference_summary"
             android:title="@string/settings_strength_preference_title" />
+        <ListPreference
+            android:defaultValue="@string/default_analysis_search_depth"
+            android:dialogTitle="@string/settings_strength_dialog_title"
+            android:entries="@array/settings_engine_strengh_preferences"
+            android:entryValues="@array/settings_engine_strengh_values"
+            android:key="settings_analysis_search_depth"
+            android:summary="@string/setting_analysis_strength_preference_summary"
+            android:title="@string/settings_analysis_strength_preference_title" />
         <CheckBoxPreference
             android:defaultValue="@string/default_auto_make_moves"
             android:key="settings_engine_auto_make_moves"

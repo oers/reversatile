@@ -38,6 +38,8 @@
     <string name="menu_item_switch_sides">Seite tauschen</string>
     <string name="menu_item_undo">Zurücknehmen</string>
     <string name="setting_strength_preference_summary">Spielstärke: Anzahl der Züge, die der Computer beim Spielen analysiert</string>
+    <string name="setting_analysis_strength_preference_summary">Spielstärke nur für "Spiel analysieren" - niedriger ist schneller, besonders im Mittelspiel</string>
+    <string name="settings_analysis_strength_preference_title">Analyse-Suchtiefe</string>
     <string name="settings_engine_auto_make_moves_summary">Erzwungene Züge automatisch durchführen</string>
     <string name="settings_engine_auto_make_moves_title">Erzwungene Züge</string>
     <string name="settings_engine_force_opening_summary">Eröffnung einstellen</string>

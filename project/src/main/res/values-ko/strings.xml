@@ -36,6 +36,8 @@
     <string name="settings_sendmail_title">이메일 주소</string>
     <string name="settings_sendmail_summary">게임 기록 전송을 위한 기본 이메일 주소</string>
     <string name="setting_strength_preference_summary">엔진 강도: 게임 하는 동안 컴퓨터가 분석 할 움직임의 수</string>
+    <string name="setting_analysis_strength_preference_summary">"게임 분석"에만 사용되는 엔진 강도 - 낮을수록 빠르며, 특히 미드게임에서 그렇습니다</string>
+    <string name="settings_analysis_strength_preference_title">분석 검색 깊이</string>
     <string name="settings_strength_preference_title">검색 강도</string>
     <string name="settings_strength_dialog_title">하나를 선택하다</string>
     <string name="app_name">Reversatile</string>

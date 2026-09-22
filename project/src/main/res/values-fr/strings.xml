@@ -36,6 +36,8 @@
     <string name="settings_sendmail_title">Adresse e-mail</string>
     <string name="settings_sendmail_summary">Adresse e-mail pour l\'envoi des transcriptions</string>
     <string name="setting_strength_preference_summary">Force de jeu: nombre de coups analysés par le programme</string>
+    <string name="setting_analysis_strength_preference_summary">Force du moteur utilisée uniquement pour « Analyser la partie » - plus faible est plus rapide, surtout en milieu de partie</string>
+    <string name="settings_analysis_strength_preference_title">Profondeur d\'analyse (analyse de partie)</string>
     <string name="settings_strength_preference_title">Profondeur d\'analyse</string>
     <string name="settings_strength_dialog_title">Choix</string>
     <string name="app_name">Reversatile</string>

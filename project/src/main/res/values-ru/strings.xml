@@ -36,6 +36,8 @@
     <string name="settings_sendmail_title">e-mail адрес</string>
     <string name="settings_sendmail_summary">e-mail адрес для экспорта игр</string>
     <string name="setting_strength_preference_summary">Максимальная глубина поиска при анализе позиции. Определяет силу игры программы.</string>
+    <string name="setting_analysis_strength_preference_summary">Сила движка только для «Анализ игры» - меньше значение — быстрее, особенно в миттельшпиле</string>
+    <string name="settings_analysis_strength_preference_title">Глубина поиска анализа</string>
     <string name="settings_strength_preference_title">Глубина поиска</string>
     <string name="settings_strength_dialog_title">Глубина поиска</string>
     <string name="app_name">Reversatile</string>

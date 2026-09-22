@@ -36,6 +36,8 @@
     <string name="settings_sendmail_title">メールアドレス</string>
     <string name="settings_sendmail_summary">メールアドレス</string>
     <string name="setting_strength_preference_summary">コンピュータの強さ: コンピュータの読みの深さを設定</string>
+    <string name="setting_analysis_strength_preference_summary">「ゲームを分析」にのみ使用されるエンジンの強さ - 低いほど速く、特に中盤で顕著です</string>
+    <string name="settings_analysis_strength_preference_title">分析の読みの深さ</string>
     <string name="settings_strength_preference_title">読みの深さ</string>
     <string name="settings_strength_dialog_title">読みの深さ</string>
     <string name="app_name">Reversatile</string>

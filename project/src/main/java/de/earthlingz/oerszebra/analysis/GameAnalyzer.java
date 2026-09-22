@@ -193,9 +193,21 @@ public class GameAnalyzer {
         });
     }
 
-    /** Stops the analysis after whatever ply is currently in flight finishes. */
+    /**
+     * Stops the analysis. Interrupts whatever search is currently running
+     * (rather than waiting for it to finish naturally, which is what
+     * pollForReady's own cancelled check - the only thing that previously
+     * stopped this - had to wait out) so cancellation actually takes effect
+     * right away instead of after however long the in-flight ply's search
+     * still had left to run, which at real search depths - especially in
+     * the branchier midgame - could be the slowest part of the whole
+     * interaction.
+     */
     public void cancel() {
         cancelled.set(true);
+        if (gameState != null) {
+            engine.stopIfThinking(gameState);
+        }
     }
 
     private void onBoardUpdate(GameState board) {
@@ -241,8 +253,24 @@ public class GameAnalyzer {
         if (attemptId != currentAttemptId) {
             return;
         }
-        boolean ready = engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
-                && (!requireEval || latestWhiteScore != null);
+        boolean settled = engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT;
+        if (cancelled.get()) {
+            // Once cancelled, don't hold out for a true final eval for
+            // whatever ply is in flight - cancel() already interrupted its
+            // search, so this just needs the engine to actually reach
+            // ES_USER_INPUT_WAIT (normally within a poll tick or two of
+            // that interrupt) before finish() can safely hand the engine
+            // back to whatever the caller does next (e.g. jumping to a
+            // different move). The half-finished ply's result, if any, is
+            // simply dropped rather than added.
+            if (settled) {
+                finish(true, false);
+            } else {
+                mainHandler.postDelayed(() -> pollForReady(attemptId, ply, requireEval), POLL_INTERVAL_MILLIS);
+            }
+            return;
+        }
+        boolean ready = settled && (!requireEval || latestWhiteScore != null);
         if (ready) {
             int whiteScore = requireEval ? latestWhiteScore : exactFinalScore();
             addResult(ply, whiteScore);
