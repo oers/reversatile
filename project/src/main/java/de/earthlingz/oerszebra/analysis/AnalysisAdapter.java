@@ -1,5 +1,7 @@
 package de.earthlingz.oerszebra.analysis;
 
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -107,6 +110,20 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
                 setWeight(blackBar, blackWeight);
                 setWeight(whiteBar, whiteWeight);
                 setWeight(whiteSpacer, 1f - whiteWeight);
+            }
+
+            // Make the ply currently being analyzed stand out from already-
+            // finished rows - views get recycled, so both branches must be
+            // set explicitly rather than only applying the highlight.
+            if (eval.isPending()) {
+                itemView.setBackgroundColor(
+                        ContextCompat.getColor(itemView.getContext(), R.color.analysis_in_progress_highlight));
+                plyLabel.setTypeface(plyLabel.getTypeface(), Typeface.BOLD);
+                scoreLabel.setTypeface(scoreLabel.getTypeface(), Typeface.BOLD);
+            } else {
+                itemView.setBackgroundColor(Color.TRANSPARENT);
+                plyLabel.setTypeface(plyLabel.getTypeface(), Typeface.NORMAL);
+                scoreLabel.setTypeface(scoreLabel.getTypeface(), Typeface.NORMAL);
             }
 
             itemView.setContentDescription(eval.getMove().getText());

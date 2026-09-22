@@ -56,6 +56,17 @@ public class GameAnalyzer {
     // compare), so this can be tight without costing anything real.
     private static final long POLL_INTERVAL_MILLIS = 50;
 
+    // Minimum spacing between onPlyEvalUpdated notifications to the
+    // listener. Iterative deepening can report a refined eval many times a
+    // second at real search depths - unlike the inactivity watchdog fix
+    // above, throttling latestWhiteScore itself isn't safe (pollForReady
+    // needs the true latest value the instant the ply settles), but the UI
+    // notification is just a live preview, so coalescing bursts of it down
+    // to this rate is free: it's what was making the drawer's
+    // notifyDataSetChanged()-per-update redraw frequent enough to starve
+    // the main thread of time to handle a tap while analysis runs.
+    private static final long MIN_EVAL_UI_UPDATE_INTERVAL_MILLIS = 150;
+
     public interface Listener {
         /** Fires once, right before ply's evaluation starts, so the UI can show it as "in progress". */
         void onPlyStarted(int ply, int total);
@@ -104,6 +115,9 @@ public class GameAnalyzer {
     // update) for the current attempt - what the self-rescheduling
     // inactivity watchdog (see armInactivityWatchdog) measures against.
     private long lastActivityAtMillis;
+    // Wall-clock time of the last onPlyEvalUpdated notification actually
+    // sent to the listener - see MIN_EVAL_UI_UPDATE_INTERVAL_MILLIS.
+    private long lastEvalUiNotifyAtMillis;
 
     public GameAnalyzer(ZebraEngine engine) {
         this.engine = engine;
@@ -151,6 +165,7 @@ public class GameAnalyzer {
         final int attemptId = ++currentAttemptId;
         awaitedPly = totalMoves;
         latestWhiteScore = null;
+        lastEvalUiNotifyAtMillis = 0;
         armInactivityWatchdog(attemptId);
 
         engine.newGame(moves, totalMoves, analysisConfig, new OnGameStateReadyListener() {
@@ -196,13 +211,20 @@ public class GameAnalyzer {
             // so there's no in-flight previous-ply update this could ever
             // race against.
             latestWhiteScore = normalizeToWhite(best.score, board.getSideToMove());
-            notifyPlyEvalUpdated(awaitedPly, latestWhiteScore);
             // Just bump the timestamp the already-running watchdog checks
             // against - not another postDelayed(). A real search reports
             // many times per ply (iterative deepening), and scheduling a
             // fresh never-cancelled timer per update piled up thousands of
             // them over a long analysis at real search depths.
-            lastActivityAtMillis = System.currentTimeMillis();
+            long now = System.currentTimeMillis();
+            lastActivityAtMillis = now;
+            // Throttle the UI notification specifically (not the score
+            // itself, which pollForReady always needs fresh) - see
+            // MIN_EVAL_UI_UPDATE_INTERVAL_MILLIS.
+            if (now - lastEvalUiNotifyAtMillis >= MIN_EVAL_UI_UPDATE_INTERVAL_MILLIS) {
+                lastEvalUiNotifyAtMillis = now;
+                notifyPlyEvalUpdated(awaitedPly, latestWhiteScore);
+            }
         }
     }
 
@@ -267,6 +289,7 @@ public class GameAnalyzer {
         final int attemptId = ++currentAttemptId;
         awaitedPly = nextPly;
         latestWhiteScore = null;
+        lastEvalUiNotifyAtMillis = 0;
         notifyPlyStarted(nextPly);
         armInactivityWatchdog(attemptId);
         // undoMove() always lands on a position with a real move to search
