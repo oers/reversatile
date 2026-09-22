@@ -3,8 +3,6 @@
 
    Created:    November 29, 1999
    
-   Modified:   April 29, 2002
-
    Author:     Gunnar Andersson (gunnar@radagast.se)
 
    Contents:   The learning module.
@@ -55,14 +53,10 @@ clear_stored_game( void ) {
     game_move[i] = ILLEGAL;
 }
 
-/*
-   GET_STORED_MOVE
-   get stored move
-*/
-
 int
 get_stored_move( int index ) {
-  if(index>60) return ILLEGAL;
+  if ( index > 60 )
+    return ILLEGAL;
   return game_move[index];
 }
 

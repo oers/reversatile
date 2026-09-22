@@ -3,8 +3,6 @@
 
    Created:       May 23, 1998
    
-   Modified:      May 2, 1999
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      An empty definition of functions from autoplay

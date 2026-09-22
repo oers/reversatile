@@ -1,8 +1,6 @@
 /*
    File:          bitbcnt.c
 
-   Modified:      November 24, 2005
-
    Authors:       Gunnar Andersson (gunnar@radagast.se)
 		  Toshihiko Okuhara
 

@@ -3,8 +3,6 @@
 
    Created:       March 1, 1998
 
-   Modified:      November 24, 2002
-   
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The initialization of the Multi-ProbCut search parameters.

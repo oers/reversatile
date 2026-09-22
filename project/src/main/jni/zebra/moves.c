@@ -3,8 +3,6 @@
 
    Created:           June 30, 1997
 
-   Modified:          April 24, 2001
-   
    Author:            Gunnar Andersson (gunnar@radagast.se)
 
    Contents:          The move generator.
@@ -30,9 +28,9 @@
 
 /* Global variables */
 
-int disks_played;
-int move_count[MAX_SEARCH_DEPTH];
-int move_list[MAX_SEARCH_DEPTH][64];
+_Thread_local int disks_played;
+_Thread_local int move_count[MAX_SEARCH_DEPTH];
+_Thread_local int move_list[MAX_SEARCH_DEPTH][64];
 int *first_flip_direction[100];
 int flip_direction[100][16];   /* 100 * 9 used */
 int **first_flipped_disc[100];
@@ -54,8 +52,8 @@ const int move_offset[8] = { 1, -1, 9, -9, 10, -10, 11, -11 };
 
 /* Local variables */
 
-static int flip_count[65];
-static int sweep_status[MAX_SEARCH_DEPTH];
+static _Thread_local int flip_count[65];
+static _Thread_local int sweep_status[MAX_SEARCH_DEPTH];
 
 
 
@@ -227,9 +225,6 @@ make_move( int side_to_move, int move, int update_hash ) {
       // That only causes fatal error in PV completion later
       return 0;
   }
-  // we could replace the above if with these asserts, too
-  // assert(board[move] != 0);
-  // assert(board[move] != 2);
   int flipped;
   unsigned int diff1, diff2;
 

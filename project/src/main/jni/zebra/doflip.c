@@ -1,8 +1,6 @@
 /*
    File:          doflip.c
 
-   Modified:      November 15, 2005
-
    Authors:       Gunnar Andersson (gunnar@radagast.se)
 	          Toshihiko Okuhara
 
@@ -32,7 +30,7 @@
 
 /* Global variables */
 
-unsigned int hash_update1, hash_update2;
+_Thread_local unsigned int hash_update1, hash_update2;
 
 
 

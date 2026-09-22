@@ -14,7 +14,7 @@
 #include "macros.h"
 
 
-extern unsigned int hash_update1, hash_update2;
+extern _Thread_local unsigned int hash_update1, hash_update2;
 
 
 

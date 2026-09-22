@@ -3,8 +3,6 @@
 
    Created:      December 31, 1997
 
-   Modified:     December 30, 2004
-   
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     The interface to the book manipulation module.
@@ -35,7 +33,6 @@ main( int argc, char *argv[] ) {
   char *statistics_file_name;
   char *opening_in_file;
   char *position_file;
-  char *opening_file;
   char *merge_script_file, *merge_output_file;
   char *export_file;
   char *merge_book_file;
@@ -99,7 +96,6 @@ main( int argc, char *argv[] ) {
   opening_in_file = NULL;
   dump_positions = FALSE;
   position_file = NULL;
-  opening_file = NULL;
   merge_script_file = NULL;
   merge_output_file = NULL;
   export_file = NULL;

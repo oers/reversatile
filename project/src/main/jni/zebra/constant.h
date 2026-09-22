@@ -3,8 +3,6 @@
 
    Created:      July 10, 1997
 
-   Modified:     September 14, 2002
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     Some globally used constants.

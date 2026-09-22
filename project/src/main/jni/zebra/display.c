@@ -3,8 +3,6 @@
 
    Created:        July 10, 1997
 
-   Modified:       November 23, 2001
-
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       Some I/O routines.

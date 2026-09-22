@@ -3,8 +3,6 @@
 
    Created:      July 10, 1997
 
-   Modified:     November 17, 2002
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     Declarations of the screen output functions.

@@ -65,6 +65,15 @@ android {
         targetCompatibility 1.8
         sourceCompatibility 1.8
     }
+    testOptions {
+        unitTests {
+            // android.util.Log (used for diagnostics, not control flow, by
+            // ZebraEngine/GameState) throws "not mocked" under AGP's default
+            // stub android.jar otherwise - this makes it a harmless no-op
+            // instead, same as most plain-JVM Android unit tests need.
+            returnDefaultValues = true
+        }
+    }
     lint {
         disable 'GoogleAppIndexingWarning', 'UnusedAttribute'
     }
@@ -98,6 +107,12 @@ dependencies {
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     testImplementation 'junit:junit:4.13.2'
+    // On-device, org.json.* is provided by the Android platform; for plain
+    // JVM unit tests (no device/emulator) that exercise the real JNI code
+    // calling back into org.json (droidzebra-json.c), this standalone
+    // implementation takes precedence over AGP's stub android.jar version
+    // on the unit test classpath and behaves correctly, not just stubbed.
+    testImplementation 'org.json:json:20240303'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     // Optional -- Mockito framework
     testImplementation 'org.mockito:mockito-core:5.14.2'
@@ -106,4 +121,15 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.6.1'
     // Optional -- Hamcrest library
     androidTestImplementation 'org.hamcrest:hamcrest-library:3.0'
+}
+
+// HostJniSmokeTest loads the real droidzebra JNI library via
+// ZebraEngine's own static System.loadLibrary("droidzebra") - that
+// resolves through java.library.path (set once, at JVM start; a runtime
+// System.load() elsewhere in the test wouldn't satisfy it), so point it
+// at project/hostjni/Makefile's output. The test itself skips cleanly
+// (via Assume) when that .so hasn't been built, so this is a no-op on
+// any workflow that doesn't build it first.
+tasks.withType(Test).configureEach {
+    systemProperty 'java.library.path', "$projectDir/hostjni/build"
 }

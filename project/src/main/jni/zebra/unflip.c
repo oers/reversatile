@@ -3,8 +3,6 @@
 
    Created:        February 26, 1999
    
-   Modified:       July 12, 1999
-
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       Low-level code to flip back the discs flipped by a move.
@@ -19,8 +17,8 @@
 
 /* Global variables */
 
-int *global_flip_stack[2048];
-int **flip_stack = &(global_flip_stack[0]);
+_Thread_local int *global_flip_stack[2048];
+_Thread_local int **flip_stack;  /* per thread; see init_search_thread() */
 
 
 

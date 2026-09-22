@@ -2,8 +2,6 @@
    pcstat.h
 
    Automatically created by CORRELAT on Tue Sep 07 19:41:49 1999
-
-   Modified December 25, 1999
 */
 
 

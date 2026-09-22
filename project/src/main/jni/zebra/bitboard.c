@@ -3,8 +3,6 @@
 
    Created:       November 21, 1999
    
-   Modified:      November 24, 2005
-
    Authors:       Gunnar Andersson (gunnar@radagast.se)
                   Toshihiko Okuhara
 
@@ -31,6 +29,10 @@ BitBoard square_mask[100];
 
 INLINE unsigned int REGPARM(2)
 non_iterative_popcount( unsigned int n1, unsigned int n2 ) {
+#if defined( __GNUC__ )
+  /* Single hardware instruction on arm64 (cnt) and x86-64 (popcnt) */
+  return __builtin_popcountll( ((unsigned long long) n1 << 32) | n2 );
+#else
   n1 = n1 - ((n1 >> 1) & 0x55555555u);
   n2 = n2 - ((n2 >> 1) & 0x55555555u);
   n1 = (n1 & 0x33333333u) + ((n1 >> 2) & 0x33333333u);
@@ -38,6 +40,7 @@ non_iterative_popcount( unsigned int n1, unsigned int n2 ) {
   n1 = (n1 + (n1 >> 4)) & 0x0F0F0F0Fu;
   n2 = (n2 + (n2 >> 4)) & 0x0F0F0F0Fu;
   return ((n1 + n2) * 0x01010101u) >> 24;
+#endif
 }
 
 
@@ -52,6 +55,9 @@ non_iterative_popcount( unsigned int n1, unsigned int n2 ) {
 
 INLINE unsigned int REGPARM(2)
 iterative_popcount( unsigned int n1, unsigned int n2 ) {
+#if defined( __GNUC__ )
+  return __builtin_popcountll( ((unsigned long long) n1 << 32) | n2 );
+#else
   unsigned int n;
   n = 0;
   for ( ; n1 != 0; n++, n1 &= (n1 - 1) )
@@ -60,6 +66,7 @@ iterative_popcount( unsigned int n1, unsigned int n2 ) {
     ;
 
   return n;
+#endif
 }
 
 

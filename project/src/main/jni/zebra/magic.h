@@ -3,8 +3,6 @@
 
    Created:      July 5, 1999
 
-   Modified:     December 25, 1999
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     Magic numbers used to distinguish different versions

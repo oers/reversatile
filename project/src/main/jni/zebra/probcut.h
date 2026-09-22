@@ -3,8 +3,6 @@
 
    Created:       March 1, 1998
 
-   Modified:      November 23, 2002
-   
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The declaration of the Multi-Prob-Cut variables.
