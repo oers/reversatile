@@ -359,8 +359,26 @@ public class WthorReplayTest extends BasicTest {
         for (int offset = 2; offset <= moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset);
             String redoneSquare = moves.substring(offset - 2, offset);
-            int ply = offset / 2; // 1-based: odd plies are black, even are white
-            byte expectedColor = (ply % 2 == 1) ? ZebraEngine.PLAYER_BLACK : ZebraEngine.PLAYER_WHITE;
+            int ply = offset / 2;
+            int x = redoneSquare.charAt(0) - 'a';
+            int y = redoneSquare.charAt(1) - '1';
+            // Not simply ply%2 (odd=black, even=white): a forced pass
+            // anywhere before this ply shifts which side actually plays
+            // every real move after it, exactly what happens in this game -
+            // real move 58 (g7) is White's, Black is then forced to pass,
+            // so real move 59 (a5) is White's too even though 59 is odd.
+            // Read the true color off the board captured for this exact
+            // ply during the undo pass instead - already proven correct by
+            // the per-call undo checks and the pristine-position check
+            // above, so it doesn't need re-deriving from parity at all.
+            // boardsByPly only covers plies 0..moves.length()/2 - 1 (the
+            // undo loop that fills it starts one ply below the fully-played
+            // game, since that top position is never undone-to) - the
+            // final ply's already-verified-correct board is originalBoard
+            // instead, captured right after the initial straight
+            // playthrough.
+            byte[][] boardForThisPly = (offset == moves.length()) ? originalBoard : boardsByPly.get(ply);
+            byte expectedColor = boardForThisPly[x][y];
             if (offset < moves.length()) {
                 sendRedoUntilApplied(expectedMoves, gameIndex);
             } else {
@@ -375,8 +393,6 @@ public class WthorReplayTest extends BasicTest {
             // own disc correctly, that's the culprit; if it does and only
             // OTHER (captured) squares end up wrong, the bug is in that
             // move's flip computation instead.
-            int x = redoneSquare.charAt(0) - 'a';
-            int y = redoneSquare.charAt(1) - '1';
             byte fieldAfterRedo = zebra.getState().getFieldByte(x, y);
             long fieldWaitDeadline = System.currentTimeMillis() + 2_000;
             while (fieldAfterRedo != expectedColor && System.currentTimeMillis() < fieldWaitDeadline) {
@@ -437,15 +453,12 @@ public class WthorReplayTest extends BasicTest {
         int expectedBlackScore = file[offset + 6] & 0xff;
         int expectedWhiteScore = 64 - expectedBlackScore;
         ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
-        // If a pass happened anywhere in the preceding 57 plies without our
-        // pure odd=BLACK/even=WHITE alternation assumption noticing (the
-        // per-call checks only verify each move's own target square color,
-        // which stays right even if a *later* move's expected mover is
-        // miscalculated), sideToMoveBeforeCall diverging from
-        // expectedFinalMoveColor here would be the tell - and would mean
-        // the "move sequence" string itself has one fewer real move than
-        // plies, throwing off every ply/expectedColor computed from string
-        // position alone.
+        // expectedFinalMoveColor is read off boardsByPly/originalBoard, not
+        // derived from ply%2 alternation - a forced pass earlier in the
+        // game no longer throws this off (see the caller). Kept here as a
+        // diagnostic aid: sideToMoveBeforeCall diverging from it would
+        // still point at a genuinely wrong side-to-move computation
+        // upstream, not just a stale assumption in this file.
         byte sideToMoveBeforeCall = (byte) zebra.getGameState().getSideToMove();
         zebra.runOnUiThread(zebra::redo);
         if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, UNDO_REDO_TIMEOUT_MILLIS)) {
