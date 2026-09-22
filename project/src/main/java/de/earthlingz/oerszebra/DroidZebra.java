@@ -859,11 +859,23 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 // just starting always has a lower number than everything
                 // already in resultsSoFar - it belongs at the end of the
                 // list, not the front.
-                MoveEval pending = MoveEval.pending(ply, new Move(analyzedGameMoves[ply - 1]));
-                List<MoveEval> withPending = new ArrayList<>(resultsSoFar.size() + 1);
-                withPending.addAll(resultsSoFar);
-                withPending.add(pending);
-                updateAnalysisDrawer(withPending, resultsSoFar.isEmpty());
+                showInFlightRow(MoveEval.pending(ply, new Move(analyzedGameMoves[ply - 1])));
+            }
+
+            @Override
+            public void onPlyEvalUpdated(int ply, int total, MoveEval interimEval) {
+                // The engine reports progressively (iterative deepening) as
+                // it searches a position, not just once at the end - replace
+                // the in-flight row with each refined estimate as it arrives
+                // instead of only showing a value once the ply is fully done.
+                showInFlightRow(interimEval);
+            }
+
+            private void showInFlightRow(MoveEval inFlightRow) {
+                List<MoveEval> withInFlightRow = new ArrayList<>(resultsSoFar.size() + 1);
+                withInFlightRow.addAll(resultsSoFar);
+                withInFlightRow.add(inFlightRow);
+                updateAnalysisDrawer(withInFlightRow, resultsSoFar.isEmpty());
             }
 
             @Override

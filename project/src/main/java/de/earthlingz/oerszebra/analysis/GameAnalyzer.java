@@ -30,13 +30,15 @@ import de.earthlingz.oerszebra.GameSettingsConstants;
  */
 public class GameAnalyzer {
 
-    // Safety net, not a performance guarantee: some configured search depths
-    // can legitimately take a while per position, but a position that never
-    // calls back at all (seen in practice - the analyzer just sat there
-    // indefinitely with no progress) needs to eventually give up rather than
-    // leave the drawer stuck on "Analyzing..." forever with no way out
-    // short of force-closing the app.
-    private static final long PLY_TIMEOUT_MILLIS = 60_000;
+    // Inactivity safety net, not a performance guarantee: some configured
+    // search depths can legitimately take a while per position (this class
+    // now waits for the search to fully settle - see pollForReadyToAdvance -
+    // rather than grabbing the first available estimate, so a strong search
+    // can easily run past a minute on its own). Reset on every eval update
+    // (see onBoard below), so it only fires when a ply goes genuinely quiet -
+    // no update at all - for this long, which is the actual hang symptom
+    // seen in testing, not merely "still thinking".
+    private static final long PLY_INACTIVITY_TIMEOUT_MILLIS = 60_000;
 
     // The engine runs its own persistent native loop (ZebraEngine.EngineThread)
     // around a single blocking zePlay() call per newGame(); the Java-side
@@ -52,9 +54,23 @@ public class GameAnalyzer {
     // race outright instead of just recovering from it after the fact.
     private static final long NEXT_PLY_SETTLE_MILLIS = 300;
 
+    // How often to check whether the current ply's search has actually
+    // finished (see pollForReadyToAdvance) - cheap (one field read and one
+    // enum compare), so this can be tight without costing anything real.
+    private static final long POLL_INTERVAL_MILLIS = 50;
+
     public interface Listener {
         /** Fires once, right before ply's evaluation starts, so the UI can show it as "in progress". */
         void onPlyStarted(int ply, int total);
+
+        /**
+         * Fires every time the engine sends a refined evaluation for the
+         * ply currently being analyzed - practice-mode search reports
+         * progressively (iterative deepening), so this can fire several
+         * times per ply before it's actually done. {@code interimEval} is
+         * not yet final; {@link #onProgress} fires once when this ply is.
+         */
+        void onPlyEvalUpdated(int ply, int total, MoveEval interimEval);
 
         void onProgress(int done, int total, MoveEval latest);
 
@@ -74,10 +90,15 @@ public class GameAnalyzer {
     private int finalBlackDiscs;
     private int finalWhiteDiscs;
     // Bumped every time a new ply's engine.newGame() call is issued, so a
-    // watchdog (or a stray callback) scheduled for an earlier ply can tell
-    // it's stale once that ply has already resolved and analysis has moved
-    // on, instead of acting on/aborting the wrong (now current) attempt.
+    // watchdog/poll callback (or a stray onBoard callback) scheduled for an
+    // earlier ply can tell it's stale once that ply has already resolved
+    // and analysis has moved on, instead of acting on/aborting the wrong
+    // (now current) attempt.
     private int currentAttemptId;
+    // The latest white-perspective score reported for the in-flight ply, or
+    // null until the first eval arrives. Only meaningful together with a
+    // matching currentAttemptId.
+    private Integer latestWhiteScore;
 
     public GameAnalyzer(ZebraEngine engine) {
         this.engine = engine;
@@ -145,8 +166,9 @@ public class GameAnalyzer {
         }
 
         final int attemptId = ++currentAttemptId;
+        latestWhiteScore = null;
         notifyPlyStarted(ply);
-        mainHandler.postDelayed(() -> onPlyTimedOut(attemptId), PLY_TIMEOUT_MILLIS);
+        scheduleInactivityWatchdog(attemptId);
 
         engine.newGame(moves, ply, analysisConfig, new OnGameStateReadyListener() {
             @Override
@@ -155,13 +177,19 @@ public class GameAnalyzer {
                     @Override
                     public void onBoard(GameState board) {
                         if (attemptId != currentAttemptId) {
-                            return; // stale - this attempt already timed out
+                            return; // stale - this attempt already resolved or timed out
                         }
                         CandidateMove best = board.getBestMove();
                         if (best != null && best.hasEval) {
-                            gameState.removeGameStateListener();
-                            addResult(ply, normalizeToWhite(best.score, board.getSideToMove()));
-                            advance(ply);
+                            // Practice-mode search reports progressively
+                            // (iterative deepening) - each update here can
+                            // still be refined by a later, deeper one, so
+                            // just record/display it and keep waiting;
+                            // pollForReadyToAdvance (below) is what actually
+                            // decides this ply is done.
+                            latestWhiteScore = normalizeToWhite(best.score, board.getSideToMove());
+                            notifyPlyEvalUpdated(ply, latestWhiteScore);
+                            scheduleInactivityWatchdog(attemptId);
                         }
                     }
 
@@ -179,13 +207,39 @@ public class GameAnalyzer {
                         advance(ply);
                     }
                 });
+
+                pollForReadyToAdvance(gameState, attemptId, ply);
             }
         });
     }
 
+    // The engine only returns to ES_USER_INPUT_WAIT once practice mode's
+    // search has genuinely finished computing evals for every legal move at
+    // this position (see ZebraEngine's MSG_GET_USER_INPUT handling, reached
+    // only after _droidzebra_compute_evals() returns) - a direct, reliable
+    // "this ply is actually done" signal, unlike onBoard() firing (which
+    // just means "an updated estimate exists", not "the search is over").
+    private void pollForReadyToAdvance(GameState gameState, int attemptId, int ply) {
+        if (attemptId != currentAttemptId) {
+            return;
+        }
+        if (latestWhiteScore != null && engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
+            int whiteScore = latestWhiteScore;
+            gameState.removeGameStateListener();
+            addResult(ply, whiteScore);
+            advance(ply);
+            return;
+        }
+        mainHandler.postDelayed(() -> pollForReadyToAdvance(gameState, attemptId, ply), POLL_INTERVAL_MILLIS);
+    }
+
+    private void scheduleInactivityWatchdog(int attemptId) {
+        mainHandler.postDelayed(() -> onPlyTimedOut(attemptId), PLY_INACTIVITY_TIMEOUT_MILLIS);
+    }
+
     private void onPlyTimedOut(int attemptId) {
         if (attemptId != currentAttemptId) {
-            return; // this ply already resolved (or analysis already stopped)
+            return; // this ply already resolved, or a later update reset the watchdog
         }
         finish(true, true);
     }
@@ -211,6 +265,15 @@ public class GameAnalyzer {
         mainHandler.post(() -> {
             if (listener != null) {
                 listener.onPlyStarted(ply, totalMoves);
+            }
+        });
+    }
+
+    private void notifyPlyEvalUpdated(int ply, int whiteScore) {
+        MoveEval interim = new MoveEval(ply, new Move(moves[ply - 1]), whiteScore);
+        mainHandler.post(() -> {
+            if (listener != null) {
+                listener.onPlyEvalUpdated(ply, totalMoves, interim);
             }
         });
     }
