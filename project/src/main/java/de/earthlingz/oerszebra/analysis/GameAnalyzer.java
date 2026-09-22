@@ -149,17 +149,10 @@ public class GameAnalyzer {
             @Override
             public void onGameStateReady(GameState freshGameState) {
                 gameState = freshGameState;
-                // Set up once and reused for every undo step after this -
-                // unlike the old restart-per-ply design there's no new
-                // GameState/listener per ply, so this must always read the
-                // *current* attemptId/awaitedPly fields (kept up to date by
-                // advance()) rather than close over a value captured here,
-                // or every update past the first ply would be misjudged
-                // stale and silently dropped.
                 gameState.setGameStateListener(new GameStateListener() {
                     @Override
                     public void onBoard(GameState board) {
-                        onBoardUpdate(board);
+                        onBoardUpdate(board, attemptId);
                     }
                 });
                 // The terminal position needs no search - see pollForReady's
@@ -175,21 +168,20 @@ public class GameAnalyzer {
         cancelled.set(true);
     }
 
-    private void onBoardUpdate(GameState board) {
+    private void onBoardUpdate(GameState board, int attemptId) {
+        if (attemptId != currentAttemptId) {
+            return; // stale - this attempt already resolved or timed out
+        }
         CandidateMove best = board.getBestMove();
         if (best != null && best.hasEval) {
             // Practice-mode search reports progressively (iterative
             // deepening) - each update here can still be refined by a
             // later, deeper one, so just record/display it and keep
             // waiting; pollForReady is what actually decides this ply is
-            // done. No staleness check needed here: advance() only issues
-            // the next undoMove() once pollForReady has already confirmed
-            // the previous ply's search fully settled (ES_USER_INPUT_WAIT),
-            // so there's no in-flight previous-ply update this could ever
-            // race against.
+            // done.
             latestWhiteScore = normalizeToWhite(best.score, board.getSideToMove());
             notifyPlyEvalUpdated(awaitedPly, latestWhiteScore);
-            scheduleInactivityWatchdog(currentAttemptId);
+            scheduleInactivityWatchdog(attemptId);
         }
     }
 
