@@ -1,6 +1,7 @@
 package com.shurik.droidzebra;
 
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -381,6 +382,151 @@ public class HostJniSmokeTest {
                 true, gameState.getMoveSequenceAsString().contains("--"));
 
         verifyUndoRedoRoundTrip(engine, file, gameIndex);
+    }
+
+    // ------------------------------------------------------------------
+    // Actual AI search, on the same real arm64 hardware. Every test above
+    // uses FUNCTION_HUMAN_VS_HUMAN, which - regardless of what depth is
+    // passed - forces skill=0 for both sides (see
+    // ZebraEngine#setEngineFunction) and so never calls compute_move() at
+    // all: they exercise move application (make_move/undo_turn/redo_turn)
+    // but never the search itself (middle_game, tree_search/alpha-beta,
+    // bitboard move generation and pattern evaluation). That search code
+    // is exactly what the "ARM64-safe bitmasks/shifts" part of this
+    // engine sync touched, so it's worth covering here specifically.
+    // ------------------------------------------------------------------
+
+    // A handful of shallow depths, not one fixed value: different depths
+    // exercise different search code paths (iterative deepening steps,
+    // MPC re-searches, hash table usage patterns), and this is exactly the
+    // kind of arm64-only bug (a bitmask/shift subtly wrong only on that
+    // architecture) that could easily only show up at some depths and not
+    // others. Kept shallow (depthExact/depthWLD stay 0, so this never
+    // reaches full endgame solving) so this stays fast.
+    private static final int[] SEARCH_TEST_DEPTHS = {1, 3, 6};
+    private static final int SEARCH_PLIES_PER_DEPTH = 8;
+
+    // AI-vs-AI autoplay has no way to pause after N plies - once started it
+    // keeps computing and playing moves for both sides on its own
+    // background thread until the game ends, so reading the move count and
+    // the board a few lines apart races that thread (see
+    // waitForMoveSequenceToSettle). A real move computation at these
+    // shallow depths takes low single-digit milliseconds, so this settle
+    // window is far larger than any legitimate "still thinking" gap.
+    private static final int SETTLE_STABLE_TICKS = 15;
+    private static final long SETTLE_TICK_MILLIS = 10;
+
+    @Test
+    public void aiSearchPlaysLegalMovesAtVariousDepths() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        for (int depth : SEARCH_TEST_DEPTHS) {
+            verifySearchPlaysLegalMoves(engine, depth);
+        }
+    }
+
+    // Starts a fresh AI-vs-AI game at the given depth and lets the engine
+    // play both sides itself (no makeMove() calls at all - every move
+    // comes from compute_move()'s own search), then checks the game
+    // actually progressed and the resulting board is internally
+    // consistent. A crash, hang, or a search handing the game loop a bad
+    // move would all surface here: the former as this test simply never
+    // finishing (or the JVM dying), the latter as the disc-count check
+    // failing (a move landing on an already-occupied square, or the wrong
+    // flips being applied, throws the board and the real move count out
+    // of sync).
+    private static void verifySearchPlaysLegalMoves(ZebraEngine engine, int depth) throws InterruptedException {
+        AtomicReference<GameState> gameStateRef = new AtomicReference<>();
+        engine.newGameBlocking(
+                new EngineConfig(FUNCTION_ZEBRA_VS_ZEBRA, depth, 0, 0,
+                        false, null, false, false, false, 0, 0, 0),
+                new ZebraEngine.OnGameStateReadyListener() {
+                    @Override
+                    public void onGameStateReady(GameState gameState) {
+                        gameStateRef.set(gameState);
+                    }
+                });
+        long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+        while (gameStateRef.get() == null && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        GameState gameState = gameStateRef.get();
+        if (gameState == null) {
+            fail("depth " + depth + ": engine never delivered a GameState");
+        }
+
+        // Deeper searches take longer per move, so scale the wait budget
+        // with depth instead of using one fixed timeout for all of them.
+        long searchDeadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS * (depth + 1);
+        while (removePasses(gameState.getMoveSequenceAsString()).length() / 2 < SEARCH_PLIES_PER_DEPTH
+                && System.currentTimeMillis() < searchDeadline) {
+            Thread.sleep(20);
+        }
+        int realMovesPlayed = removePasses(gameState.getMoveSequenceAsString()).length() / 2;
+        if (realMovesPlayed < SEARCH_PLIES_PER_DEPTH) {
+            fail("depth " + depth + ": AI vs AI only reached " + realMovesPlayed + " real moves within "
+                    + (WAIT_TIMEOUT_MILLIS * (depth + 1)) + "ms (wanted at least " + SEARCH_PLIES_PER_DEPTH + ")");
+        }
+
+        // Read the move count and the board back-to-back from a settled
+        // state instead of using the count captured above: at shallow
+        // depths the whole 60-move game can finish well within the wait
+        // loop's polling interval, so the move count from the moment the
+        // threshold was crossed can already be stale by the time the board
+        // itself is captured, making the two disagree even though neither
+        // is individually wrong (see waitForMoveSequenceToSettle).
+        String settledMoveSequence = waitForMoveSequenceToSettle(gameState, searchDeadline);
+        realMovesPlayed = settledMoveSequence.length() / 2;
+
+        // Every move the search played had to pass through make_move(),
+        // which only succeeds for a genuinely legal move - reaching this
+        // many real moves without stalling already rules out a crash or a
+        // hang. Cross-check board self-consistency too: each real move
+        // places exactly one new disc (on top of whatever it flips), so
+        // total discs on the board must be exactly 4 (the start) plus the
+        // real moves played - not gameState.getDisksPlayed(), which
+        // counts plies including any forced pass, not real placements.
+        byte[][] board = captureBoard(gameState);
+        int discCount = 0;
+        for (byte[] row : board) {
+            for (byte field : row) {
+                if (field != ZebraEngine.PLAYER_EMPTY) {
+                    discCount++;
+                }
+            }
+        }
+        assertEquals("depth " + depth + ": disc count on board does not match 4 + real moves played",
+                4 + realMovesPlayed, discCount);
+    }
+
+    // Polls the move sequence until it stops changing for SETTLE_STABLE_TICKS
+    // consecutive checks, or the deadline is reached. AI-vs-AI autoplay never
+    // pauses mid-game on its own, so this is the only reliable way to read a
+    // consistent (move count, board) pair without racing the still-running
+    // background engine thread: once no change has been observed for the
+    // whole settle window, either the game has genuinely finished (autoplay
+    // exits for good) or the engine is between moves for long enough that
+    // reading the board right now is safe.
+    private static String waitForMoveSequenceToSettle(GameState gameState, long deadline) throws InterruptedException {
+        String lastSeen = removePasses(gameState.getMoveSequenceAsString());
+        int stableTicks = 0;
+        while (stableTicks < SETTLE_STABLE_TICKS && System.currentTimeMillis() < deadline) {
+            Thread.sleep(SETTLE_TICK_MILLIS);
+            String current = removePasses(gameState.getMoveSequenceAsString());
+            if (current.equals(lastSeen)) {
+                stableTicks++;
+            } else {
+                lastSeen = current;
+                stableTicks = 0;
+            }
+        }
+        return lastSeen;
     }
 
     // ------------------------------------------------------------------
