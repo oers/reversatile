@@ -245,6 +245,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 rotate();
             }
             return true;
+            case R.id.menu_analyze_game: {
+                analyzeGame();
+            }
+            return true;
         }
         return false;
     }

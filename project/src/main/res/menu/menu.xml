@@ -23,6 +23,10 @@
         android:icon="@drawable/ic_rotate_right_white_24dp"
         android:title="@string/gameover_choices_rotate" />
     <item
+        android:id="@+id/menu_analyze_game"
+        android:icon="@drawable/ic_assessment_white_24dp"
+        android:title="@string/gameover_choices_analyze" />
+    <item
         android:id="@+id/menu_new_game"
         android:icon="@drawable/ic_play_arrow_white_24dp"
         android:title="@string/menu_item_new_game"
