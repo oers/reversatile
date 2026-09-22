@@ -59,5 +59,12 @@ WARNINGS =      -Wall -Wcast-align -Wwrite-strings -Wstrict-prototypes -Winline
 OPTS =          -O3 -s -fomit-frame-pointer -falign-functions=32 -finline-limit=3200
 LOCAL_CFLAGS += $(OPTS) $(WARNINGS) $(DEFS)
 LOCAL_LDLIBS += -L$(SYSROOT)/usr/lib -lm -lz
- 
+# 16 KB page size support: required for Google Play submissions once an app
+# targets a recent enough SDK (this project bumped targetSdkVersion/
+# compileSdk to 37 without this). NDK r27+ makes this the linker default;
+# this project is still on NDK 26, which doesn't, so set it explicitly
+# rather than bumping the NDK version (a much larger, riskier change to the
+# whole native toolchain) just for this one flag.
+LOCAL_LDFLAGS += -Wl,-z,max-page-size=16384
+
 include $(BUILD_SHARED_LIBRARY)

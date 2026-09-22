@@ -3,6 +3,7 @@ package com.shurik.droidzebra;
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN;
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Assume;
@@ -17,6 +18,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 // Plain-JVM test: no Android framework, no emulator/device. Loads the real
@@ -527,6 +529,116 @@ public class HostJniSmokeTest {
             }
         }
         return lastSeen;
+    }
+
+    // Regression test for the "Notify DroidZebra" live-status callback
+    // inside extended_compute_move() (zebra/game.c) - a local Android-fork
+    // patch that the raw hoshir/zebra sync (#99) silently dropped once
+    // already (game.c was overwritten wholesale like the other files it
+    // touched; found and restored in #103). Without it, practice-mode
+    // search only reports once at the very end instead of progressively
+    // while it runs - which broke both the live board display during
+    // normal play and GameAnalyzer's in-flight analysis row (#96), and
+    // wouldn't be caught by any other test in this suite (none of them
+    // assert on *how many* eval updates arrive mid-search). This exists so
+    // a future engine resync that overwrites zebra/game.c again and drops
+    // the same patch fails CI instead of silently regressing a second time.
+    @Test
+    public void practiceModeReportsProgressivelyDuringSearch() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+
+        // A raw fresh-start search was found (in real CI) to yield only a
+        // single eval update for the opening position specifically - most
+        // likely some book/move-ordering pre-pass short-circuiting the
+        // per-candidate-move loop for that one well-known position, separate
+        // from the restored callback itself (all other tests in this suite,
+        // none of which start from a fresh game in practice mode, still pass
+        // either way). Sidestep that entirely - and better match the user's
+        // real complaint, about analysis at high search depth generally, not
+        // specifically the opening move - by replaying a real tournament
+        // game's first few plies (bulk replay only, no search) and starting
+        // the timed search from that genuine, out-of-book mid-game position.
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        byte[] fullGameMoves = decodeGameMoveInts(file, PASSLESS_GAME_INDEX);
+        int prefixLength = 16;
+        Assume.assumeTrue("WThor game " + PASSLESS_GAME_INDEX + " is shorter than the " + prefixLength
+                        + "-ply prefix this test replays - the bundled " + WTHOR_FILE_NAME + " may have changed",
+                fullGameMoves.length >= prefixLength);
+
+        AtomicReference<GameState> gameStateRef = new AtomicReference<>();
+        AtomicInteger evalUpdateCount = new AtomicInteger(0);
+        // Depth deep enough that this position's several legal moves get
+        // re-evaluated across several iterative-deepening passes - plenty
+        // of opportunities for the per-candidate-move callback to fire -
+        // while staying fast (well under a second at this depth).
+        engine.newGameBlocking(fullGameMoves, prefixLength,
+                new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 6, 0, 0,
+                        false, null, false, true, false, 0, 0, 0),
+                new ZebraEngine.OnGameStateReadyListener() {
+                    @Override
+                    public void onGameStateReady(GameState gameState) {
+                        // Attached here, synchronously on the same engine
+                        // thread that's about to start the search - not via
+                        // a separate wait-then-attach step afterward, which
+                        // would race a fast search that could finish before
+                        // a polling test thread wakes back up and attaches
+                        // the listener, undercounting or missing updates
+                        // entirely.
+                        gameState.setGameStateListener(new GameStateListener() {
+                            @Override
+                            public void onBoard(GameState board) {
+                                CandidateMove best = board.getBestMove();
+                                if (best != null && best.hasEval) {
+                                    evalUpdateCount.incrementAndGet();
+                                }
+                            }
+                        });
+                        gameStateRef.set(gameState);
+                    }
+                });
+
+        long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+        while (gameStateRef.get() == null && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        if (gameStateRef.get() == null) {
+            fail("Engine never delivered a GameState - newGameBlocking() didn't reach ES_PLAY_IN_PROGRESS");
+        }
+
+        // The engine only reaches ES_USER_INPUT_WAIT once the whole
+        // practice-mode search has genuinely finished (see
+        // droidzebra-jni.c's game loop: this state is set only after
+        // _droidzebra_compute_evals() returns) - the same "search is truly
+        // done" signal GameAnalyzer's own poll loop relies on (see
+        // GameAnalyzer#pollForReadyToAdvance on #96).
+        long searchDeadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+        while (engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
+                && System.currentTimeMillis() < searchDeadline) {
+            Thread.sleep(10);
+        }
+        if (engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
+            fail("practice-mode search never reached ES_USER_INPUT_WAIT within " + WAIT_TIMEOUT_MILLIS + "ms");
+        }
+
+        // With the callback present, this mid-game position alone yields
+        // well over a dozen updates (several legal moves x several depths).
+        // If it's missing, only the one guaranteed-final update from
+        // _droidzebra_compute_evals() (droidzebra-jni.c, a separate call
+        // site this bug doesn't touch) would ever arrive.
+        assertTrue("expected multiple progressive eval updates during the search (only "
+                        + evalUpdateCount.get() + " arrived) - the live-status callback inside "
+                        + "extended_compute_move() (zebra/game.c) may be missing again",
+                evalUpdateCount.get() > 1);
     }
 
     // ------------------------------------------------------------------
