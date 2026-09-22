@@ -1188,11 +1188,31 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         }
         if (expectedDisksPlayed <= targetDisksPlayed) {
             engine.updateConfig(gs, engineConfig);
-            resetAndLoadOnGuiThread();
+            awaitJumpSettled(attemptId, gs);
             return;
         }
         engine.undoMove(gs);
         walkToPly(attemptId, gs, expectedDisksPlayed - 1, targetDisksPlayed);
+    }
+
+    // Restoring the real engineConfig (e.g. re-enabling practice mode) can
+    // itself kick the engine back into computing - practice mode
+    // recomputes evals for the landed position as soon as settings change
+    // - so ES_USER_INPUT_WAIT has to be reconfirmed before declaring the
+    // jump done, the same way each undo step above does. Skipping this and
+    // finishing right after updateConfig() left a window where the UI
+    // looked ready but a redo()/undo() issued immediately after would
+    // silently no-op (ZebraEngine#redoMove/undoMove only act while
+    // ES_USER_INPUT_WAIT) - caught by testRedoWorksPastAJumpedToPosition.
+    private void awaitJumpSettled(int attemptId, GameState gs) {
+        if (attemptId != jumpAttemptId) {
+            return;
+        }
+        if (engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
+            mainHandler.postDelayed(() -> awaitJumpSettled(attemptId, gs), 50);
+            return;
+        }
+        resetAndLoadOnGuiThread();
     }
 
     @Override
