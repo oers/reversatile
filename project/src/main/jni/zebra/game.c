@@ -904,6 +904,8 @@ extended_compute_move( int side_to_move, int book_only,
 		evaluated_list[j + 1] = temp;
 	      }
 	  } while ( changed );
+        //Notify DroidZebra
+	    display_status(stdout, FALSE);
       }
 
       first_iteration = FALSE;
