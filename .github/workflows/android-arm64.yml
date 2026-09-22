@@ -1,0 +1,120 @@
+name: Build and Test (arm64, host JNI)
+
+# Exercises the real droidzebra-jni.c JNI entry points on genuine arm64
+# hardware, without an Android emulator at all.
+#
+# We tried a real arm64-v8a Android emulator first (see git history): it
+# never boots on GitHub-hosted runners ("Timeout waiting for emulator to
+# boot"), matching a long-open upstream issue - GitHub's hosted runners
+# have no /dev/kvm for the Android emulator to use, arm64 host or not.
+#
+# Instead: project/hostjni/Makefile compiles the same JNI + zebra engine
+# sources Android.mk does, but for the host (glibc, system JDK's jni.h)
+# instead of the NDK (Bionic) - no Android runtime involved at all. A
+# plain JVM unit test (project/src/test/java/.../HostJniSmokeTest.java)
+# then loads that .so and drives ZebraEngine's real native methods
+# directly. Running that on an actual arm64 GitHub-hosted runner needs no
+# virtualization whatsoever - it's just a normal process on its own real
+# CPU, so none of the KVM/emulator problems above apply.
+
+on:
+  push:
+    branches: [ development ]
+  pull_request:
+    branches: [ development ]
+
+jobs:
+  test-host-jni-arm64:
+    runs-on: ubuntu-24.04-arm
+    # Bumped from 20: HostJniSmokeTest now includes a full undo/redo round
+    # trip (whole-board diff at every ply) over up to 200 WThor games -
+    # ~8-9 minutes alone on this sandbox's x86_64 dev machine, on top of
+    # SDK/aapt2 setup and the native build.
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # AGP's own aapt2 (needed to compile resources/generate R.java, which
+      # the unit-test variant's compile depends on) is only published as an
+      # x86_64 Linux binary - there's no linux-aarch64 build, so the kernel
+      # can't exec it here at all ("Syntax error: word unexpected", the
+      # shell misreading the raw x86_64 ELF bytes as a script). QEMU
+      # user-mode emulation for it needs an x86_64 loader/libc that isn't
+      # present on an arm64 rootfs either. Ubuntu's own packaged `aapt2` is
+      # arm64-native but too old to parse compileSdk 37's android.jar
+      # resource table ("RES_TABLE_TYPE_TYPE entry offsets overlap").
+      #
+      # Commit451/android-arm-build-tools cross-compiles aapt2 (and aidl/
+      # zipalign/split-select) straight from the matching AOSP build-tools
+      # tag for arm64 - the platform-tools-37.0.0 release matches this
+      # project's own buildToolsVersion exactly, so it's built against the
+      # same resource-table format compileSdk 37's android.jar uses.
+      # Point AGP at it via android.aapt2FromMavenOverride instead of its
+      # own x86_64 copy. Our actual native zebra engine (project/hostjni)
+      # is unaffected either way - it already compiles and runs 100%
+      # natively for this runner's real arm64 CPU; this only covers AGP's
+      # own build-time tooling.
+      - name: Install native arm64 aapt2 (matching build-tools 37.0.0)
+        run: |
+          mkdir -p "$HOME/arm64-aapt2"
+          curl -sSL -o "$HOME/arm64-aapt2/aapt2" \
+            https://github.com/Commit451/android-arm-build-tools/releases/download/platform-tools-37.0.0/aapt2
+          chmod +x "$HOME/arm64-aapt2/aapt2"
+
+      # ubuntu-24.04-arm has no Android SDK preinstalled (unlike ubuntu-latest,
+      # which GitHub images with one). We only need it so AGP can configure
+      # the project and compile resources for the unit-test variant - no
+      # assemble/connectedCheck runs here, so a minimal cmdline-tools install
+      # is enough.
+      - name: Install Android SDK cmdline-tools
+        env:
+          ANDROID_HOME: /home/runner/android-sdk
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -sSL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+
+      # Accept licenses only - don't install a specific platform/build-tools
+      # version by hand (compileSdk 37 may not match a real sdkmanager
+      # package id yet). With licenses accepted, AGP auto-downloads whatever
+      # SDK components the build actually needs during the Gradle run.
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Install host build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential zlib1g-dev
+
+      - name: Build host libdroidzebra.so (arm64)
+        run: make -C project/hostjni
+
+      # "test" is Android's lifecycle aggregator task (plain Task, not a
+      # Test-type task), so it doesn't accept --tests - target the actual
+      # per-variant unit test task instead.
+      - name: run HostJniSmokeTest
+        run: ./gradlew -Pandroid.aapt2FromMavenOverride="$HOME/arm64-aapt2/aapt2" testDebugUnitTest --tests "com.shurik.droidzebra.HostJniSmokeTest" --info
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-jni-test-report-arm64
+          path: project/build/reports/tests/

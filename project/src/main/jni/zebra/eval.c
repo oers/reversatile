@@ -3,8 +3,6 @@
 
    Created:        July 1, 1997
 
-   Modified:       September 22, 1999
-
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       Control mechanisms for board evaluation.

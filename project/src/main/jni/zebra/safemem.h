@@ -3,8 +3,6 @@
 
    Created:    August 30, 1998
    
-   Modified:   January 25, 2000
-
    Author:     Gunnar Andersson (gunnar@radagast.se)
 
    Contents:   The interface to the safer version of malloc.

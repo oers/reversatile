@@ -3,8 +3,6 @@
 
    Created:      September 22, 1999
 
-   Modified:     July 20, 2002
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     All the string constants used in Zebra's output.

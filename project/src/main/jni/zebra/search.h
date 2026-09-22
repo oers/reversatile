@@ -3,8 +3,6 @@
 
    Created:       July 1, 1997
 
-   Modified:      August 1, 2002
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The interface to common search routines and variables.
@@ -69,27 +67,31 @@ extern int root_eval;
 extern int force_return;
 
 /* The number of positions evaluated during the current search. */
-extern CounterType evaluations;
+extern _Thread_local CounterType evaluations;
 
 /* The number of positions evaluated during the entire game. */
 extern CounterType total_evaluations;
 
 /* Holds the number of nodes searched during the current search. */
-extern CounterType nodes;
+extern _Thread_local CounterType nodes;
 
 /* Holds the total number of nodes searched during the entire game. */
 extern CounterType total_nodes;
 
 /* The last available evaluations for all possible moves at all
    possible game stages. */
-extern Board evals[61];
+extern _Thread_local Board evals[61];
 
 /* Move lists */
-extern int sorted_move_order[64][64];  /* 61*60 used */
+extern _Thread_local int sorted_move_order[64][64];  /* 61*60 used */
 
-/* The principal variation including passes */
-extern int full_pv_depth;
-extern int full_pv[120];
+/* The principal variation including passes - written by complete_pv(),
+   which (like pv/pv_depth it reads from) needs to be per-thread now that
+   the search can run on a worker pool (threads.c): a shared, non-thread-
+   local full_pv/full_pv_depth would let two threads' complete_pv() calls
+   corrupt each other's output. */
+extern _Thread_local int full_pv_depth;
+extern _Thread_local int full_pv[120];
 
 /* JCW's move order */
 extern int position_list[100];
@@ -101,6 +103,37 @@ inherit_move_lists( int stage );
 
 void
 reorder_move_list( int stage );
+
+/* A copy of the per-thread search state, enough for another thread to
+   pick up the search from the same position.  Only the state that is
+   read before it is written needs to travel: everything indexed by
+   disks_played (move lists, flip counts, stored hash keys) is written
+   on the way down before it is read on the way back up. */
+
+typedef struct {
+  Board board;
+  int piece_count[3][MAX_SEARCH_DEPTH];
+  int sorted_move_order[64][64];
+  unsigned int hash1, hash2;
+  int disks_played;
+} SearchState;
+
+
+void
+init_search_thread( void );
+
+
+/*
+  SEARCH_STATE_SAVE / SEARCH_STATE_LOAD
+  Copy the calling thread's search state out of / into the thread-local
+  globals, so that a worker can search from where another thread was.
+*/
+
+void
+search_state_save( SearchState *state );
+
+void
+search_state_load( const SearchState *state );
 
 void
 setup_search( void );

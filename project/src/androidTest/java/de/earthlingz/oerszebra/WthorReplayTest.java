@@ -8,8 +8,6 @@ import static org.junit.Assert.fail;
 import android.content.res.AssetManager;
 import android.util.Log;
 
-import androidx.test.filters.Suppress;
-
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
@@ -39,40 +37,43 @@ public class WthorReplayTest extends BasicTest {
         replayGames(ReplayMode.MOVE_BY_MOVE);
     }
 
-    // Root-caused, not fixable in this sandboxed environment - this is the
-    // SAME bug already written up on PR #96 as testRedoAcrossPass
-    // (DroidZebraTest, @Ignore'd there for the same reason), rediscovered
-    // independently via bulk WThor replay. Two real, unrelated bugs were
-    // found and fixed along the way to get here (see git history):
+    // This test used to be @Suppress'd for the same long-standing bug
+    // written up on PR #96 as testRedoAcrossPass, rediscovered here via
+    // bulk WThor replay. Several real, unrelated bugs were found and fixed
+    // along the way to get here (see git history):
     //   1. UI_EVENT_REDO was unhandled in droidzebra-jni.c's
     //      post-game-over loop (native, fixed).
     //   2. GameState.getMoveSequenceAsString() returned stale, leftover
     //      moves after an undo shortened the sequence (Java-side display
     //      bug, fixed).
-    // Plus two test-side async-lag bugs in this file's own diagnostics
-    // (settle-wait missing on the post-undo check; pristineStartBoard
-    // captured before GameStateBoardModel's first async update landed).
+    //   3. Two test-side async-lag bugs in this file's own diagnostics
+    //      (settle-wait missing on the post-undo check; pristineStartBoard
+    //      captured before GameStateBoardModel's first async update
+    //      landed).
     //
     // With all of those fixed, the undo+redo cycle for WThor game 0 was
     // finally bisected cleanly enough to find the actual native bug: this
     // game contains exactly one forced pass (Black has no legal move once
     // White plays g7; White then plays the final move, a5) - confirmed by
     // independently re-simulating this exact game's rules in Python and
-    // matching the recorded 31/33 score exactly (31 black + 32 white on
-    // the raw board + 1 remaining empty square, which GameStateBoardModel
-    // legitimately awards to the leader, White, giving 31/33). Redoing
-    // across that pass leaves several squares (a5, a6, b4, b5, b6, c5, d5)
-    // wrong, exactly matching PR #96's existing description of
-    // testRedoAcrossPass: "undoing across a forced pass and redoing back
-    // leaves ... board square[s] permanently unfilled instead of restoring
-    // the original position."
+    // matching the recorded 31/33 score exactly. Redoing across that pass
+    // used to leave several squares (a5, a6, b4, b5, b6, c5, d5) wrong,
+    // exactly matching PR #96's description of testRedoAcrossPass.
     //
-    // PR #96 already concluded this needs local device/emulator debugging
-    // to pin down the exact faulty line in _droidzebra_undo_turn/
-    // _droidzebra_redo_turn's pass handling - something this sandboxed
-    // environment can't do. Suppressed again rather than spending further
-    // CI cycles on a bug already known to be blocked on that.
-    @Suppress
+    // Root cause (found using a plain-JVM host-native-JNI test as a fast,
+    // no-emulator repro harness - see HostJniSmokeTest#
+    // undoRedoAcrossForcedPassWorksCorrectly): _droidzebra_redo_turn
+    // (droidzebra-jni.c) stopped exactly at its numeric disks_played
+    // target, even when that landed on a forced-pass position - unlike
+    // _droidzebra_undo_turn, which symmetrically absorbs a pass into the
+    // same call via its human_can_move loop. The pass was then left to the
+    // main game loop's own automatic pass handling, which runs
+    // asynchronously after redo_turn returns and raced the next
+    // UI_EVENT_REDO: if that arrived before the engine reached
+    // ES_USER_INPUT_WAIT again, ZebraEngine's state guard silently dropped
+    // it, and the move right after the pass never got redone. Fixed by
+    // making _droidzebra_redo_turn absorb a trailing forced pass itself,
+    // symmetric with undo, so a single redo() call is self-contained again.
     @Test
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);
@@ -111,8 +112,8 @@ public class WthorReplayTest extends BasicTest {
         }
         byte[][] pristineStartBoard = mode == ReplayMode.UNDO_AND_REDO ? captureBoard() : null;
 
-        int gamesToRun = getGameLimit(gameCount);
-        for (int gameIndex = 0; gameIndex < gamesToRun; gameIndex++) {
+        int[] gameIndices = gameIndicesFor(mode, gameCount);
+        for (int gameIndex : gameIndices) {
             String moves = decodeGame(file, gameIndex);
             switch (mode) {
                 case FAST:
@@ -237,6 +238,38 @@ public class WthorReplayTest extends BasicTest {
         return Math.min(gameCount, LOCAL_GAME_LIMIT);
     }
 
+    // MOVE_BY_MOVE and UNDO_AND_REDO drive every step through the real app
+    // (Activity, UI thread, GameStateBoardModel, dialogs) - what they're
+    // actually proving is that this Android integration layer works, not
+    // engine correctness. Engine correctness (make_move/undo_turn/
+    // redo_turn across the whole bundled WThor corpus) is now covered
+    // exhaustively and far more cheaply by the arm64 host-JNI test
+    // (HostJniSmokeTest#allWthorGamesUndoRedoRoundTripCleanly, no
+    // emulator), so running all ~200 games through those two modes here
+    // added emulator time and flakiness surface without adding real
+    // coverage. A handful of games chosen to cover distinct situations is
+    // enough to prove the integration layer itself works: no pass (4),
+    // exactly one forced pass - the exact game the undo/redo-across-a-
+    // forced-pass bug was found and fixed on (0), several passes across a
+    // full 60-move game (97), and a short game that ends early after
+    // repeated passes (155).
+    private static final int[] CURATED_GAME_INDICES = {4, 0, 97, 155};
+
+    private int[] gameIndicesFor(ReplayMode mode, int gameCount) {
+        // An explicit wthorGameLimit override (e.g. a manual full-corpus
+        // run) still applies to any mode, same as before this change.
+        boolean hasExplicitLimit = getArguments().getString("wthorGameLimit") != null;
+        if (mode == ReplayMode.FAST || hasExplicitLimit) {
+            int limit = getGameLimit(gameCount);
+            int[] indices = new int[limit];
+            for (int i = 0; i < limit; i++) {
+                indices[i] = i;
+            }
+            return indices;
+        }
+        return CURATED_GAME_INDICES;
+    }
+
     private void playAndWaitMoveByMove(String moves, int gameIndex) throws InterruptedException {
         Object previousGameState = zebra.getGameState();
         zebra.runOnUiThread(zebra::startNewGameAndResetUI);
@@ -358,8 +391,26 @@ public class WthorReplayTest extends BasicTest {
         for (int offset = 2; offset <= moves.length(); offset += 2) {
             String expectedMoves = moves.substring(0, offset);
             String redoneSquare = moves.substring(offset - 2, offset);
-            int ply = offset / 2; // 1-based: odd plies are black, even are white
-            byte expectedColor = (ply % 2 == 1) ? ZebraEngine.PLAYER_BLACK : ZebraEngine.PLAYER_WHITE;
+            int ply = offset / 2;
+            int x = redoneSquare.charAt(0) - 'a';
+            int y = redoneSquare.charAt(1) - '1';
+            // Not simply ply%2 (odd=black, even=white): a forced pass
+            // anywhere before this ply shifts which side actually plays
+            // every real move after it, exactly what happens in this game -
+            // real move 58 (g7) is White's, Black is then forced to pass,
+            // so real move 59 (a5) is White's too even though 59 is odd.
+            // Read the true color off the board captured for this exact
+            // ply during the undo pass instead - already proven correct by
+            // the per-call undo checks and the pristine-position check
+            // above, so it doesn't need re-deriving from parity at all.
+            // boardsByPly only covers plies 0..moves.length()/2 - 1 (the
+            // undo loop that fills it starts one ply below the fully-played
+            // game, since that top position is never undone-to) - the
+            // final ply's already-verified-correct board is originalBoard
+            // instead, captured right after the initial straight
+            // playthrough.
+            byte[][] boardForThisPly = (offset == moves.length()) ? originalBoard : boardsByPly.get(ply);
+            byte expectedColor = boardForThisPly[x][y];
             if (offset < moves.length()) {
                 sendRedoUntilApplied(expectedMoves, gameIndex);
             } else {
@@ -374,8 +425,6 @@ public class WthorReplayTest extends BasicTest {
             // own disc correctly, that's the culprit; if it does and only
             // OTHER (captured) squares end up wrong, the bug is in that
             // move's flip computation instead.
-            int x = redoneSquare.charAt(0) - 'a';
-            int y = redoneSquare.charAt(1) - '1';
             byte fieldAfterRedo = zebra.getState().getFieldByte(x, y);
             long fieldWaitDeadline = System.currentTimeMillis() + 2_000;
             while (fieldAfterRedo != expectedColor && System.currentTimeMillis() < fieldWaitDeadline) {
@@ -436,15 +485,12 @@ public class WthorReplayTest extends BasicTest {
         int expectedBlackScore = file[offset + 6] & 0xff;
         int expectedWhiteScore = 64 - expectedBlackScore;
         ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
-        // If a pass happened anywhere in the preceding 57 plies without our
-        // pure odd=BLACK/even=WHITE alternation assumption noticing (the
-        // per-call checks only verify each move's own target square color,
-        // which stays right even if a *later* move's expected mover is
-        // miscalculated), sideToMoveBeforeCall diverging from
-        // expectedFinalMoveColor here would be the tell - and would mean
-        // the "move sequence" string itself has one fewer real move than
-        // plies, throwing off every ply/expectedColor computed from string
-        // position alone.
+        // expectedFinalMoveColor is read off boardsByPly/originalBoard, not
+        // derived from ply%2 alternation - a forced pass earlier in the
+        // game no longer throws this off (see the caller). Kept here as a
+        // diagnostic aid: sideToMoveBeforeCall diverging from it would
+        // still point at a genuinely wrong side-to-move computation
+        // upstream, not just a stale assumption in this file.
         byte sideToMoveBeforeCall = (byte) zebra.getGameState().getSideToMove();
         zebra.runOnUiThread(zebra::redo);
         if (tryWaitForScore(expectedBlackScore, expectedWhiteScore, UNDO_REDO_TIMEOUT_MILLIS)) {

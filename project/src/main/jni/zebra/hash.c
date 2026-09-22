@@ -3,8 +3,6 @@
 
    Created:       June 29, 1997
 
-   Modified:      November 15, 2005
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 		  Toshihiko Okuhara
 
@@ -54,8 +52,8 @@ typedef struct {
 /* Global variables */
 
 int hash_size;
-unsigned int hash1;
-unsigned int hash2;
+_Thread_local unsigned int hash1;
+_Thread_local unsigned int hash2;
 unsigned int hash_value1[3][128];
 unsigned int hash_value2[3][128];
 unsigned int hash_put_value1[3][128];
@@ -68,8 +66,8 @@ unsigned int hash_flip_color1;
 unsigned int hash_flip_color2;
 unsigned int hash_diff1[MAX_SEARCH_DEPTH];
 unsigned int hash_diff2[MAX_SEARCH_DEPTH];
-unsigned int hash_stored1[MAX_SEARCH_DEPTH];
-unsigned int hash_stored2[MAX_SEARCH_DEPTH];
+_Thread_local unsigned int hash_stored1[MAX_SEARCH_DEPTH];
+_Thread_local unsigned int hash_stored2[MAX_SEARCH_DEPTH];
 
 
 
@@ -120,12 +118,16 @@ resize_hash( int new_hash_bits ) {
 
 static unsigned int
 popcount( unsigned int b ) {
+#if defined( __GNUC__ )
+  return __builtin_popcount( b );
+#else
   unsigned int n;
 
   for ( n = 0; b != 0; n++, b &= (b - 1) )
     ;
 
   return n;
+#endif
 }
 
 
@@ -140,7 +142,7 @@ popcount( unsigned int b ) {
 static unsigned int
 get_closeness( unsigned int a0, unsigned int a1,
 	   unsigned int b0, unsigned int b1 ) {
-  return abs( popcount( a0 ^ b0 ) + popcount( a1 ^ b1 ) - 32 );
+  return abs( (int) ( popcount( a0 ^ b0 ) + popcount( a1 ^ b1 ) ) - 32 );
 }
 
 

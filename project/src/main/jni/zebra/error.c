@@ -3,8 +3,6 @@
 
    Created:    June 13, 1998
    
-   Modified:   November 12, 2001
-
    Author:     Gunnar Andersson (gunnar@radagast.se)
 
    Contents:   The text-based error handler.

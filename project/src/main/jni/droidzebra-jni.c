@@ -25,6 +25,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include <jni.h>
+#include <zlib.h>
 
 #include "droidzebra.h"
 #include "droidzebra-json.h"
@@ -38,6 +39,35 @@
 #include "zebra/learn.h"
 #include "zebra/error.h"
 #include "zebra/osfbook.h"
+#include "zebra/threads.h"
+
+void
+unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
+    char raw_name[512];
+    unsigned char buffer[8192];
+    gzFile input;
+    FILE *raw;
+    int bytes_read;
+
+    snprintf(raw_name, sizeof(raw_name), "%s.raw", out_name);
+    input = gzopen(in_name, "rb");
+    if (input == NULL)
+        fatal_error("Unable to open database '%s'\n", in_name);
+
+    raw = fopen(raw_name, "wb");
+    if (raw == NULL)
+        fatal_error("Unable to write database '%s'\n", raw_name);
+
+    while ((bytes_read = gzread(input, buffer, sizeof(buffer))) > 0) {
+        if (fwrite(buffer, 1, (size_t) bytes_read, raw) != (size_t) bytes_read)
+            fatal_error("Unable to write database '%s'\n", raw_name);
+    }
+
+    gzclose(input);
+    fclose(raw);
+    unpack_compressed_database(raw_name, out_name);
+    remove(raw_name);
+}
 #include "zebra/hash.h"
 #include "zebra/moves.h"
 #include "zebra/getcoeff.h"
@@ -162,6 +192,7 @@ JNIFn(droidzebra, ZebraEngine, zeGlobalInit)(
 	toggle_status_log(USE_LOG);
 
 	global_setup( DEFAULT_RANDOM, DEFAULT_HASH_BITS );
+	threads_init( 1 );
 	init_thor_database();
 
 	sprintf(cmpbookpath, "%s/book.cmp.z", android_files_dir);
@@ -1093,6 +1124,35 @@ void _droidzebra_redo_turn(int* side_to_move)
 
 		if ( *side_to_move == BLACKSQ )
 			score_sheet_row++;
+	}
+
+	// The loop above stops exactly at target_disks_played (a real-move
+	// count), but landing there can itself be a forced-pass position for
+	// whoever's turn it now is - unlike _droidzebra_undo_turn (which keeps
+	// undoing via its human_can_move loop until a human can actually act),
+	// this loop had no matching continuation, so a trailing pass right
+	// after the last redone move was left to the main game loop's own
+	// automatic pass handling (droidzebra-jni.c's "this is where we pass"
+	// branch) instead of this function. That handling runs asynchronously
+	// after this call returns, racing the next UI_EVENT_REDO: if it arrives
+	// before the engine reaches ES_USER_INPUT_WAIT again, ZebraEngine's own
+	// state guard silently drops it, and the final real move never gets
+	// redone at all - the redo-across-a-forced-pass bug. Absorb the pass
+	// here instead, symmetric with undo, so a single redo() call is
+	// self-contained again and there's nothing left to race.
+	generate_all( *side_to_move );
+	while ( move_count[disks_played]==0 && game_in_progress() ) {
+		if ( *side_to_move == BLACKSQ )
+			black_moves[score_sheet_row] = PASS;
+		else
+			white_moves[score_sheet_row] = PASS;
+
+		*side_to_move = OPP(*side_to_move);
+
+		if ( *side_to_move == BLACKSQ )
+			score_sheet_row++;
+
+		generate_all( *side_to_move );
 	}
 }
 

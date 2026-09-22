@@ -3,8 +3,6 @@
 
    Created:       March 29, 1999
 
-   Modified:      June 27, 1999
-   
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      The counter code. The current implementation is

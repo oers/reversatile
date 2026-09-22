@@ -3,8 +3,6 @@
 
    Created:        September 20, 1997
 
-   Modified:       December 31, 2002
-
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       All the routines needed to play a game.
@@ -16,7 +14,7 @@
 
 
 
-#if !defined( _WIN32_WCE ) && !defined( __linux__ ) && !defined( __CYGWIN__ )
+#if !defined( _WIN32_WCE ) && !defined( __linux__ ) && !defined( __CYGWIN__ ) && !defined( __APPLE__ )
 #include "dir.h"
 #endif
 
@@ -24,6 +22,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined( __APPLE__ ) || defined( __linux__ ) || defined( __CYGWIN__ )
+#include <unistd.h>
+#endif
 
 #ifndef _WIN32_WCE
 #include <assert.h>
@@ -199,8 +201,7 @@ global_terminate( void ) {
 
 static void
 setup_game( const char *file_name, int *side_to_move ) {
-    int BUFFER_SIZE = 70;
-    char buffer[BUFFER_SIZE];
+  char buffer[65];
   int i, j;
   int pos, token;
   FILE *stream;
@@ -223,7 +224,7 @@ setup_game( const char *file_name, int *side_to_move ) {
     stream = fopen( file_name, "r" );
     if ( stream == NULL )
       fatal_error( "%s '%s'\n", GAME_LOAD_ERROR, file_name );
-    fgets(buffer, BUFFER_SIZE, stream );
+    fgets( buffer, sizeof buffer, stream );
     token = 0;
     for ( i = 1; i <= 8; i++ )
       for ( j = 1; j <= 8; j++ ) {
@@ -302,7 +303,7 @@ game_init( const char *file_name, int *side_to_move ) {
 
   reset_counter( &total_evaluations );
 
-  init_flip_stack();
+  init_search_thread();
 
   total_time = 0.0;
   max_depth_reached = 0;
@@ -711,8 +712,8 @@ extended_compute_move( int side_to_move, int book_only,
       evaluated_list[index].pv[0] = unsearched_move[i];
 
       if ( empties > MAX( wld, exact ) ) {
-	transform1[i] = abs( my_random() );
-	transform2[i] = abs( my_random() );
+	transform1[i] = labs( my_random() );
+	transform2[i] = labs( my_random() );
       }
       else {
 	transform1[i] = 0;
@@ -903,8 +904,6 @@ extended_compute_move( int side_to_move, int book_only,
 		evaluated_list[j + 1] = temp;
 	      }
 	  } while ( changed );
-        //Notify DroidZebra
-	    display_status(stdout, FALSE);
       }
 
       first_iteration = FALSE;
@@ -1151,7 +1150,9 @@ compute_move( int side_to_move,
   FILE *log_file;
   EvaluationType book_eval_info, mid_eval_info, end_eval_info;
   char *eval_str;
+#if ADAPTIVE_SOLVE_DEPTH
   double midgame_diff;
+#endif
   enum { INTERRUPTED_MOVE, BOOK_MOVE, MIDGAME_MOVE, ENDGAME_MOVE } move_type;
   int i;
   int curr_move, midgame_move;
@@ -1388,11 +1389,13 @@ compute_move( int side_to_move,
       midgame_move = middle_game( side_to_move, midgame_depth,
 				  update_all, &mid_eval_info );
       set_current_eval( mid_eval_info );
+#if ADAPTIVE_SOLVE_DEPTH
       midgame_diff = 1.3 * mid_eval_info.score / 128.0;
       if ( side_to_move == BLACKSQ )
 	midgame_diff -= komi;
       else
 	midgame_diff += komi;
+#endif
       if ( timed_depth ) {  /* Check if the endgame zone has been reached */
 	offset = ENDGAME_OFFSET;
 
@@ -1577,13 +1580,13 @@ get_pv( int *destin ) {
   }
 }
 
-void clear_endgame_performed() {
-    endgame_performed[BLACKSQ] = endgame_performed[WHITESQ] = FALSE;
+void
+clear_endgame_performed( void ) {
+  endgame_performed[BLACKSQ] = FALSE;
+  endgame_performed[WHITESQ] = FALSE;
 }
 
-void clear_evaluated(void) {
-    game_evaluated_count = 0;
+void
+clear_evaluated( void ) {
+  game_evaluated_count = 0;
 }
-
-
-

@@ -3,8 +3,6 @@
 
    Created:       March 20, 1999
 
-   Modified:      November 22, 2005
-
    Authors:       Gunnar Andersson (gunnar@radagast.se)
                   David John Summers
                   Toshihiko Okuhara
@@ -50,7 +48,7 @@
 
 /* All discs determined as stable last time COUNT_STABLE was called
    for the two colors */
-BitBoard last_black_stable, last_white_stable;
+_Thread_local BitBoard last_black_stable, last_white_stable;
 
 
 
@@ -70,12 +68,12 @@ static unsigned char black_stable[6561], white_stable[6561];
 static short base_conversion[256];
 
 /* The base-3 indices for the edges */
-static int edge_a1h1, edge_a8h8, edge_a1a8, edge_h1h8;
+static _Thread_local int edge_a1h1, edge_a8h8, edge_a1a8, edge_h1h8;
 
 
 /* Position list used in the complete stability search */
 
-MoveLink stab_move_list[100];
+_Thread_local MoveLink stab_move_list[100];
 
 #if 0
 INLINE static void
@@ -281,7 +279,7 @@ count_stable( int color,
 
   common_stable.low = edge_stable[edge_a1h1];
 
-  common_stable.high = (((unsigned int)edge_stable[edge_a8h8]) << (unsigned int)24);
+  common_stable.high = (edge_stable[edge_a8h8] << 24);
 
   t = edge_stable[edge_a1a8];
   common_stable.low |= ((t & 0x0F) * 0x00204081) & 0x01010101;

@@ -3,8 +3,6 @@
 
    Created:       June 29, 1997
 
-   Modified:      October 25, 2005
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 		  Toshihiko Okuhara
 
@@ -60,8 +58,8 @@ typedef struct {
 extern int hash_size;
 
 /* The 64-bit hash key. */
-extern unsigned int hash1;
-extern unsigned int hash2;
+extern _Thread_local unsigned int hash1;
+extern _Thread_local unsigned int hash2;
 
 /* The 64-bit hash masks for a piece of a certain color in a
    certain position. */
@@ -90,8 +88,8 @@ extern unsigned int hash_flip_color2;
 
 /* Stored 64-bit hash mask which hold the hash codes at different nodes
    in the search tree. */
-extern unsigned int hash_stored1[MAX_SEARCH_DEPTH];
-extern unsigned int hash_stored2[MAX_SEARCH_DEPTH];
+extern _Thread_local unsigned int hash_stored1[MAX_SEARCH_DEPTH];
+extern _Thread_local unsigned int hash_stored2[MAX_SEARCH_DEPTH];
 
 
 

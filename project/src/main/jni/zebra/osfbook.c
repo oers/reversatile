@@ -3,8 +3,6 @@
 
    Created:        December 31, 1997
 
-   Modified:       December 30, 2004
-   
    Author:         Gunnar Andersson (gunnar@radagast.se)
 
    Contents:       A module which implements the book algorithm which
@@ -22,8 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlib.h>
-#include <errno.h>
 
 #ifndef _WIN32_WCE
 #include <time.h>
@@ -752,7 +748,7 @@ minimax_tree( void ) {
 #endif
 }
 
-// #ifdef INCLUDE_BOOKTOOL
+
 #ifdef INCLUDE_BOOKTOOL
 
 /*
@@ -1052,7 +1048,7 @@ endgame_correlation( int side_to_move, int best_score, int best_move,
   int eval_list[64];
 
   display_board( stdout, board, BLACKSQ, FALSE, FALSE, FALSE );
-  set_hash_transformation( abs( my_random() ), abs( my_random() ) );
+  set_hash_transformation( labs( my_random() ), labs( my_random() ) );
   determine_hash_values( side_to_move, board );
   for ( depth = 1; depth <= spec.max_depth; depth++ ) {
     (void) middle_game( side_to_move, depth, FALSE, &dummy_info );
@@ -1194,7 +1190,6 @@ generate_endgame_statistics( int max_depth, double probability,
 
 
 #endif
-// #endif INCLUDE_BOOKTOOL
 
 
 
@@ -1228,7 +1223,7 @@ nega_scout( int depth, int allow_mpc, int side_to_move,
   /* First determine the best move in the current position
      and its score when searched to depth DEPTH.
      This is done using standard negascout with iterative deepening. */
-  *best_index = 0; // in case the depth is 0, we have to initialize it somehow. Maybe random index would be better than 0.
+
   for ( curr_depth = 2 - (depth % 2); curr_depth <= depth; curr_depth += 2 ) {
     low_score = -INFINITE_EVAL;
     curr_alpha = -INFINITE_EVAL;
@@ -1575,7 +1570,6 @@ validate_tree( void ) {
 }
 
 
-// #ifdef INCLUDE_BOOKTOOL
 #ifdef INCLUDE_BOOKTOOL
 
 
@@ -1994,7 +1988,6 @@ export_tree( const char *file_name ) {
 
 
 #endif
-// #endif INCLUDE_BOOKTOOL
 
 
 
@@ -3438,115 +3431,6 @@ unpack_compressed_database( const char *in_name, const char *out_name ) {
 #endif
 }
 
-void
-unpack_compressed_database_gz( const char *in_name, const char *out_name ) {
-  int i;
-  int dummy;
-  int node_count, child_list_size;
-  int node_index, child_index;
-  short magic;
-  short *child_count, *child;
-  short *black_score, *white_score;
-  short *alt_move, *alt_score;
-  time_t start_time, stop_time;
-  unsigned short *flags;
-  gzFile *zstream;
-  FILE * stream;
-  int zerror;
-
-#ifdef TEXT_BASED
-  printf( "Uncompressing compressed database... " );
-  fflush( stdout );
-#endif
-
-#define CHECK_READ(op, size) if((op)!=(size)) fatal_error("error reading compressed database: %s", gzerror(zstream, &zerror));
-
-  time( &start_time );
-
-  /* Read the compressed database */
-
-  zstream = gzopen( in_name, "rb" );
-  if ( zstream == NULL )
-    fatal_error( "%s '%s'\n", NO_DB_FILE_ERROR, in_name );
-
-  CHECK_READ( gzread( zstream, &node_count, sizeof( int ) ), sizeof(int) );
-
-  CHECK_READ( gzread( zstream, &child_list_size, sizeof( int ) ), sizeof( int ) );
-
-  child_count = (short *) safe_malloc( node_count * sizeof( short ) );
-  child = (short *) safe_malloc( child_list_size * sizeof( short ) );
-
-  CHECK_READ( gzread( zstream, child_count, sizeof( short ) * node_count ), sizeof( short ) * node_count );
-
-  CHECK_READ( gzread( zstream, child, sizeof( short ) * child_list_size ), sizeof( short ) * child_list_size );
-
-  black_score = (short *) safe_malloc( node_count * sizeof( short ) );
-  white_score = (short *) safe_malloc( node_count * sizeof( short ) );
-  alt_move = (short *) safe_malloc( node_count * sizeof( short ) );
-  alt_score = (short *) safe_malloc( node_count * sizeof( short ) );
-  flags =
-          (unsigned short *) safe_malloc( node_count * sizeof( unsigned short ) );
-
-  for ( i = 0; i < node_count; i++ ) {
-    CHECK_READ( gzread( zstream, &black_score[i], sizeof( short ) ), sizeof( short ) );
-    CHECK_READ( gzread( zstream, &white_score[i], sizeof( short ) ), sizeof( short ) );
-  }
-
-  CHECK_READ( gzread( zstream, alt_move, sizeof( short ) * node_count ), sizeof( short ) * node_count );
-
-  CHECK_READ( gzread( zstream, alt_score, sizeof( short ) * node_count ), sizeof( short ) * node_count );
-
-  CHECK_READ( gzread( zstream, flags, sizeof( unsigned short ) * node_count ), sizeof( unsigned short ) * node_count );
-
-  gzclose( zstream );
-#undef CHECK_READ
-
-  /* Traverse the tree described by the database and create the .bin file */
-
-  stream = fopen( out_name, "wb" );
-  if ( stream == NULL )
-    fatal_error( "%s '%s'\n", DB_WRITE_ERROR, out_name );
-
-  toggle_experimental( 0 );
-  game_init( NULL, &dummy );
-  toggle_midgame_hash_usage( TRUE, TRUE );
-  toggle_abort_check( FALSE );
-  toggle_midgame_abort_check( FALSE );
-
-  magic = BOOK_MAGIC1;
-  fwrite( &magic, sizeof( short ), 1, stream);
-  magic = BOOK_MAGIC2;
-  fwrite( &magic, sizeof( short ), 1, stream);
-
-  fwrite( &node_count, sizeof( int ), 1, stream);
-
-  node_index = 0;
-  child_index = 0;
-  do_uncompress( 0, stream, &node_index, &child_index, child_count, child,
-                 black_score, white_score, alt_move, alt_score, flags );
-
-  fclose( stream );
-
-  /* Free tables */
-
-  free( child_count );
-  free( child );
-
-  free( black_score );
-  free( white_score );
-  free( alt_move );
-  free( alt_score );
-  free( flags );
-
-  time( &stop_time );
-
-#ifdef TEXT_BASED
-  printf( "done (took %d s)\n", (int) (stop_time - start_time) );
-  puts( "" );
-#endif
-}
-
-
 
 
 /*
@@ -4042,7 +3926,7 @@ check_forced_opening( int side_to_move, const char *opening ) {
      randomly to avoid the same symmetry being chosen all the time.
      This is not a perfect scheme but good enough. */
 
-  symmetry = abs( my_random() ) % 8;
+  symmetry = labs( my_random() ) % 8;
   for ( symm_index = 0; symm_index < 8;
 	symm_index++, symmetry = (symmetry + 1) % 8 ) {
     same_position = TRUE;
@@ -4159,7 +4043,6 @@ fill_move_alternatives( int side_to_move,
 
     if ( child_feasible && (score == 0) &&
 	 !(node[index].flags & WLD_SOLVED) &&
-         (book_hash_table[slot] != EMPTY_HASH_SLOT) &&
 	 (node[book_hash_table[slot]].flags & WLD_SOLVED) ) {
       /* Check if this is a book draw that should be avoided, i.e., one
          where the current position is not solved but the child position

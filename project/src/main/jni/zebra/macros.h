@@ -3,8 +3,6 @@
 
    Created:       May 31, 1998
 
-   Modified:      November 14, 2005
-
    Author:        Gunnar Andersson (gunnar@radagast.se)
 
    Contents:      Some globally used macros.
@@ -36,25 +34,21 @@ extern "C" {
 
 /* Define the inline directive when available */
 #if defined( __GNUC__ )&& !defined( __cplusplus )
-#define INLINE
+#define INLINE __inline__
 #else
 #define INLINE
 #endif
 
 
 /* Define function attributes directive when available */
-#ifdef _X64_
-    #if __GNUC__ >= 3
-        #define	REGPARM(num)	__attribute__((regparm(num)))
-    #else
-        #if defined (_MSC_VER) || defined(__BORLANDC__)
-            #define	REGPARM(num)	__fastcall
-        #else
-            #define	REGPARM(num)
-        #endif
-    #endif
+#if __GNUC__ >= 3 && defined(__i386__)
+#define	REGPARM(num)	__attribute__((regparm(num)))
 #else
-    #define	REGPARM(num)
+#if defined (_MSC_VER) || defined(__BORLANDC__)
+#define	REGPARM(num)	__fastcall
+#else
+#define	REGPARM(num)
+#endif
 #endif
 
 

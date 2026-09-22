@@ -3,8 +3,6 @@
 
    Created:      January 29, 1998
    
-   Modified:     July 12, 1999
-
    Author:       Gunnar Andersson (gunnar@radagast.se)
 
    Contents:     A small utility which enables the user to browse
