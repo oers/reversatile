@@ -84,6 +84,7 @@
     <string name="gameover_choices_rotate">盤面を回転</string>
     <string name="gameover_choices_analyze">対局を分析</string>
     <string name="analysis_progress">%1$d手目 / %2$d手を分析中…</string>
+    <string name="analysis_timed_out">ある手の解析が応答しなくなったため中止しました。対局には影響ありません。</string>
     <string name="settings_analysis_drawer_side_title">分析パネルの位置</string>
     <string name="settings_analysis_drawer_side_summary">分析パネルを開く側</string>
     <string name="settings_analysis_preferences">分析</string>

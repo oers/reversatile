@@ -82,6 +82,7 @@
     <string name="gameover_choices_rotate">Tourner l\'othellier</string>
     <string name="gameover_choices_analyze">Analyser la partie</string>
     <string name="analysis_progress">Analyse du coup %1$d sur %2$d…</string>
+    <string name="analysis_timed_out">L\'analyse ne répondait plus pour un coup et a été annulée. Votre partie n\'est pas affectée.</string>
     <string name="settings_analysis_drawer_side_title">Côté du panneau d\'analyse</string>
     <string name="settings_analysis_drawer_side_summary">Côté d\'ouverture du panneau d\'analyse</string>
     <string name="settings_analysis_preferences">Analyse</string>

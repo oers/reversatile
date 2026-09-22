@@ -84,6 +84,7 @@
     <string name="gameover_choices_rotate">보드 회전</string>
     <string name="gameover_choices_analyze">게임 분석</string>
     <string name="analysis_progress">%1$d / %2$d 수 분석 중…</string>
+    <string name="analysis_timed_out">분석이 한 수에 응답하지 않아 취소되었습니다. 게임에는 영향이 없습니다.</string>
     <string name="settings_analysis_drawer_side_title">분석 패널 위치</string>
     <string name="settings_analysis_drawer_side_summary">분석 패널이 열리는 방향</string>
     <string name="settings_analysis_preferences">분석</string>

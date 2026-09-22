@@ -84,6 +84,7 @@
     <string name="gameover_choices_rotate">Повернуть доску</string>
     <string name="gameover_choices_analyze">Анализировать партию</string>
     <string name="analysis_progress">Анализ хода %1$d из %2$d…</string>
+    <string name="analysis_timed_out">Анализ хода не отвечал и был отменён. На вашу партию это не повлияло.</string>
     <string name="settings_analysis_drawer_side_title">Сторона панели анализа</string>
     <string name="settings_analysis_drawer_side_summary">С какой стороны открывается панель анализа</string>
     <string name="settings_analysis_preferences">Анализ</string>
