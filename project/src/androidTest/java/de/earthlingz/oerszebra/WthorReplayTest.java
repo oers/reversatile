@@ -8,8 +8,6 @@ import static org.junit.Assert.fail;
 import android.content.res.AssetManager;
 import android.util.Log;
 
-import androidx.test.filters.Suppress;
-
 import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
@@ -39,40 +37,43 @@ public class WthorReplayTest extends BasicTest {
         replayGames(ReplayMode.MOVE_BY_MOVE);
     }
 
-    // Root-caused, not fixable in this sandboxed environment - this is the
-    // SAME bug already written up on PR #96 as testRedoAcrossPass
-    // (DroidZebraTest, @Ignore'd there for the same reason), rediscovered
-    // independently via bulk WThor replay. Two real, unrelated bugs were
-    // found and fixed along the way to get here (see git history):
+    // This test used to be @Suppress'd for the same long-standing bug
+    // written up on PR #96 as testRedoAcrossPass, rediscovered here via
+    // bulk WThor replay. Several real, unrelated bugs were found and fixed
+    // along the way to get here (see git history):
     //   1. UI_EVENT_REDO was unhandled in droidzebra-jni.c's
     //      post-game-over loop (native, fixed).
     //   2. GameState.getMoveSequenceAsString() returned stale, leftover
     //      moves after an undo shortened the sequence (Java-side display
     //      bug, fixed).
-    // Plus two test-side async-lag bugs in this file's own diagnostics
-    // (settle-wait missing on the post-undo check; pristineStartBoard
-    // captured before GameStateBoardModel's first async update landed).
+    //   3. Two test-side async-lag bugs in this file's own diagnostics
+    //      (settle-wait missing on the post-undo check; pristineStartBoard
+    //      captured before GameStateBoardModel's first async update
+    //      landed).
     //
     // With all of those fixed, the undo+redo cycle for WThor game 0 was
     // finally bisected cleanly enough to find the actual native bug: this
     // game contains exactly one forced pass (Black has no legal move once
     // White plays g7; White then plays the final move, a5) - confirmed by
     // independently re-simulating this exact game's rules in Python and
-    // matching the recorded 31/33 score exactly (31 black + 32 white on
-    // the raw board + 1 remaining empty square, which GameStateBoardModel
-    // legitimately awards to the leader, White, giving 31/33). Redoing
-    // across that pass leaves several squares (a5, a6, b4, b5, b6, c5, d5)
-    // wrong, exactly matching PR #96's existing description of
-    // testRedoAcrossPass: "undoing across a forced pass and redoing back
-    // leaves ... board square[s] permanently unfilled instead of restoring
-    // the original position."
+    // matching the recorded 31/33 score exactly. Redoing across that pass
+    // used to leave several squares (a5, a6, b4, b5, b6, c5, d5) wrong,
+    // exactly matching PR #96's description of testRedoAcrossPass.
     //
-    // PR #96 already concluded this needs local device/emulator debugging
-    // to pin down the exact faulty line in _droidzebra_undo_turn/
-    // _droidzebra_redo_turn's pass handling - something this sandboxed
-    // environment can't do. Suppressed again rather than spending further
-    // CI cycles on a bug already known to be blocked on that.
-    @Suppress
+    // Root cause (found using a plain-JVM host-native-JNI test as a fast,
+    // no-emulator repro harness - see HostJniSmokeTest#
+    // undoRedoAcrossForcedPassWorksCorrectly): _droidzebra_redo_turn
+    // (droidzebra-jni.c) stopped exactly at its numeric disks_played
+    // target, even when that landed on a forced-pass position - unlike
+    // _droidzebra_undo_turn, which symmetrically absorbs a pass into the
+    // same call via its human_can_move loop. The pass was then left to the
+    // main game loop's own automatic pass handling, which runs
+    // asynchronously after redo_turn returns and raced the next
+    // UI_EVENT_REDO: if that arrived before the engine reached
+    // ES_USER_INPUT_WAIT again, ZebraEngine's state guard silently dropped
+    // it, and the move right after the pass never got redone. Fixed by
+    // making _droidzebra_redo_turn absorb a trailing forced pass itself,
+    // symmetric with undo, so a single redo() call is self-contained again.
     @Test
     public void replayGamesWithUndoAndRedo() throws Exception {
         replayGames(ReplayMode.UNDO_AND_REDO);

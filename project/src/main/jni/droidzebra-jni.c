@@ -1125,6 +1125,35 @@ void _droidzebra_redo_turn(int* side_to_move)
 		if ( *side_to_move == BLACKSQ )
 			score_sheet_row++;
 	}
+
+	// The loop above stops exactly at target_disks_played (a real-move
+	// count), but landing there can itself be a forced-pass position for
+	// whoever's turn it now is - unlike _droidzebra_undo_turn (which keeps
+	// undoing via its human_can_move loop until a human can actually act),
+	// this loop had no matching continuation, so a trailing pass right
+	// after the last redone move was left to the main game loop's own
+	// automatic pass handling (droidzebra-jni.c's "this is where we pass"
+	// branch) instead of this function. That handling runs asynchronously
+	// after this call returns, racing the next UI_EVENT_REDO: if it arrives
+	// before the engine reaches ES_USER_INPUT_WAIT again, ZebraEngine's own
+	// state guard silently drops it, and the final real move never gets
+	// redone at all - the redo-across-a-forced-pass bug. Absorb the pass
+	// here instead, symmetric with undo, so a single redo() call is
+	// self-contained again and there's nothing left to race.
+	generate_all( *side_to_move );
+	while ( move_count[disks_played]==0 && game_in_progress() ) {
+		if ( *side_to_move == BLACKSQ )
+			black_moves[score_sheet_row] = PASS;
+		else
+			white_moves[score_sheet_row] = PASS;
+
+		*side_to_move = OPP(*side_to_move);
+
+		if ( *side_to_move == BLACKSQ )
+			score_sheet_row++;
+
+		generate_all( *side_to_move );
+	}
 }
 
 void _droidzebra_on_settings_change(void)

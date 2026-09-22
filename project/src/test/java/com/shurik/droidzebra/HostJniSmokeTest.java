@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -196,11 +195,8 @@ public class HostJniSmokeTest {
     // replaying every game's move list and checking the resulting move
     // sequence for "--" (see git history for how this index was picked).
     // Deliberately passless, so this test broadly validates make_move/
-    // undo_turn/redo_turn on real hardware without also tripping the
-    // separately-tracked, already-documented undo/redo-across-a-forced-
-    // pass bug exercised (and @Ignore'd) below - that bug isn't specific
-    // to this sync and re-triggering it here would just block every PR
-    // on a long-standing, known issue instead of validating the sync.
+    // undo_turn/redo_turn on real hardware independent of the forced-pass
+    // case exercised separately below.
     private static final int PASSLESS_GAME_INDEX = 4;
 
     @Test
@@ -281,25 +277,31 @@ public class HostJniSmokeTest {
                 + "playthrough: " + finalDiff, "<no differing squares>", finalDiff);
     }
 
-    // Same known, already-documented native bug as PR #96's testRedoAcrossPass
-    // and WthorReplayTest#replayGamesWithUndoAndRedo (there @Suppress'd for
-    // the identical reason - see that file's own extensive write-up): undoing
-    // across a forced pass and redoing back leaves several board squares
-    // permanently wrong. WThor game 0 (bundled in WTH_2025.wtb) is the exact
-    // same known-bad game already root-caused there (Black has no legal move
-    // once White plays g7; White then plays the final move a5).
+    // This was the known, long-standing native bug documented on PR #96 as
+    // testRedoAcrossPass and reproduced independently via bulk WThor replay
+    // in WthorReplayTest#replayGamesWithUndoAndRedo (there @Suppress'd):
+    // undoing across a forced pass and redoing back used to leave several
+    // board squares permanently wrong. WThor game 0 (bundled in
+    // WTH_2025.wtb) is the exact same game that bug was root-caused on
+    // (Black has no legal move once White plays g7; White then plays the
+    // final move a5).
     //
-    // Kept here, @Ignore'd, purely so a future debugging session can
-    // re-enable this exact repro without an emulator at all: this plain-JVM
-    // path builds and iterates in seconds (host compiler + JUnitCore), not
-    // an emulator boot plus a full androidTest run, and runs directly on
-    // whatever real CPU it's built for - not to re-litigate or attempt to
-    // fix the bug in this change.
-    @Ignore("Known native undo/redo-across-forced-pass bug, see PR #96 testRedoAcrossPass "
-            + "and WthorReplayTest#replayGamesWithUndoAndRedo for the full write-up. Kept here "
-            + "as a fast, no-emulator repro harness for a future debugging session.")
+    // Root cause (found using this same plain-JVM test as a fast, no-
+    // emulator repro harness - seconds per iteration instead of an
+    // emulator boot plus a full androidTest run): _droidzebra_redo_turn
+    // (droidzebra-jni.c) stopped exactly at its numeric disks_played
+    // target, even when that landed on a forced-pass position - unlike
+    // _droidzebra_undo_turn, which symmetrically absorbs a pass into the
+    // same call via its human_can_move loop. The pass was then left to the
+    // main game loop's own automatic pass handling, which runs
+    // asynchronously after redo_turn returns and races the next
+    // UI_EVENT_REDO: if that arrived before the engine reached
+    // ES_USER_INPUT_WAIT again, ZebraEngine's state guard silently dropped
+    // it, and the move right after the pass never got redone. Fixed by
+    // making _droidzebra_redo_turn absorb a trailing forced pass itself,
+    // symmetric with undo, so a single redo() call is self-contained again.
     @Test
-    public void undoRedoAcrossForcedPassReproducesKnownNativeBug() throws Exception {
+    public void undoRedoAcrossForcedPassWorksCorrectly() throws Exception {
         File nativeLib = findNativeLib();
         Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
                 + "skipping, this is expected on workflows that don't build it", nativeLib != null);
