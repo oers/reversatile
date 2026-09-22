@@ -190,4 +190,33 @@ public class AnalysisTest extends BasicTest {
         waitForDisksPlayed(originalDisksPlayed, 20000);
         assertEquals(originalDisksPlayed, zebra.getGameState().getDisksPlayed());
     }
+
+    // Regression test: jumpToMove() used to truncate the "provided moves"
+    // array to the target ply, so the engine had no memory of anything
+    // played after it and redo() could never move past the jump target.
+    // jumpToMove() now loads the whole analyzed game and walks back to the
+    // target ply with undoMove() instead, so redo() should be able to walk
+    // all the way back to the end of the game again.
+    @Test
+    public void testRedoWorksPastAJumpedToPosition() throws InterruptedException {
+        loadGame(SHORT_LEGAL_GAME, SHORT_LEGAL_GAME_MOVES);
+        int originalDisksPlayed = zebra.getGameState().getDisksPlayed();
+
+        zebra.runOnUiThread(zebra::analyzeGame);
+        waitForAnalysisResults(originalDisksPlayed, 60000);
+        waitForAnalysisProgressGone(60000);
+        waitForDisksPlayed(originalDisksPlayed, 20000);
+
+        int targetPly = 2;
+        zebra.runOnUiThread(() -> zebra.jumpToMove(targetPly));
+        waitForDisksPlayed(targetPly, 20000);
+        assertEquals(targetPly, zebra.getGameState().getDisksPlayed());
+
+        for (int ply = targetPly + 1; ply <= originalDisksPlayed; ply++) {
+            zebra.runOnUiThread(zebra::redo);
+            waitForDisksPlayed(ply, 20000);
+            assertEquals("redo() must reach ply " + ply + " after jumping back to "
+                    + targetPly, ply, zebra.getGameState().getDisksPlayed());
+        }
+    }
 }

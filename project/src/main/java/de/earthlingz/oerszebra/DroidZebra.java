@@ -26,6 +26,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -129,6 +131,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     // until analyzeGame()'s onFinished confirms the analyzer has actually
     // stopped. Null when no jump is pending.
     private Integer pendingAnalysisJumpPly;
+    // Used only by jumpToMove()'s walk-back-via-undo (see there for why).
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private DrawerLayout analysisDrawerLayout;
     private RecyclerView analysisDrawerRecyclerView;
     private Button analysisDrawerHandle;
@@ -1083,17 +1087,30 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     /**
-     * Navigates the live board directly to the position right after ply
-     * {@code targetDisksPlayed} (as produced by {@link GameAnalyzer}).
+     * Navigates the live board to the position right after ply
+     * {@code targetDisksPlayed} (as produced by {@link GameAnalyzer}), while
+     * keeping undo/redo working across the *entire* analyzed game afterward -
+     * not just back to whichever ply this lands on.
      * <p>
-     * Restores it in one shot via the same "replay a move sequence up to N plies"
-     * mechanism already used to restore the live game after analysis, instead of
-     * stepping there one undo()/redo() at a time: with practice mode on (the
-     * default), every individual undo/redo pauses for a full post-move eval
-     * search before the next one can be issued, so walking e.g. 50 plies back
-     * one at a time at normal search depth could take minutes and looked like
-     * clicking a bar simply did nothing. A single replay only pauses for that
-     * search once, after landing on the target ply.
+     * Loads the whole analyzed game (not just a prefix up to
+     * targetDisksPlayed) so the engine actually replays every move in this
+     * session, then walks back to the target ply with undoMove() - the same
+     * primitive the live Undo button uses. Only that way does redoMove()'s
+     * own redo-stack know about the moves after the target ply at all;
+     * truncating the "provided moves" array to targetDisksPlayed up front
+     * (the previous approach) left the engine with no memory of anything
+     * past the jump target, so redo() could never move past it.
+     * <p>
+     * The walk itself forces human-vs-human and practice mode off - not the
+     * live engineConfig, which is restored once the walk lands on the
+     * target ply - for two reasons: practice mode makes every individual
+     * undo() pause for a full post-move eval search, which at real search
+     * depths walking back many plies could take minutes (this is why the
+     * previous approach avoided stepping there one undo() at a time to
+     * begin with); and if the computer plays either side, a single undo()
+     * undoes both its move and the human's move before it (existing,
+     * intentional behavior for live play), which would overshoot the exact
+     * ply this needs to land on.
      */
     void jumpToMove(int targetDisksPlayed) {
         if (gameState == null || analyzedGameMoves == null
@@ -1103,7 +1120,40 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null) {
             analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
         }
-        startNewGameAndResetUI(targetDisksPlayed, analyzedGameMoves);
+        EngineConfig walkConfig = engineConfig
+                .alterEngineFunction(FUNCTION_HUMAN_VS_HUMAN)
+                .alterPracticeMode(false);
+        engine.newGame(analyzedGameMoves, analyzedGameMovesCount, walkConfig, new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState freshGameState) {
+                gameState = freshGameState;
+                gameState.setGameStateListener(handler);
+                walkToPly(freshGameState, analyzedGameMovesCount, targetDisksPlayed);
+            }
+        });
+    }
+
+    // See jumpToMove() for why this walks back via undoMove() instead of
+    // just replaying a prefix. Mirrors GameAnalyzer's own poll-for-settled
+    // pattern: expectedDisksPlayed (not just ES_USER_INPUT_WAIT alone) is
+    // what actually confirms the most recent undoMove() has landed - it's
+    // async, so the engine can still transiently read ES_USER_INPUT_WAIT
+    // for a moment right after issuing the next one, before it's even
+    // started processing it.
+    private void walkToPly(GameState gs, int expectedDisksPlayed, int targetDisksPlayed) {
+        boolean ready = engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
+                && gs.getDisksPlayed() == expectedDisksPlayed;
+        if (!ready) {
+            mainHandler.postDelayed(() -> walkToPly(gs, expectedDisksPlayed, targetDisksPlayed), 50);
+            return;
+        }
+        if (expectedDisksPlayed <= targetDisksPlayed) {
+            engine.updateConfig(gs, engineConfig);
+            resetAndLoadOnGuiThread();
+            return;
+        }
+        engine.undoMove(gs);
+        walkToPly(gs, expectedDisksPlayed - 1, targetDisksPlayed);
     }
 
     @Override
