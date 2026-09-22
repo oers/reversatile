@@ -38,6 +38,20 @@ public class GameAnalyzer {
     // short of force-closing the app.
     private static final long PLY_TIMEOUT_MILLIS = 60_000;
 
+    // The engine runs its own persistent native loop (ZebraEngine.EngineThread)
+    // around a single blocking zePlay() call per newGame(); the Java-side
+    // ES_READY2PLAY state (which newGame()'s stopGame()/waitForReadyToPlay()
+    // dance depends on) is only set once that call returns. A practice-mode
+    // eval callback (onBoard(), below) can fire slightly before the native
+    // side has fully settled back into ES_USER_INPUT_WAIT - calling
+    // engine.newGame() again immediately in that narrow window raced it in
+    // testing (stopGame() missing its ES_USER_INPUT_WAIT special case, then
+    // zePlay() never returning - the exact indefinite-hang symptom this
+    // class's watchdog now recovers from, but shouldn't need to). Giving the
+    // native side a moment to settle before issuing the next ply avoids the
+    // race outright instead of just recovering from it after the fact.
+    private static final long NEXT_PLY_SETTLE_MILLIS = 300;
+
     public interface Listener {
         /** Fires once, right before ply's evaluation starts, so the UI can show it as "in progress". */
         void onPlyStarted(int ply, int total);
@@ -180,7 +194,8 @@ public class GameAnalyzer {
         if (justFinishedPly <= 1) {
             finish(false, false);
         } else {
-            analyzePly(justFinishedPly - 1);
+            final int nextPly = justFinishedPly - 1;
+            mainHandler.postDelayed(() -> analyzePly(nextPly), NEXT_PLY_SETTLE_MILLIS);
         }
     }
 

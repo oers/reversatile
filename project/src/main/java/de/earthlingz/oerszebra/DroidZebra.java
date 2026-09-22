@@ -853,12 +853,16 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             @Override
             public void onPlyStarted(int ply, int total) {
                 // Show the ply currently being computed right away, as a
-                // placeholder row ahead of whatever's already finished,
-                // instead of only appearing once its result lands.
+                // placeholder row after whatever's already finished, instead
+                // of only appearing once its result lands. Plies are
+                // analyzed newest-first (see GameAnalyzer#start), so the one
+                // just starting always has a lower number than everything
+                // already in resultsSoFar - it belongs at the end of the
+                // list, not the front.
                 MoveEval pending = MoveEval.pending(ply, new Move(analyzedGameMoves[ply - 1]));
                 List<MoveEval> withPending = new ArrayList<>(resultsSoFar.size() + 1);
-                withPending.add(pending);
                 withPending.addAll(resultsSoFar);
+                withPending.add(pending);
                 updateAnalysisDrawer(withPending, resultsSoFar.isEmpty());
             }
 
