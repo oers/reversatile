@@ -41,6 +41,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
@@ -330,6 +331,22 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         super.onCreate(savedInstanceState);
         Analytics.setApp(this);
         Analytics.build();
+
+        // Back means "take back a move" here. With predictive back enabled
+        // (enableOnBackInvokedCallback in the manifest) Android 13+ no longer
+        // delivers KEYCODE_BACK to onKeyDown, so this has to go through the
+        // back dispatcher instead.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null
+                        && analysisDrawerLayout.isDrawerOpen(analysisDrawerRecyclerView)) {
+                    analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+                    return;
+                }
+                undo();
+            }
+        });
 
         clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
@@ -729,15 +746,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     protected void onResume() {
         super.onResume();
         mActivityActive = true;
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            undo();
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -1455,6 +1463,16 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 public boolean onKeyDown(int keyCode, KeyEvent event) {
                     stopZebra();
                     return super.onKeyDown(keyCode, event);
+                }
+
+                // Android 13+ with predictive back never sends KEYCODE_BACK
+                // to onKeyDown above; it calls this instead. On older
+                // versions onKeyDown already stopped and closed the dialog.
+                @Override
+                public void onBackPressed() {
+                    if (isShowing()) {
+                        stopZebra();
+                    }
                 }
 
                 @Override
