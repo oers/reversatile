@@ -48,9 +48,9 @@
     <string-array name="settings_engine_randomness_preferences">
         <item>Ohne</item>
         <item>Gering (1–2 Steine)</item>
-        <item>Mittel (4–5 discs)</item>
-        <item>Groß (6–8 discs)</item>
-        <item>Riesig (10–16 discs)</item>
+        <item>Mittel (4–5 Steine)</item>
+        <item>Groß (6–8 Steine)</item>
+        <item>Riesig (10–16 Steine)</item>
     </string-array>
     <string-array name="settings_engine_opening_values">
         <!--  !!!DO NOT TRANSLATE _values arrays!!! -->
@@ -212,5 +212,13 @@
         <item>Tiger</item>
         <item>Wing Variation</item>
         <item>X-square Opening</item>
+    </string-array>
+    <string-array name="settings_analysis_drawer_side_preferences">
+        <item>Links</item>
+        <item>Rechts</item>
+    </string-array>
+    <string-array name="settings_analysis_drawer_side_values">
+        <item>left</item>
+        <item>right</item>
     </string-array>
 </resources>

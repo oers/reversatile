@@ -27,6 +27,19 @@ public class WthorReplayTest extends BasicTest {
     private static final int GAME_RECORD_SIZE = 68;
     private static final int LOCAL_GAME_LIMIT = 200;
 
+    // Shallow on purpose: none of these tests assert on evaluation quality,
+    // and practice mode (on by default) recomputes evals for every legal
+    // move after every human-vs-human position change - including undo/
+    // redo and the WThor replay tests' many per-move steps. At a deeper
+    // depth those searches piled up enough under CI load to make replay
+    // steps miss their wait windows late in a game (seen in CI: WThor
+    // redo/move-by-move replay consistently landing one move short right
+    // at the end of longer games).
+    @Override
+    protected String getTestSearchDepth() {
+        return "1|1|1";
+    }
+
     @Test
     public void replayGamesFast() throws Exception {
         replayGames(ReplayMode.FAST);

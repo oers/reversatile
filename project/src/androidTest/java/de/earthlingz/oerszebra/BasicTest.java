@@ -12,27 +12,34 @@ import org.junit.Before;
 import org.junit.Rule;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 class BasicTest {
     DroidZebra zebra = null;
 
     @Before
     public void init() throws InterruptedException {
-        // Shallow on purpose: none of these tests assert on evaluation quality,
-        // and practice mode (on by default) recomputes evals for every legal
-        // move after every human-vs-human position change - including undo/
-        // redo and the WThor replay tests' many per-move steps. At a deeper
-        // depth those searches piled up enough under CI load to make replay
-        // steps miss their wait windows late in a game (seen in CI: WThor
-        // redo/move-by-move replay consistently landing one move short right
-        // at the end of longer games).
-        GlobalSettingsLoader.testSearchDepth = "1|1|1";
+        GlobalSettingsLoader.testSearchDepth = getTestSearchDepth();
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
         while (zebra == null && !zebra.initialized()) {
             Thread.sleep(100);
         }
         getInstrumentation().waitForIdleSync();
+    }
+
+    // Shallow on purpose, and shared by every BasicTest subclass unless it
+    // overrides this: practice mode (on by default) recomputes evals for
+    // every legal move after every human-vs-human position change -
+    // including undo/redo and the WThor replay tests' many per-move steps.
+    // At a deeper depth those searches piled up enough under CI load to
+    // make replay/undo/redo steps miss their fixed wait windows (seen in
+    // CI: WThor redo/move-by-move replay, and plain undo/redo tests using
+    // fixed sleeps, consistently landing short). Subclasses that need a
+    // different depth (or that assert on evaluation quality) can still
+    // override this.
+    protected String getTestSearchDepth() {
+        return "1|1|1";
     }
 
     void waitForOpenendDialogs(boolean dismiss) throws InterruptedException {
@@ -60,8 +67,15 @@ class BasicTest {
     // elapses, instead of guessing a fixed sleep duration - undo/redo board
     // updates arrive asynchronously from the native engine thread.
     void waitForSquareCount(byte color, int expectedCount, long timeoutMillis) throws InterruptedException {
+        waitUntil(() -> countSquares(color) == expectedCount, timeoutMillis);
+    }
+
+    // Shared poll-until-timeout shape for any condition that settles
+    // asynchronously (native engine callbacks, UI updates) - avoids
+    // reimplementing the same deadline/sleep loop at every call site.
+    void waitUntil(BooleanSupplier condition, long timeoutMillis) throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMillis;
-        while (countSquares(color) != expectedCount && System.currentTimeMillis() < deadline) {
+        while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
             Thread.sleep(100);
         }
     }

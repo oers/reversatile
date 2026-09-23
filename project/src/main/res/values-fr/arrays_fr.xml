@@ -213,4 +213,12 @@
 <item>Wing Variation</item>
 <item>X-square Opening</item>
 </string-array>
+<string-array name="settings_analysis_drawer_side_preferences">
+<item>Gauche</item>
+<item>Droite</item>
+</string-array>
+<string-array name="settings_analysis_drawer_side_values">
+<item>left</item>
+<item>right</item>
+</string-array>
 </resources>

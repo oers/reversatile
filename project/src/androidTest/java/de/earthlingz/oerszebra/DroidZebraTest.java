@@ -150,6 +150,50 @@ public class DroidZebraTest extends BasicTest{
 
     }
 
+    // Reproduces a bug that used to exist: this sequence has exactly one
+    // forced pass (black has no legal move at ply 58, verified by
+    // simulation). Undoing across that pass and redoing back used to leave
+    // one square permanently unfilled instead of fully restoring the
+    // original position. Root cause: _droidzebra_redo_turn (droidzebra-jni.c)
+    // stopped exactly at its numeric disks_played target even when that
+    // landed on a forced-pass position, unlike _droidzebra_undo_turn, which
+    // already symmetrically absorbed a pass into the same call - the
+    // trailing pass was left to the main game loop's own async auto-pass
+    // handling, which raced the next redo() call. Fixed in #99 by making
+    // _droidzebra_redo_turn absorb a trailing forced pass itself, symmetric
+    // with undo (see also HostJniSmokeTest#undoRedoAcrossForcedPassWorksCorrectly
+    // and WthorReplayTest, which cover this more exhaustively). No longer
+    // needs @Suppress.
+    @Test
+    public void testRedoAcrossPass() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, "D3C5F6F5F4C3C4D2E2B4D1F3B5E3F2F1A4D6E6E7F7B6E8C6B3A5D7A3E1A6G1A2C2C7B8D8C8G8G6H6G5H5G4H4H3G7H8F8H7A8A7B7A1B2G3G2H2H1C1B1");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+        waitForOpenendDialogs(true);
+
+        assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
+
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.undo());Thread.sleep(500);
+
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+        zebra.runOnUiThread(() -> zebra.redo());Thread.sleep(500);
+
+        waitForSquareCount(ZebraEngine.PLAYER_EMPTY, 0, 5000);
+        assertSame(0, countSquares(ZebraEngine.PLAYER_EMPTY));
+    }
+
     @Test
     public void testCrash3() throws InterruptedException {
         Intent intent = new Intent();

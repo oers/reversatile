@@ -13,6 +13,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     public static final String SHARED_PREFS_NAME = "droidzebrasettings";
 
     private final String DEFAULT_SETTING_STRENGTH;
+    private final String DEFAULT_SETTING_ANALYSIS_DEPTH;
     private final boolean DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES;
     private final String DEFAULT_SETTING_FORCE_OPENING;
     private final boolean DEFAULT_SETTING_HUMAN_OPENINGS;
@@ -22,6 +23,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private final boolean DEFAULT_SETTING_DISPLAY_MOVES;
     private final boolean DEFAULT_SETTING_DISPLAY_LAST_MOVE;
     private final boolean DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS;
+    private final String DEFAULT_SETTING_ANALYSIS_DRAWER_SIDE;
 
     private final int DEFAULT_SETTING_RANDOMNESS;
     private final int DEFAULT_SETTING_FUNCTION;
@@ -41,7 +43,9 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
             SETTINGS_KEY_DISPLAY_MOVES = "settings_ui_display_moves",
             SETTINGS_KEY_DISPLAY_LAST_MOVE = "settings_ui_display_last_move",
             SETTINGS_KEY_SENDMAIL = "settings_sendmail",
-            SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS = "settings_ui_display_enable_animations";
+            SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS = "settings_ui_display_enable_animations",
+            SETTINGS_KEY_ANALYSIS_DRAWER_SIDE = "settings_analysis_drawer_side",
+            SETTINGS_KEY_ANALYSIS_DEPTH = "settings_analysis_search_depth";
 
 
     private static final int
@@ -63,6 +67,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private boolean settingDisplayMoves;
     private boolean settingDisplayLastMove;
     private boolean settingDisplayEnableAnimations;
+    private String settingAnalysisDrawerSide;
 
     private int settingSlack;
     private int settingPerturbation;
@@ -75,6 +80,10 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     private int settingZebraDepthExact = 1;
     private int settingZebraDepthWLD = 1;
 
+    private int settingAnalysisDepth = 1;
+    private int settingAnalysisDepthExact = 1;
+    private int settingAnalysisDepthWLD = 1;
+
     private Context context;
     private OnSettingsChangedListener onSettingsChangedListener;
     private int computerMoveDelay = 1000;
@@ -86,6 +95,11 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         this.context = context;
 
         DEFAULT_SETTING_STRENGTH = MoreObjects.firstNonNull(testSearchDepth, context.getString(R.string.default_search_depth));
+        // Also honors testSearchDepth: a test that shallows the live depth
+        // to keep CI fast (e.g. AnalysisTest, which triggers one search per
+        // played move) means it for analysis searches too, not just live
+        // play - same underlying practice-mode search pipeline either way.
+        DEFAULT_SETTING_ANALYSIS_DEPTH = MoreObjects.firstNonNull(testSearchDepth, context.getString(R.string.default_analysis_search_depth));
         settingFunction = DEFAULT_SETTING_FUNCTION = Integer.parseInt(context.getString(R.string.default_engine_function));
         settingAutoMakeForcedMoves = DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES = Boolean.parseBoolean(context.getString(R.string.default_auto_make_moves));
         settingRandomness = DEFAULT_SETTING_RANDOMNESS = Integer.parseInt(context.getString(R.string.default_randomness));
@@ -97,6 +111,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         settingDisplayMoves = DEFAULT_SETTING_DISPLAY_MOVES = Boolean.parseBoolean(context.getString(R.string.default_display_moves));
         settingDisplayLastMove = DEFAULT_SETTING_DISPLAY_LAST_MOVE = Boolean.parseBoolean(context.getString(R.string.default_display_last_move));
         settingDisplayEnableAnimations = DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS = Boolean.parseBoolean(context.getString(R.string.default_enable_animations));
+        settingAnalysisDrawerSide = DEFAULT_SETTING_ANALYSIS_DRAWER_SIDE = context.getString(R.string.default_analysis_drawer_side);
 
         loadSettings();
         context.getSharedPreferences(SHARED_PREFS_NAME, 0).registerOnSharedPreferenceChangeListener(this);
@@ -120,6 +135,11 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         settingZebraDepthExact = Integer.parseInt(strength[1]);
         settingZebraDepthWLD = Integer.parseInt(strength[2]);
 
+        String[] analysisDepth = settings.getString(SETTINGS_KEY_ANALYSIS_DEPTH, DEFAULT_SETTING_ANALYSIS_DEPTH).split("\\|");
+        int settingAnalysisDepth = Integer.parseInt(analysisDepth[0]);
+        int settingAnalysisDepthExact = Integer.parseInt(analysisDepth[1]);
+        int settingAnalysisDepthWLD = Integer.parseInt(analysisDepth[2]);
+
         settingAutoMakeForcedMoves = settings.getBoolean(SETTINGS_KEY_AUTO_MAKE_FORCED_MOVES, DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES);
         settingRandomness = Integer.parseInt(settings.getString(SETTINGS_KEY_RANDOMNESS, String.format(Locale.getDefault(), "%d", DEFAULT_SETTING_RANDOMNESS)));
         settingZebraForceOpening = settings.getString(SETTINGS_KEY_FORCE_OPENING, DEFAULT_SETTING_FORCE_OPENING);
@@ -131,6 +151,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         boolean settingDisplayMoves = settings.getBoolean(SETTINGS_KEY_DISPLAY_MOVES, DEFAULT_SETTING_DISPLAY_MOVES);
         boolean settingDisplayLastMove = settings.getBoolean(SETTINGS_KEY_DISPLAY_LAST_MOVE, DEFAULT_SETTING_DISPLAY_LAST_MOVE);
         boolean settingDisplayEnableAnimations = settings.getBoolean(SETTINGS_KEY_DISPLAY_ENABLE_ANIMATIONS, DEFAULT_SETTING_DISPLAY_ENABLE_ANIMATIONS);
+        String settingAnalysisDrawerSide = settings.getString(SETTINGS_KEY_ANALYSIS_DRAWER_SIDE, DEFAULT_SETTING_ANALYSIS_DRAWER_SIDE);
 
 
         boolean bZebraSettingChanged = (
@@ -138,6 +159,9 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
                         || this.getSettingZebraDepth() != settingZebraDepth
                         || this.getSettingZebraDepthExact() != settingZebraDepthExact
                         || this.getSettingZebraDepthWLD() != settingZebraDepthWLD
+                        || this.getSettingAnalysisDepth() != settingAnalysisDepth
+                        || this.getSettingAnalysisDepthExact() != settingAnalysisDepthExact
+                        || this.getSettingAnalysisDepthWLD() != settingAnalysisDepthWLD
                         || this.isSettingAutoMakeForcedMoves() != settingAutoMakeForcedMoves
                         || this.getSettingRandomness() != settingRandomness
                         || !getSettingForceOpening().equals(settingZebraForceOpening)
@@ -148,12 +172,16 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
                         || this.settingDisplayMoves != settingDisplayMoves
                         || this.settingDisplayLastMove != settingDisplayLastMove
                         || this.settingDisplayEnableAnimations != settingDisplayEnableAnimations
+                        || !this.settingAnalysisDrawerSide.equals(settingAnalysisDrawerSide)
         );
 
         settingFunction = settingsFunction;
         this.settingZebraDepth = settingZebraDepth;
         this.settingZebraDepthExact = settingZebraDepthExact;
         this.settingZebraDepthWLD = settingZebraDepthWLD;
+        this.settingAnalysisDepth = settingAnalysisDepth;
+        this.settingAnalysisDepthExact = settingAnalysisDepthExact;
+        this.settingAnalysisDepthWLD = settingAnalysisDepthWLD;
         this.settingAutoMakeForcedMoves = settingAutoMakeForcedMoves;
         this.settingRandomness = settingRandomness;
         settingForceOpening = settingZebraForceOpening;
@@ -165,6 +193,7 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         this.settingDisplayMoves = settingDisplayMoves;
         this.settingDisplayLastMove = settingDisplayLastMove;
         this.settingDisplayEnableAnimations = settingDisplayEnableAnimations;
+        this.settingAnalysisDrawerSide = settingAnalysisDrawerSide;
 
 
         switch (settingRandomness) {
@@ -267,6 +296,11 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     }
 
     @Override
+    public String getSettingAnalysisDrawerSide() {
+        return settingAnalysisDrawerSide;
+    }
+
+    @Override
     public int getSettingAnimationDuration() {
         return settingAnimationDuration;
     }
@@ -284,6 +318,21 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
     @Override
     public int getSettingZebraDepthWLD() {
         return settingZebraDepthWLD;
+    }
+
+    @Override
+    public int getSettingAnalysisDepth() {
+        return settingAnalysisDepth;
+    }
+
+    @Override
+    public int getSettingAnalysisDepthExact() {
+        return settingAnalysisDepthExact;
+    }
+
+    @Override
+    public int getSettingAnalysisDepthWLD() {
+        return settingAnalysisDepthWLD;
     }
 
     @Override

@@ -26,6 +26,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -36,16 +38,21 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -57,15 +64,21 @@ import com.shurik.droidzebra.Move;
 import com.shurik.droidzebra.ZebraEngine;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
 import de.earthlingz.oerszebra.BoardView.BoardView;
 import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
+import de.earthlingz.oerszebra.analysis.AnalysisAdapter;
+import de.earthlingz.oerszebra.analysis.GameAnalyzer;
+import de.earthlingz.oerszebra.analysis.MoveEval;
 import de.earthlingz.oerszebra.guessmove.GuessMoveActivity;
 import de.earthlingz.oerszebra.parser.GameParser;
 
@@ -103,6 +116,40 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private EngineConfig engineConfig;
     private Menu menu;
 
+    private GameAnalyzer gameAnalyzer;
+    private boolean suppressNextGameOverDialog = false;
+    // Tracks whether the *live* game's board is currently sitting on a
+    // game-over position - updated only by onBoard()/onGameOver() below,
+    // which (unlike GameAnalyzer's own internal listener) only ever fire
+    // for the live gameState. Read by analyzeGame() so it only arranges to
+    // suppress a duplicate Game Over dialog when the game it's analyzing
+    // was actually finished - not when "Analyze Game" is invoked mid-game
+    // via the options menu, where restoring the live position afterwards
+    // never re-reaches game-over and the flag would otherwise stay set,
+    // silently swallowing the *next* real game-over dialog.
+    private boolean liveGameIsOver = false;
+    private List<MoveEval> lastAnalysisResults = Collections.emptyList();
+    // The full move sequence of the game analysis last ran on, captured once
+    // up front - NOT re-derived from gameState.exportMoveSequence() at jump
+    // time, since after a first jump gameState only reflects the (shorter)
+    // position navigated to, which would truncate any later jump forward.
+    private byte[] analyzedGameMoves;
+    // Set when a drawer row is tapped while analysis is still running:
+    // jumpToMove() can't fire immediately without racing whatever ply's
+    // engine.newGame() call is currently in flight, so the tap is deferred
+    // until analyzeGame()'s onFinished confirms the analyzer has actually
+    // stopped. Null when no jump is pending.
+    private Integer pendingAnalysisJumpPly;
+    // Used only by jumpToMove()'s walk-back-via-undo (see there for why).
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    // Bumped by each jumpToMove() call; see jumpToMove()/walkToPly().
+    private int jumpAttemptId = 0;
+    private DrawerLayout analysisDrawerLayout;
+    private RecyclerView analysisDrawerRecyclerView;
+    private Button analysisDrawerHandle;
+    private AnalysisAdapter analysisAdapter;
+    private TextView analysisProgressView;
+
 
     public void resetStatusView() {
         runOnUiThread(() -> {
@@ -125,6 +172,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     private void startNewGame() {
+        clearAnalysisResults();
         engine.newGame(engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState gameState) {
@@ -164,6 +212,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (!mIsInitCompleted) return false;
+        cancelAnalysisIfRunning();
         switch (item.getItemId()) {
             case R.id.menu_new_game:
                 startNewGameAndResetUI();
@@ -212,15 +261,21 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 rotate();
             }
             return true;
+            case R.id.menu_analyze_game: {
+                analyzeGame();
+            }
+            return true;
         }
         return false;
     }
 
     void redo() {
+        cancelAnalysisIfRunning();
         engine.redoMove(gameState);
     }
 
     void undo() {
+        cancelAnalysisIfRunning();
         engine.undoMove(gameState);
     }
 
@@ -315,6 +370,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         mBoardView.setBoardViewModel(getState());
         mBoardView.setOnMakeMoveListener(this);
         mBoardView.requestFocus();
+        setupAnalysisDrawer();
         if (savedInstanceState != null) {
             mBoardView.setRotated(savedInstanceState.getBoolean("board_rotated", false));
         }
@@ -354,6 +410,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     private void startNewGameAndResetUI(LinkedList<Move> moves) {
+        clearAnalysisResults();
         Analytics.log("new_game", new GameState(8, moves).getMoveSequenceAsString());
         engine.newGame(moves, engineConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
@@ -449,14 +506,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 reachedDepth = gameState.getReachedDepth();
                 moveNumber = gameState.getDisksPlayed();
             }
-            String state = "IDLE";
+            String state = getString(R.string.status_state_idle);
             if(engine != null ) {
                 switch (engine.getState()) {
                     case ES_PLAY_IN_PROGRESS:
-                        state = "Thinking";
+                        state = getString(R.string.status_state_thinking);
                         break;
                     default:
-                        state = "Idle";
+                        state = getString(R.string.status_state_idle);
                 }
             }
             viewById.setText(
@@ -490,25 +547,27 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         Analytics.converse("send_mail", null);
 
         //get BlackPlayer and WhitePlayer
+        String playerLabel = getResources().getString(R.string.player_label);
+        String enginePrefix = getResources().getString(R.string.app_name) + "-";
         switch (settingsProvider.getSettingFunction()) { //TODO this might cause a problem, because settings provider is not a source of truth here. It should be taken from ZebraEngine
             case FUNCTION_HUMAN_VS_HUMAN:
-                sbBlackPlayer.append("Player");
-                sbWhitePlayer.append("Player");
+                sbBlackPlayer.append(playerLabel);
+                sbWhitePlayer.append(playerLabel);
                 break;
             case FUNCTION_ZEBRA_BLACK:
-                sbBlackPlayer.append("DroidZebra-");
+                sbBlackPlayer.append(enginePrefix);
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepth());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthExact());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthWLD());
 
-                sbWhitePlayer.append("Player");
+                sbWhitePlayer.append(playerLabel);
                 break;
             case FUNCTION_ZEBRA_WHITE:
-                sbBlackPlayer.append("Player");
+                sbBlackPlayer.append(playerLabel);
 
-                sbWhitePlayer.append("DroidZebra-");
+                sbWhitePlayer.append(enginePrefix);
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepth());
                 sbWhitePlayer.append("/");
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepthExact());
@@ -516,14 +575,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepthWLD());
                 break;
             case FUNCTION_ZEBRA_VS_ZEBRA:
-                sbBlackPlayer.append("DroidZebra-");
+                sbBlackPlayer.append(enginePrefix);
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepth());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthExact());
                 sbBlackPlayer.append("/");
                 sbBlackPlayer.append(settingsProvider.getSettingZebraDepthWLD());
 
-                sbWhitePlayer.append("DroidZebra-");
+                sbWhitePlayer.append(enginePrefix);
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepth());
                 sbWhitePlayer.append("/");
                 sbWhitePlayer.append(settingsProvider.getSettingZebraDepthExact());
@@ -650,9 +709,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         Analytics.error(msg, gameState);
         runOnUiThread(DroidZebra.this::startNewGameAndResetUI);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        alertDialog.setTitle("Zebra Error");
+        alertDialog.setTitle(R.string.dialog_error_title);
         alertDialog.setMessage(msg);
-        alertDialog.setPositiveButton("OK", (dialog, id) -> alert = null);
+        alertDialog.setPositiveButton(R.string.dialog_ok, (dialog, id) -> alert = null);
         runOnUiThread(() -> alert = new WeakReference<>(alertDialog.show()));
     }
 
@@ -713,6 +772,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onMakeMove(Move move) {
+        cancelAnalysisIfRunning();
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
             if (engine.isThinking(gameState) && !engine.isHumanToMove(gameState, engineConfig)) {
@@ -734,6 +794,11 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onBoard(GameState gameState) {
+        // Any live-board update means we're not (or no longer) sitting on a
+        // game-over position - onGameOver() below sets this back to true
+        // for the one call that actually lands on game-over, which always
+        // fires after this.
+        liveGameIsOver = false;
         int sideToMove = gameState.getSideToMove();
 
         //triggers animations
@@ -781,9 +846,373 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onGameOver() {
+        liveGameIsOver = true;
         state.processGameOver();
         runOnUiThread(() -> mBoardView.invalidate());//TODO Id doubt runOnUIThread is necessary here
-        this.showGameOverDialog();
+        if (suppressNextGameOverDialog) {
+            // reached game-over again as a side effect of restoring the live
+            // game after analysis - don't pop the dialog a second time
+            suppressNextGameOverDialog = false;
+        } else {
+            this.showGameOverDialog();
+        }
+    }
+
+    /**
+     * Same as the live game's engineConfig, except for the search depth,
+     * which uses the "Analysis Search Depth" setting instead - independent
+     * of live play's strength, since it's the deciding factor in how long
+     * each of the (up to 60) searches analyzeGame() runs takes, especially
+     * in the branchier midgame.
+     */
+    private EngineConfig buildAnalysisConfig() {
+        return engineConfig.alterDepths(
+                settingsProvider.getSettingAnalysisDepth(),
+                settingsProvider.getSettingAnalysisDepthExact(),
+                settingsProvider.getSettingAnalysisDepthWLD());
+    }
+
+    /**
+     * Evaluates every move of the game (finished, or still in progress when
+     * invoked from the options menu) and shows the results in the analysis
+     * drawer. The live game is left exactly as it was once this completes
+     * (or is cancelled via {@link #cancelAnalysisIfRunning()}).
+     */
+    public void analyzeGame() {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+            return;
+        }
+        final int originalDisksPlayed = gameState.getDisksPlayed();
+        final byte[] originalMoves = gameState.exportMoveSequence();
+        final List<MoveEval> resultsSoFar = new ArrayList<>();
+        // "Analyze Game" is reachable both from the Game Over dialog (the
+        // game is always finished there) and from the options menu (which
+        // can fire mid-game) - capture which one this is up front, since
+        // GameAnalyzer runs its own separate engine session and never
+        // touches the live gameState/liveGameIsOver while it runs.
+        final boolean wasGameOver = liveGameIsOver;
+
+        analyzedGameMoves = originalMoves;
+
+        setAnalysisProgressVisible(true);
+        gameAnalyzer = new GameAnalyzer(engine);
+        gameAnalyzer.start(gameState, buildAnalysisConfig(), wasGameOver, new GameAnalyzer.Listener() {
+            @Override
+            public void onPlyStarted(int ply, int total) {
+                // Show the ply currently being computed right away, as a
+                // placeholder row after whatever's already finished, instead
+                // of only appearing once its result lands. Plies are
+                // analyzed newest-first (see GameAnalyzer#start), so the one
+                // just starting always has a lower number than everything
+                // already in resultsSoFar - it belongs at the end of the
+                // list, not the front.
+                showInFlightRow(MoveEval.pending(ply, new Move(analyzedGameMoves[ply - 1])));
+            }
+
+            @Override
+            public void onPlyEvalUpdated(int ply, int total, MoveEval interimEval) {
+                // The engine reports progressively (iterative deepening) as
+                // it searches a position, not just once at the end - replace
+                // the in-flight row with each refined estimate as it arrives
+                // instead of only showing a value once the ply is fully done.
+                showInFlightRow(interimEval);
+            }
+
+            private void showInFlightRow(MoveEval inFlightRow) {
+                List<MoveEval> withInFlightRow = new ArrayList<>(resultsSoFar.size() + 1);
+                withInFlightRow.addAll(resultsSoFar);
+                withInFlightRow.add(inFlightRow);
+                updateAnalysisDrawer(withInFlightRow, resultsSoFar.isEmpty());
+            }
+
+            @Override
+            public void onProgress(int done, int total, MoveEval latest) {
+                updateAnalysisProgress(done, total);
+                resultsSoFar.add(latest);
+                updateAnalysisDrawer(new ArrayList<>(resultsSoFar), done == 1);
+            }
+
+            @Override
+            public void onFinished(List<MoveEval> results, boolean wasCancelled, boolean timedOut) {
+                lastAnalysisResults = results;
+                setAnalysisProgressVisible(false);
+                updateAnalysisDrawer(results, false);
+                if (pendingAnalysisJumpPly != null) {
+                    int targetPly = pendingAnalysisJumpPly;
+                    pendingAnalysisJumpPly = null;
+                    jumpToMove(targetPly);
+                    return;
+                }
+                if (timedOut) {
+                    showAnalysisTimedOutDialog();
+                }
+                // Only arrange to swallow the next Game Over dialog when
+                // restoring the live game is actually expected to land back
+                // on a game-over position and re-fire onGameOver() - i.e.
+                // when the game being analyzed was actually finished. For a
+                // mid-game "Analyze Game" (from the options menu) the
+                // restore never reaches game-over, so leaving this flag set
+                // would instead silently suppress the *next real* game-over
+                // dialog, whenever this game (or a later one) actually ends.
+                if (wasGameOver) {
+                    suppressNextGameOverDialog = true;
+                }
+                startNewGameAndResetUI(originalDisksPlayed, originalMoves);
+            }
+        });
+    }
+
+    private void showAnalysisTimedOutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_error_title)
+                .setMessage(R.string.analysis_timed_out)
+                .setPositiveButton(R.string.dialog_ok, (dialog, id) -> { })
+                .show();
+    }
+
+    /** Stops any in-progress analysis; a no-op if none is running. */
+    void cancelAnalysisIfRunning() {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+            gameAnalyzer.cancel();
+        }
+    }
+
+    private void updateAnalysisProgress(int done, int total) {
+        if (analysisProgressView != null) {
+            analysisProgressView.setText(getString(R.string.analysis_progress, done, total));
+        }
+    }
+
+    private void setAnalysisProgressVisible(boolean visible) {
+        if (analysisProgressView != null) {
+            analysisProgressView.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    public List<MoveEval> getLastAnalysisResults() {
+        return lastAnalysisResults;
+    }
+
+    private void setupAnalysisDrawer() {
+        analysisDrawerLayout = findViewById(R.id.board_drawer_layout);
+        analysisDrawerRecyclerView = findViewById(R.id.analysis_drawer);
+        analysisDrawerHandle = findViewById(R.id.analysis_drawer_handle);
+        analysisProgressView = findViewById(R.id.status_analysis_progress);
+
+        if (analysisDrawerLayout == null || analysisDrawerRecyclerView == null) {
+            return;
+        }
+
+        // The drawer is a direct child of the edge-to-edge DrawerLayout (see
+        // mBoardView's inset handling above). Padding alone (the original
+        // approach) only pushed the *content* down, leaving the drawer's
+        // own opaque background painted over the header; a top margin
+        // fixed that, but adding the action bar's own height on top of the
+        // status bar inset (the first attempt at this) overshot - turns
+        // out the action bar already reserves its own space the same way
+        // it does for mBoardView's parent, so the *same* insets.top-only
+        // margin mBoardView uses is exactly right here too.
+        ViewCompat.setOnApplyWindowInsetsListener(analysisDrawerRecyclerView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.topMargin = insets.top;
+            mlp.bottomMargin = insets.bottom;
+            v.setLayoutParams(mlp);
+            return WindowInsetsCompat.CONSUMED;
+        });
+
+        analysisDrawerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        analysisAdapter = new AnalysisAdapter(moveEval -> requestJumpToMove(moveEval.getPly()));
+        analysisDrawerRecyclerView.setAdapter(analysisAdapter);
+
+        boolean openFromLeft = "left".equals(settingsProvider.getSettingAnalysisDrawerSide());
+        int gravity = openFromLeft ? GravityCompat.START : GravityCompat.END;
+
+        DrawerLayout.LayoutParams drawerParams =
+                (DrawerLayout.LayoutParams) analysisDrawerRecyclerView.getLayoutParams();
+        drawerParams.gravity = gravity;
+        analysisDrawerRecyclerView.setLayoutParams(drawerParams);
+
+        if (analysisDrawerHandle != null) {
+            RelativeLayout.LayoutParams handleParams =
+                    (RelativeLayout.LayoutParams) analysisDrawerHandle.getLayoutParams();
+            handleParams.addRule(RelativeLayout.ALIGN_PARENT_START, openFromLeft ? RelativeLayout.TRUE : 0);
+            handleParams.addRule(RelativeLayout.ALIGN_PARENT_END, openFromLeft ? 0 : RelativeLayout.TRUE);
+            analysisDrawerHandle.setLayoutParams(handleParams);
+
+            analysisDrawerHandle.setOnClickListener(v -> {
+                if (analysisDrawerLayout.isDrawerOpen(analysisDrawerRecyclerView)) {
+                    analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+                } else {
+                    analysisDrawerLayout.openDrawer(analysisDrawerRecyclerView);
+                }
+            });
+
+            analysisDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    analysisDrawerHandle.setText(R.string.analysis_drawer_handle_open);
+                }
+
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    analysisDrawerHandle.setText(R.string.analysis_drawer_handle_closed);
+                }
+            });
+        }
+    }
+
+    private void updateAnalysisDrawer(List<MoveEval> results, boolean autoOpen) {
+        if (analysisAdapter != null) {
+            // GameAnalyzer now analyzes newest-move-first (see its start()),
+            // so results already arrive in the newest-first order this
+            // drawer wants to display - no reversal needed.
+            analysisAdapter.setItems(results);
+        }
+        if (analysisDrawerHandle != null && !results.isEmpty()) {
+            analysisDrawerHandle.setVisibility(View.VISIBLE);
+        }
+        if (autoOpen && analysisDrawerLayout != null && analysisDrawerRecyclerView != null) {
+            analysisDrawerLayout.openDrawer(analysisDrawerRecyclerView);
+        }
+    }
+
+    private void clearAnalysisResults() {
+        lastAnalysisResults = Collections.emptyList();
+        analyzedGameMoves = null;
+        if (analysisAdapter != null) {
+            analysisAdapter.clear();
+        }
+        if (analysisDrawerHandle != null) {
+            analysisDrawerHandle.setVisibility(View.GONE);
+        }
+        if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null
+                && analysisDrawerLayout.isDrawerOpen(analysisDrawerRecyclerView)) {
+            analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+        }
+    }
+
+    /**
+     * Handles a tap on an analysis result. If analysis is still running,
+     * this is an action like any other (undo, redo, a move, rotate...) and
+     * should cancel it - but unlike those, jumping needs its own
+     * engine.newGame() call, which can't safely fire while the analyzer's
+     * own in-flight ply might still land and race it. The jump is deferred
+     * until analyzeGame()'s onFinished confirms the analyzer has actually
+     * settled; otherwise it happens immediately.
+     */
+    void requestJumpToMove(int targetPly) {
+        if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
+            pendingAnalysisJumpPly = targetPly;
+            cancelAnalysisIfRunning();
+        } else {
+            jumpToMove(targetPly);
+        }
+    }
+
+    /**
+     * Navigates the live board to the position right after ply
+     * {@code targetDisksPlayed} (as produced by {@link GameAnalyzer}), while
+     * keeping undo/redo working across the *entire* analyzed game afterward -
+     * not just back to whichever ply this lands on.
+     * <p>
+     * Loads the whole analyzed game (not just a prefix up to
+     * targetDisksPlayed) so the engine actually replays every move in this
+     * session, then walks back to the target ply with undoMove() - the same
+     * primitive the live Undo button uses. Only that way does redoMove()'s
+     * own redo-stack know about the moves after the target ply at all;
+     * truncating the "provided moves" array to targetDisksPlayed up front
+     * (the previous approach) left the engine with no memory of anything
+     * past the jump target, so redo() could never move past it.
+     * <p>
+     * The walk itself forces human-vs-human and practice mode off - not the
+     * live engineConfig, which is restored once the walk lands on the
+     * target ply - for two reasons: practice mode makes every individual
+     * undo() pause for a full post-move eval search, which at real search
+     * depths walking back many plies could take minutes (this is why the
+     * previous approach avoided stepping there one undo() at a time to
+     * begin with); and if the computer plays either side, a single undo()
+     * undoes both its move and the human's move before it (existing,
+     * intentional behavior for live play), which would overshoot the exact
+     * ply this needs to land on.
+     */
+    void jumpToMove(int targetDisksPlayed) {
+        if (gameState == null || analyzedGameMoves == null
+                || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
+            return;
+        }
+        if (analysisDrawerLayout != null && analysisDrawerRecyclerView != null) {
+            analysisDrawerLayout.closeDrawer(analysisDrawerRecyclerView);
+        }
+        // Bumped so a second jumpToMove() (e.g. two drawer taps in quick
+        // succession) makes any still-in-flight walk from a previous call
+        // recognize itself as stale and stop polling, rather than looping
+        // forever on a GameState the engine has since moved on from (its
+        // own undoMove()/onGameStateReady calls would otherwise silently
+        // no-op against a no-longer-current engine session - see
+        // ZebraEngine#undoMove - so gs.getDisksPlayed() would never again
+        // reach the stale walk's target).
+        final int attemptId = ++jumpAttemptId;
+        EngineConfig walkConfig = engineConfig
+                .alterEngineFunction(FUNCTION_HUMAN_VS_HUMAN)
+                .alterPracticeMode(false);
+        engine.newGame(analyzedGameMoves, analyzedGameMoves.length, walkConfig, new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState freshGameState) {
+                if (attemptId != jumpAttemptId) {
+                    return;
+                }
+                gameState = freshGameState;
+                gameState.setGameStateListener(handler);
+                walkToPly(attemptId, freshGameState, analyzedGameMoves.length, targetDisksPlayed);
+            }
+        });
+    }
+
+    // See jumpToMove() for why this walks back via undoMove() instead of
+    // just replaying a prefix. Mirrors GameAnalyzer's own poll-for-settled
+    // pattern: expectedDisksPlayed (not just ES_USER_INPUT_WAIT alone) is
+    // what actually confirms the most recent undoMove() has landed - it's
+    // async, so the engine can still transiently read ES_USER_INPUT_WAIT
+    // for a moment right after issuing the next one, before it's even
+    // started processing it.
+    private void walkToPly(int attemptId, GameState gs, int expectedDisksPlayed, int targetDisksPlayed) {
+        if (attemptId != jumpAttemptId) {
+            return; // superseded by a later jumpToMove() call
+        }
+        boolean ready = engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
+                && gs.getDisksPlayed() == expectedDisksPlayed;
+        if (!ready) {
+            mainHandler.postDelayed(() -> walkToPly(attemptId, gs, expectedDisksPlayed, targetDisksPlayed), 50);
+            return;
+        }
+        if (expectedDisksPlayed <= targetDisksPlayed) {
+            engine.updateConfig(gs, engineConfig);
+            awaitJumpSettled(attemptId, gs);
+            return;
+        }
+        engine.undoMove(gs);
+        walkToPly(attemptId, gs, expectedDisksPlayed - 1, targetDisksPlayed);
+    }
+
+    // Restoring the real engineConfig (e.g. re-enabling practice mode) can
+    // itself kick the engine back into computing - practice mode
+    // recomputes evals for the landed position as soon as settings change
+    // - so ES_USER_INPUT_WAIT has to be reconfirmed before declaring the
+    // jump done, the same way each undo step above does. Skipping this and
+    // finishing right after updateConfig() left a window where the UI
+    // looked ready but a redo()/undo() issued immediately after would
+    // silently no-op (ZebraEngine#redoMove/undoMove only act while
+    // ES_USER_INPUT_WAIT) - caught by testRedoWorksPastAJumpedToPosition.
+    private void awaitJumpSettled(int attemptId, GameState gs) {
+        if (attemptId != jumpAttemptId) {
+            return;
+        }
+        if (engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
+            mainHandler.postDelayed(() -> awaitJumpSettled(attemptId, gs), 50);
+            return;
+        }
+        resetAndLoadOnGuiThread();
     }
 
     @Override
@@ -807,6 +1236,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     public void rotate() {
+        cancelAnalysisIfRunning();
         // A pure view-layer transform (see BoardView#setRotated): the engine, its
         // move history, and the undo/redo stack are never touched, so rotating
         // always works and never loses undo/redo state, regardless of when it's
@@ -953,6 +1383,13 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                         getDroidZebra().undoAll();
                     });
 
+            button = v.findViewById(R.id.gameover_choice_analyze);
+            button.setOnClickListener(
+                    click -> {
+                        dismiss();
+                        getDroidZebra().analyzeGame();
+                    });
+
             button = v.findViewById(R.id.gameover_choice_switch);
             button.setOnClickListener(
                     v12 -> {
@@ -994,6 +1431,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     void undoAll() {
+        cancelAnalysisIfRunning();
         engine.undoAll(gameState);
     }
 

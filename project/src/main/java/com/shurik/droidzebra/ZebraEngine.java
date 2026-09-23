@@ -755,7 +755,8 @@ public class ZebraEngine {
                                 (jsceval.getInt("move")),
                                 jsceval.getString("eval_s"),
                                 jsceval.getString("eval_l"),
-                                (jsceval.getInt("best") != 0)
+                                (jsceval.getInt("best") != 0),
+                                jsceval.getInt("score")
                         );
                     }
                     currentGameState.addCandidateMoveEvals(cmoves);

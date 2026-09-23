@@ -13,6 +13,7 @@
 <color name="board_line">#204827</color>
 <color name="board_numbers">#CFB53B</color>
 <color name="board_color_valid_move_indicator">#FF0000</color>
+<color name="analysis_in_progress_highlight">#40CFB53B</color>
 
 <color name="Evals">#FFFF00</color>
 <color name="EvalsBest">#00FFFF</color>

@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/settings_analysis_preferences">
+        <CheckBoxPreference
+            android:defaultValue="@string/default_practice_mode"
+            android:key="settings_engine_practice_mode"
+            android:summary="@string/settings_engine_practice_mode_summary"
+            android:title="@string/settings_engine_practice_mode_title" />
+        <ListPreference
+            android:defaultValue="@string/default_analysis_drawer_side"
+            android:entries="@array/settings_analysis_drawer_side_preferences"
+            android:entryValues="@array/settings_analysis_drawer_side_values"
+            android:key="settings_analysis_drawer_side"
+            android:summary="@string/settings_analysis_drawer_side_summary"
+            android:title="@string/settings_analysis_drawer_side_title" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_ui_preferences">
         <CheckBoxPreference
             android:defaultValue="@string/default_display_moves"
@@ -39,11 +53,14 @@
             android:key="settings_engine_strength"
             android:summary="@string/setting_strength_preference_summary"
             android:title="@string/settings_strength_preference_title" />
-        <CheckBoxPreference
-            android:defaultValue="@string/default_practice_mode"
-            android:key="settings_engine_practice_mode"
-            android:summary="@string/settings_engine_practice_mode_summary"
-            android:title="@string/settings_engine_practice_mode_title" />
+        <ListPreference
+            android:defaultValue="@string/default_analysis_search_depth"
+            android:dialogTitle="@string/settings_strength_dialog_title"
+            android:entries="@array/settings_engine_strengh_preferences"
+            android:entryValues="@array/settings_engine_strengh_values"
+            android:key="settings_analysis_search_depth"
+            android:summary="@string/setting_analysis_strength_preference_summary"
+            android:title="@string/settings_analysis_strength_preference_title" />
         <CheckBoxPreference
             android:defaultValue="@string/default_auto_make_moves"
             android:key="settings_engine_auto_make_moves"

@@ -28,6 +28,8 @@ public interface SettingsProvider {
 
     boolean isSettingDisplayEnableAnimations();
 
+    String getSettingAnalysisDrawerSide();
+
     int getSettingAnimationDuration();
 
     int getSettingZebraDepth();
@@ -35,6 +37,13 @@ public interface SettingsProvider {
     int getSettingZebraDepthExact();
 
     int getSettingZebraDepthWLD();
+
+    /** Search depth used for "Analyze Game" specifically - independent of live play's strength setting. */
+    int getSettingAnalysisDepth();
+
+    int getSettingAnalysisDepthExact();
+
+    int getSettingAnalysisDepthWLD();
 
     int getSettingSlack();
 

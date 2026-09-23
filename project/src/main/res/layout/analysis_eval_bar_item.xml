@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/eval_row"
+    android:layout_width="match_parent"
+    android:layout_height="20dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <TextView
+        android:id="@+id/eval_ply_label"
+        android:layout_width="28dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        tools:ignore="HardcodedText"
+        tools:text="12" />
+
+    <LinearLayout
+        android:id="@+id/eval_bar_track"
+        android:layout_width="0dp"
+        android:layout_height="11dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/eval_bar_black_spacer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <View
+            android:id="@+id/eval_bar_black"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:background="@color/black" />
+
+        <View
+            android:id="@+id/eval_bar_center"
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="@color/white" />
+
+        <View
+            android:id="@+id/eval_bar_white"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:background="@color/white" />
+
+        <View
+            android:id="@+id/eval_bar_white_spacer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/eval_score_label"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        tools:ignore="HardcodedText"
+        tools:text="+1.50" />
+
+</LinearLayout>

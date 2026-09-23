@@ -104,6 +104,8 @@ dependencies {
 
     // Required -- JUnit 4 framework
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
     testImplementation 'junit:junit:4.13.2'
     // On-device, org.json.* is provided by the Android platform; for plain
     // JVM unit tests (no device/emulator) that exercise the real JNI code

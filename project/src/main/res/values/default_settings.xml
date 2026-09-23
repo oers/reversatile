@@ -12,4 +12,6 @@
     <string name="default_practice_mode" translatable="false">true</string>
     <string name="default_human_openings" translatable="false">false</string>
     <string name="default_forced_opening" translatable="false">None</string>
+    <string name="default_analysis_drawer_side" translatable="false">right</string>
+    <string name="default_analysis_search_depth" translatable="false">8|16|0</string>
 </resources>

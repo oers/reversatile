@@ -105,7 +105,7 @@ public class GuessMoveActivity extends AppCompatActivity implements RangeSeekBar
         TextView maxText = findViewById(R.id.maxText);
         int max = Integer.valueOf(maxText.getText().toString());
         ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Generating game");
+        progressDialog.setTitle(R.string.guess_move_generating_game_title);
         progressDialog.show();
         setBoardViewUnplayable();
 
