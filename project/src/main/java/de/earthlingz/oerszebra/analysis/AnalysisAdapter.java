@@ -147,12 +147,14 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
             if (eval.isInProgress()) {
                 itemView.setBackgroundColor(
                         ContextCompat.getColor(itemView.getContext(), R.color.analysis_in_progress_highlight));
-                plyLabel.setTypeface(plyLabel.getTypeface(), Typeface.BOLD);
-                scoreLabel.setTypeface(scoreLabel.getTypeface(), Typeface.BOLD);
+                plyLabel.setTypeface(Typeface.DEFAULT_BOLD);
+                scoreLabel.setTypeface(Typeface.DEFAULT_BOLD);
             } else {
                 itemView.setBackgroundColor(Color.TRANSPARENT);
-                plyLabel.setTypeface(plyLabel.getTypeface(), Typeface.NORMAL);
-                scoreLabel.setTypeface(scoreLabel.getTypeface(), Typeface.NORMAL);
+                // not setTypeface(getTypeface(), NORMAL): with style NORMAL
+                // that just keeps the already-bold typeface
+                plyLabel.setTypeface(Typeface.DEFAULT);
+                scoreLabel.setTypeface(Typeface.DEFAULT);
             }
 
             itemView.setContentDescription(eval.getMove().getText());

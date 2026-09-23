@@ -13,7 +13,9 @@ import java.util.List;
 
 import de.earthlingz.oerszebra.analysis.MoveEval;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -39,6 +41,11 @@ public class AnalysisTest extends BasicTest {
     private static final String SHORT_LEGAL_GAME = "E6F6C4D6";
     private static final int SHORT_LEGAL_GAME_MOVES = 4;
 
+    // A finished game (full board) with a forced pass near the end - the
+    // same game DroidZebraTest#testRedoAcrossPass uses.
+    private static final String GAME_WITH_PASS = "D3C5F6F5F4C3C4D2E2B4D1F3B5E3F2F1A4D6E6E7F7B6E8C6B3A5D7A3E1A6G1A2C2C7B8D8C8G8G6H6G5H5G4H4H3G7H8F8H7A8A7B7A1B2G3G2H2H1C1B1";
+    private static final int GAME_WITH_PASS_MOVES = 60;
+
     // This is a mid-game position, not a finished game, so no Game Over
     // dialog ever appears - wait for the move replay itself instead of
     // waitForOpenendDialogs (which would poll forever here).
@@ -50,6 +57,17 @@ public class AnalysisTest extends BasicTest {
 
         zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
         waitForDisksPlayed(expectedDisksPlayed, 20000);
+    }
+
+    // Real (non-pass) moves played. Unlike GameState#getDisksPlayed this is
+    // what the analysis numbers its plies by.
+    private int realMoves() {
+        GameState gameState = zebra.getGameState();
+        return gameState == null ? -1 : gameState.exportMoveSequence().length;
+    }
+
+    private void waitForRealMoves(int expected, long timeoutMillis) throws InterruptedException {
+        waitUntil(() -> realMoves() == expected, timeoutMillis);
     }
 
     private void waitForAnalysisResults(int expectedSize, long timeoutMillis) throws InterruptedException {
@@ -207,5 +225,88 @@ public class AnalysisTest extends BasicTest {
             assertEquals("redo() must reach ply " + ply + " after jumping back to "
                     + targetPly, ply, zebra.getGameState().getDisksPlayed());
         }
+    }
+
+    // Regression test: the engine's disksPlayed counts pass turns, the
+    // analysis doesn't - jumpToMove() compared the two and polled forever
+    // on any game with a pass. It also replays the whole game, which for a
+    // finished game re-fired game-over and popped the Game Over dialog.
+    @Test
+    public void testJumpAcrossPassInFinishedGame() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, GAME_WITH_PASS);
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+        waitForOpenendDialogs(true); // the Game Over dialog of the loaded game
+        waitForRealMoves(GAME_WITH_PASS_MOVES, 20000);
+        getInstrumentation().waitForIdleSync();
+
+        zebra.runOnUiThread(zebra::analyzeGame);
+        waitForAnalysisResults(GAME_WITH_PASS_MOVES, 180000);
+        waitForAnalysisProgressGone(180000);
+        waitForRealMoves(GAME_WITH_PASS_MOVES, 20000);
+
+        int targetPly = GAME_WITH_PASS_MOVES - 6; // before the forced pass
+        zebra.runOnUiThread(() -> zebra.jumpToMove(targetPly));
+        waitUntil(() -> realMoves() == targetPly
+                && zebra.getEngineState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT, 20000);
+        getInstrumentation().waitForIdleSync();
+
+        assertEquals(targetPly, realMoves());
+        assertNull("jumping inside a finished game must not show the Game Over dialog",
+                zebra.getSupportFragmentManager().findFragmentByTag("dialog_gameover"));
+    }
+
+    // Loads the finished GAME_WITH_PASS and starts analyzing it, returning
+    // once the analysis is visibly underway (its first drawer row is up), so
+    // whatever the test does next really happens mid-analysis.
+    private void startAnalyzingGameWithPass() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_TEXT, GAME_WITH_PASS);
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+        waitForOpenendDialogs(true); // the Game Over dialog of the loaded game
+        waitForRealMoves(GAME_WITH_PASS_MOVES, 20000);
+        getInstrumentation().waitForIdleSync();
+
+        zebra.runOnUiThread(zebra::analyzeGame);
+        View drawerHandle = zebra.findViewById(R.id.analysis_drawer_handle);
+        waitUntil(() -> drawerHandle.getVisibility() == View.VISIBLE, 60000);
+    }
+
+    // Regression test: "New Game" from the menu cancels the analysis first
+    // (as onOptionsItemSelected does), and the analysis finishing used to
+    // restore the analyzed game over the new one.
+    @Test
+    public void testNewGameDuringAnalysisIsNotOverwritten() throws InterruptedException {
+        startAnalyzingGameWithPass();
+
+        zebra.runOnUiThread(() -> {
+            zebra.cancelAnalysisIfRunning();
+            zebra.startNewGameAndResetUI();
+        });
+        waitForRealMoves(0, 20000);
+        waitForAnalysisProgressGone(20000);
+        // time for a stale analysis to (wrongly) restore the old game
+        Thread.sleep(3000);
+
+        assertEquals(0, realMoves());
+        assertTrue(zebra.getLastAnalysisResults().isEmpty());
+    }
+
+    // Regression test: undo during analysis cancelled the analysis but was
+    // itself silently dropped (the engine was still on the analysis'
+    // session); it now runs once the live game is restored.
+    @Test
+    public void testUndoDuringAnalysisIsAppliedAfterRestore() throws InterruptedException {
+        startAnalyzingGameWithPass();
+
+        zebra.runOnUiThread(zebra::undo);
+        waitForAnalysisProgressGone(60000);
+        waitForRealMoves(GAME_WITH_PASS_MOVES - 1, 20000);
+
+        assertEquals(GAME_WITH_PASS_MOVES - 1, realMoves());
     }
 }

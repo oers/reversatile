@@ -135,6 +135,15 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     // time, since after a first jump gameState only reflects the (shorter)
     // position navigated to, which would truncate any later jump forward.
     private byte[] analyzedGameMoves;
+    // Whether that game had ended. jumpToMove() replays it in full, which
+    // then re-fires game-over.
+    private boolean analyzedGameWasOver;
+    // A board action (move, undo, redo, undo all) made while the analysis
+    // or a jump still had the engine. Those would silently no-op against
+    // the live gameState, so they run once the live game is back instead.
+    private Runnable pendingActionAfterAnalysis;
+    // True from jumpToMove() until its walk has settled.
+    private boolean jumpInProgress = false;
     // Set when a drawer row is tapped while analysis is still running:
     // jumpToMove() can't fire immediately without racing whatever ply's
     // engine.newGame() call is currently in flight, so the tap is deferred
@@ -271,13 +280,37 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     void redo() {
-        cancelAnalysisIfRunning();
+        if (deferWhileAnalysisBusy(this::redo)) {
+            return;
+        }
         engine.redoMove(gameState);
     }
 
     void undo() {
-        cancelAnalysisIfRunning();
+        if (deferWhileAnalysisBusy(this::undo)) {
+            return;
+        }
         engine.undoMove(gameState);
+    }
+
+    /**
+     * While the analysis (or a jump to an analyzed move) has the engine,
+     * board actions on the live gameState would be silently dropped. This
+     * stops the analysis and keeps {@code action} to run once the live game
+     * is back. Returns false if nothing is busy and the caller should just
+     * go ahead.
+     */
+    private boolean deferWhileAnalysisBusy(Runnable action) {
+        boolean analyzing = gameAnalyzer != null && gameAnalyzer.isRunning();
+        if (!analyzing && !jumpInProgress) {
+            return false;
+        }
+        pendingActionAfterAnalysis = action;
+        if (analyzing) {
+            pendingAnalysisJumpPly = null;
+            gameAnalyzer.cancel();
+        }
+        return true;
     }
 
     @Override
@@ -664,6 +697,17 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     protected void onDestroy() {
+        // The engine outlives this activity (e.g. on rotation), so an analysis
+        // or jump still running must not call back into it later.
+        if (gameAnalyzer != null) {
+            gameAnalyzer.release();
+        }
+        jumpAttemptId++;
+        jumpInProgress = false;
+        pendingActionAfterAnalysis = null;
+        pendingAnalysisJumpPly = null;
+        mainHandler.removeCallbacksAndMessages(null);
+
         if(gameState != null) {
             engine.disconnect(gameState);
             gameState.removeGameStateListener();
@@ -780,7 +824,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     @Override
     public void onMakeMove(Move move) {
-        cancelAnalysisIfRunning();
+        if (deferWhileAnalysisBusy(() -> onMakeMove(move))) {
+            return;
+        }
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
             if (engine.isThinking(gameState) && !engine.isHumanToMove(gameState, engineConfig)) {
@@ -890,7 +936,11 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
             return;
         }
-        final int originalDisksPlayed = gameState.getDisksPlayed();
+        if (jumpInProgress) {
+            // gameState is only partway through the jump's walk right now
+            pendingActionAfterAnalysis = this::analyzeGame;
+            return;
+        }
         final byte[] originalMoves = gameState.exportMoveSequence();
         final List<MoveEval> resultsSoFar = new ArrayList<>();
         // "Analyze Game" is reachable both from the Game Over dialog (the
@@ -901,6 +951,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         final boolean wasGameOver = liveGameIsOver;
 
         analyzedGameMoves = originalMoves;
+        analyzedGameWasOver = wasGameOver;
 
         setAnalysisProgressVisible(true);
         gameAnalyzer = new GameAnalyzer(engine);
@@ -942,8 +993,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
             @Override
             public void onFinished(List<MoveEval> results, boolean wasCancelled, boolean timedOut) {
-                lastAnalysisResults = results;
                 setAnalysisProgressVisible(false);
+                lastAnalysisResults = results;
                 updateAnalysisDrawer(results, false);
                 if (pendingAnalysisJumpPly != null) {
                     int targetPly = pendingAnalysisJumpPly;
@@ -965,9 +1016,50 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 if (wasGameOver) {
                     suppressNextGameOverDialog = true;
                 }
-                startNewGameAndResetUI(originalDisksPlayed, originalMoves);
+                Runnable pendingAction = pendingActionAfterAnalysis;
+                pendingActionAfterAnalysis = null;
+                restoreLiveGame(originalMoves, pendingAction);
             }
         });
+    }
+
+    // Reloads the game the analysis ran on, then runs afterRestore (a board
+    // action the user made during the analysis, if any) once the engine is
+    // actually waiting for input on it.
+    private void restoreLiveGame(byte[] moves, Runnable afterRestore) {
+        engine.newGame(moves, moves.length, engineConfig, new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState restored) {
+                gameState = restored;
+                restored.setGameStateListener(handler);
+                resetAndLoadOnGuiThread();
+                if (afterRestore != null) {
+                    runOnUiThread(() -> runWhenSettled(restored, moves.length, afterRestore));
+                }
+            }
+        });
+    }
+
+    // Waits until the engine is waiting for input on gs with realMoves real
+    // (non-pass) moves played - undo/redo/moves are silently dropped before
+    // that - then runs action. Gives up if another game took over meanwhile.
+    private void runWhenSettled(GameState gs, int realMoves, Runnable action) {
+        if (gs != gameState) {
+            return;
+        }
+        boolean settled = engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
+                && realMovesPlayed(gs) == realMoves;
+        if (!settled) {
+            mainHandler.postDelayed(() -> runWhenSettled(gs, realMoves, action), 50);
+            return;
+        }
+        action.run();
+    }
+
+    // The engine's disksPlayed counts pass turns too; the analysis and its
+    // drawer count real moves only (GameState#exportMoveSequence skips passes).
+    private static int realMovesPlayed(GameState gs) {
+        return gs.exportMoveSequence().length;
     }
 
     private void showAnalysisTimedOutDialog() {
@@ -1085,7 +1177,20 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         }
     }
 
+    // Called whenever a new, unrelated game replaces the live one: whatever
+    // the analysis or a jump still had pending belongs to the old game. A
+    // running analysis is dropped without reporting back - its onFinished
+    // would otherwise restore the old game over the new one.
     private void clearAnalysisResults() {
+        if (gameAnalyzer != null) {
+            gameAnalyzer.release();
+        }
+        setAnalysisProgressVisible(false);
+        jumpAttemptId++;
+        jumpInProgress = false;
+        pendingActionAfterAnalysis = null;
+        pendingAnalysisJumpPly = null;
+        suppressNextGameOverDialog = false;
         lastAnalysisResults = Collections.emptyList();
         analyzedGameMoves = null;
         if (analysisAdapter != null) {
@@ -1110,6 +1215,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * settled; otherwise it happens immediately.
      */
     void requestJumpToMove(int targetPly) {
+        // the jump replaces whatever board action was still waiting
+        pendingActionAfterAnalysis = null;
         if (gameAnalyzer != null && gameAnalyzer.isRunning()) {
             pendingAnalysisJumpPly = targetPly;
             cancelAnalysisIfRunning();
@@ -1119,32 +1226,32 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     /**
-     * Navigates the live board to the position right after ply
-     * {@code targetDisksPlayed} (as produced by {@link GameAnalyzer}), while
-     * keeping undo/redo working across the *entire* analyzed game afterward -
-     * not just back to whichever ply this lands on.
+     * Navigates the live board to the position right after the
+     * {@code targetPly}-th real move (as numbered by {@link GameAnalyzer},
+     * passes not counted), while keeping undo/redo working across the
+     * *entire* analyzed game afterward - not just back to whichever ply this
+     * lands on.
      * <p>
-     * Loads the whole analyzed game (not just a prefix up to
-     * targetDisksPlayed) so the engine actually replays every move in this
-     * session, then walks back to the target ply with undoMove() - the same
-     * primitive the live Undo button uses. Only that way does redoMove()'s
-     * own redo-stack know about the moves after the target ply at all;
-     * truncating the "provided moves" array to targetDisksPlayed up front
-     * (the previous approach) left the engine with no memory of anything
-     * past the jump target, so redo() could never move past it.
+     * Loads the whole analyzed game (not just a prefix up to targetPly) so
+     * the engine actually replays every move in this session, then walks
+     * back to the target ply with undoMove() - the same primitive the live
+     * Undo button uses. Only that way does redoMove()'s own redo-stack know
+     * about the moves after the target ply at all; truncating the
+     * "provided moves" array up front (the previous approach) left the
+     * engine with no memory of anything past the jump target, so redo()
+     * could never move past it.
      * <p>
-     * The walk itself forces human-vs-human and practice mode off - not the
-     * live engineConfig, which is restored once the walk lands on the
-     * target ply - for two reasons: practice mode makes every individual
-     * undo() pause for a full post-move eval search, which at real search
-     * depths walking back many plies could take minutes (this is why the
-     * previous approach avoided stepping there one undo() at a time to
-     * begin with); and if the computer plays either side, a single undo()
-     * undoes both its move and the human's move before it (existing,
-     * intentional behavior for live play), which would overshoot the exact
-     * ply this needs to land on.
+     * The walk itself forces human-vs-human, practice mode off and
+     * auto-played forced moves off - not the live engineConfig, which is
+     * restored once the walk lands on the target ply. Practice mode makes
+     * every individual undo() pause for a full post-move eval search, which
+     * at real search depths walking back many plies could take minutes. And
+     * if the computer plays either side, or forced moves are auto-played,
+     * a single undo() steps back more than one move (existing, intentional
+     * behavior for live play), which would overshoot the exact ply this
+     * needs to land on.
      */
-    void jumpToMove(int targetDisksPlayed) {
+    void jumpToMove(int targetPly) {
         if (gameState == null || analyzedGameMoves == null
                 || (gameAnalyzer != null && gameAnalyzer.isRunning())) {
             return;
@@ -1158,13 +1265,20 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         // forever on a GameState the engine has since moved on from (its
         // own undoMove()/onGameStateReady calls would otherwise silently
         // no-op against a no-longer-current engine session - see
-        // ZebraEngine#undoMove - so gs.getDisksPlayed() would never again
-        // reach the stale walk's target).
+        // ZebraEngine#undoMove).
         final int attemptId = ++jumpAttemptId;
+        jumpInProgress = true;
+        // Replaying a finished game in full reaches game-over again; that's
+        // navigation, not the game ending, so no Game Over dialog.
+        if (analyzedGameWasOver) {
+            suppressNextGameOverDialog = true;
+        }
+        final byte[] moves = analyzedGameMoves;
         EngineConfig walkConfig = engineConfig
                 .alterEngineFunction(FUNCTION_HUMAN_VS_HUMAN)
-                .alterPracticeMode(false);
-        engine.newGame(analyzedGameMoves, analyzedGameMoves.length, walkConfig, new ZebraEngine.OnGameStateReadyListener() {
+                .alterPracticeMode(false)
+                .alterAutoForcedMoves(false);
+        engine.newGame(moves, moves.length, walkConfig, new ZebraEngine.OnGameStateReadyListener() {
             @Override
             public void onGameStateReady(GameState freshGameState) {
                 if (attemptId != jumpAttemptId) {
@@ -1172,35 +1286,36 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 }
                 gameState = freshGameState;
                 gameState.setGameStateListener(handler);
-                walkToPly(attemptId, freshGameState, analyzedGameMoves.length, targetDisksPlayed);
+                walkToPly(attemptId, freshGameState, moves.length, targetPly);
             }
         });
     }
 
     // See jumpToMove() for why this walks back via undoMove() instead of
-    // just replaying a prefix. Mirrors GameAnalyzer's own poll-for-settled
-    // pattern: expectedDisksPlayed (not just ES_USER_INPUT_WAIT alone) is
-    // what actually confirms the most recent undoMove() has landed - it's
-    // async, so the engine can still transiently read ES_USER_INPUT_WAIT
-    // for a moment right after issuing the next one, before it's even
-    // started processing it.
-    private void walkToPly(int attemptId, GameState gs, int expectedDisksPlayed, int targetDisksPlayed) {
+    // just replaying a prefix. Counts real moves, not the engine's
+    // disksPlayed, which also counts pass turns: the target ply comes from
+    // the analysis, which skips passes, and each undoMove() takes back
+    // exactly one real move (it absorbs a pass on the way). Seeing the
+    // expected count - not just ES_USER_INPUT_WAIT alone - is what confirms
+    // the most recent undoMove() has landed: it's async, so the engine can
+    // still read ES_USER_INPUT_WAIT for a moment right after issuing it.
+    private void walkToPly(int attemptId, GameState gs, int expectedMoves, int targetPly) {
         if (attemptId != jumpAttemptId) {
             return; // superseded by a later jumpToMove() call
         }
         boolean ready = engine.getState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
-                && gs.getDisksPlayed() == expectedDisksPlayed;
+                && realMovesPlayed(gs) == expectedMoves;
         if (!ready) {
-            mainHandler.postDelayed(() -> walkToPly(attemptId, gs, expectedDisksPlayed, targetDisksPlayed), 50);
+            mainHandler.postDelayed(() -> walkToPly(attemptId, gs, expectedMoves, targetPly), 50);
             return;
         }
-        if (expectedDisksPlayed <= targetDisksPlayed) {
+        if (expectedMoves <= targetPly) {
             engine.updateConfig(gs, engineConfig);
             awaitJumpSettled(attemptId, gs);
             return;
         }
         engine.undoMove(gs);
-        walkToPly(attemptId, gs, expectedDisksPlayed - 1, targetDisksPlayed);
+        walkToPly(attemptId, gs, expectedMoves - 1, targetPly);
     }
 
     // Restoring the real engineConfig (e.g. re-enabling practice mode) can
@@ -1220,7 +1335,13 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mainHandler.postDelayed(() -> awaitJumpSettled(attemptId, gs), 50);
             return;
         }
+        jumpInProgress = false;
         resetAndLoadOnGuiThread();
+        Runnable pendingAction = pendingActionAfterAnalysis;
+        pendingActionAfterAnalysis = null;
+        if (pendingAction != null) {
+            runOnUiThread(pendingAction);
+        }
     }
 
     @Override
@@ -1439,7 +1560,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     void undoAll() {
-        cancelAnalysisIfRunning();
+        if (deferWhileAnalysisBusy(this::undoAll)) {
+            return;
+        }
         engine.undoAll(gameState);
     }
 
