@@ -39,6 +39,10 @@ public class EngineConfig {
         return new EngineConfig(engineFunction, depth, depthExact, depthWLD, autoForcedMoves, forcedOpening, humanOpenings, practiceMode, useBook, slack, perturbation, computerMoveDelay);
     }
 
+    public EngineConfig alterAutoForcedMoves(boolean autoForcedMoves) {
+        return new EngineConfig(engineFunction, depth, depthExact, depthWLD, autoForcedMoves, forcedOpening, humanOpenings, practiceMode, useBook, slack, perturbation, computerMoveDelay);
+    }
+
     public EngineConfig alterDepths(int depth, int depthExact, int depthWLD) {
         return new EngineConfig(engineFunction, depth, depthExact, depthWLD, autoForcedMoves, forcedOpening, humanOpenings, practiceMode, useBook, slack, perturbation, computerMoveDelay);
     }

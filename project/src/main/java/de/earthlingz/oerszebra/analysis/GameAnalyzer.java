@@ -103,7 +103,7 @@ public class GameAnalyzer {
     // changes for the lifetime of one start()/finish() cycle.
     private GameState gameState;
     // Bumped every time a new wait begins (the initial load, and every undo
-    // step after it), so a stale watchdog/onBoard update from an
+    // step after it) and when the run ends, so a stale watchdog/poll from an
     // already-resolved wait can recognize itself as stale.
     private int currentAttemptId;
     // The ply the current wait is for.
@@ -149,9 +149,13 @@ public class GameAnalyzer {
         }
         this.moves = finishedGame.exportMoveSequence();
         this.totalMoves = moves.length;
+        // Auto-played forced moves are off because _droidzebra_undo_turn
+        // keeps undoing through them, so one undoMove() could step back
+        // several plies while advance() counts exactly one.
         this.analysisConfig = baseConfig
                 .alterEngineFunction(GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN)
-                .alterPracticeMode(true);
+                .alterPracticeMode(true)
+                .alterAutoForcedMoves(false);
         this.listener = listener;
         this.results = new ArrayList<>();
         this.isGameOver = isGameOver;
@@ -160,7 +164,6 @@ public class GameAnalyzer {
 
         cancelled.set(false);
         running.set(true);
-        currentAttemptId = 0;
 
         if (totalMoves == 0) {
             finish(false, false);
@@ -224,6 +227,17 @@ public class GameAnalyzer {
         if (gameState != null) {
             engine.stopIfThinking(gameState);
         }
+    }
+
+    /**
+     * Stops for good without reporting back, for when the listener's owner
+     * goes away (e.g. the activity is destroyed on rotation).
+     */
+    public void release() {
+        listener = null;
+        cancel();
+        currentAttemptId++;
+        running.set(false);
     }
 
     private void onBoardUpdate(GameState board) {
@@ -343,8 +357,17 @@ public class GameAnalyzer {
         pollForReady(attemptId, nextPly, true);
     }
 
+    // Same scoring as Zebra's exact endgame evals (see end.c): empty squares
+    // left at the end count for the winner.
     private int exactFinalScore() {
-        return (finalWhiteDiscs - finalBlackDiscs) * 128;
+        int diff = finalWhiteDiscs - finalBlackDiscs;
+        int empties = 64 - finalWhiteDiscs - finalBlackDiscs;
+        if (diff > 0) {
+            diff += empties;
+        } else if (diff < 0) {
+            diff -= empties;
+        }
+        return diff * 128;
     }
 
     private static int normalizeToWhite(int rawScore, int sideToMove) {
@@ -387,6 +410,9 @@ public class GameAnalyzer {
         if (!running.compareAndSet(true, false)) {
             return;
         }
+        // Stops any poll or watchdog still scheduled for this run - after a
+        // timeout the in-flight pollForReady would otherwise keep polling.
+        currentAttemptId++;
         List<MoveEval> finalResults = Collections.unmodifiableList(new ArrayList<>(results));
         mainHandler.post(() -> {
             if (listener != null) {

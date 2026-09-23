@@ -481,8 +481,9 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
 
-        int newMX = mMoveSelection.getX();
-        int newMY = mMoveSelection.getY();
+        Move selection = currentSelection();
+        int newMX = selection.getX();
+        int newMY = selection.getY();
 
         int step = mRotated ? -1 : 1;
         switch (keyCode) {
@@ -542,15 +543,16 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
 
         // Log.d("BoardView", String.format("trackball event: %d %f %f", event.getAction(), tx, ty));
 
+        Move selection = currentSelection();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
-                updateSelection(mMoveSelection.getX(), mMoveSelection.getY(), true, true);
+                updateSelection(selection.getX(), selection.getY(), true, true);
             }
             break;
 
             case MotionEvent.ACTION_MOVE: {
-                int newMX = mMoveSelection.getX();
-                int newMY = mMoveSelection.getY();
+                int newMX = selection.getX();
+                int newMY = selection.getY();
                 if (Math.abs(tx) > Math.abs(ty)) {
                     if (tx > 0)
                         newMX++;
@@ -571,6 +573,14 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         }
 
         return true;
+    }
+
+    // onBoardStateChanged() clears the selection after every board change,
+    // so key and trackball input must not assume one exists. Falls back to
+    // the same top-left square the view starts with.
+    private Move currentSelection() {
+        Move selection = mMoveSelection;
+        return selection != null ? selection : new Move(0, 0);
     }
 
     private void updateSelection(int bX, int bY, boolean bMakeMove, boolean bShowSelection) {
