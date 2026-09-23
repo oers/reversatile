@@ -37,6 +37,17 @@ plugins {
     id 'com.gladed.androidgitversion' version '0.4.3'
 }
 
+// Drop the "-g<hash>[-<branch>][-dirty]" part of the default format
+// ("%tag%%-count%%-commit%%-branch%%-dirty%"), so a normal build's
+// versionName reads e.g. "1.17.3-5" (5 commits past tag 1.17.3) instead
+// of "1.17.3-5-ge86aba6". Builds with no tag reachable (shallow clone,
+// exported source tree without .git) are unaffected by this - the plugin
+// still reports its own "unknown"/"untagged_<hash>" name in that case,
+// which project/build.gradle replaces with a dev-build marker.
+androidGitVersion {
+    format = '%tag%%-count%'
+}
+
 /**
  * The allprojects {} block is where you configure the repositories and
  * dependencies used by all modules in your project, such as third-party plugins
