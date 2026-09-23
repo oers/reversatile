@@ -2,6 +2,8 @@ package de.earthlingz.oerszebra;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
+import android.content.Context;
+
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -20,6 +22,11 @@ class BasicTest {
     @Before
     public void init() throws InterruptedException {
         GlobalSettingsLoader.testSearchDepth = getTestSearchDepth();
+        // The first-run consent dialog can't be dismissed without an answer,
+        // and it would otherwise sit on top of every test's activity.
+        getInstrumentation().getTargetContext()
+                .getSharedPreferences(GlobalSettingsLoader.SHARED_PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putBoolean(Analytics.FIRST_RUN, false).commit();
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
         while (zebra == null && !zebra.initialized()) {
