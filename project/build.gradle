@@ -19,12 +19,14 @@ android {
         // tag is reachable (shallow clone, exported source tree without
         // .git) - it returns its own placeholder "unknown" or
         // "untagged_<hash>" instead, so the old `?: "thor-test"` fallback
-        // never fired in that case and those placeholders ended up baked
-        // into the APK name/versionName. Check for them explicitly.
+        // (a leftover from this project's original name, before it was
+        // renamed to reversatile) never fired in that case and those
+        // placeholders ended up baked into the APK name/versionName.
+        // Check for them explicitly.
         def gitVersionName = androidGitVersion.name()
         def isRealVersion = gitVersionName && gitVersionName != "unknown" &&
                 !gitVersionName.startsWith("untagged")
-        versionName isRealVersion ? gitVersionName : "thor-test"
+        versionName isRealVersion ? gitVersionName : "reversatile-dev"
         versionCode Math.max(1017004, androidGitVersion.code())
         ndk {
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
