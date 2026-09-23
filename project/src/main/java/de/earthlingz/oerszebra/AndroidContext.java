@@ -1,6 +1,7 @@
 package de.earthlingz.oerszebra;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 
 import com.shurik.droidzebra.GameContext;
 
@@ -24,5 +25,17 @@ public class AndroidContext implements GameContext {
     @Override
     public File getFilesDir() {
         return context.getFilesDir();
+    }
+
+    // Changes with every install and update, i.e. whenever the bundled
+    // assets may have changed.
+    @Override
+    public String assetVersion() {
+        try {
+            return String.valueOf(context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).lastUpdateTime);
+        } catch (PackageManager.NameNotFoundException e) {
+            return null;
+        }
     }
 }

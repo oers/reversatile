@@ -37,9 +37,6 @@ public class ZebraEngine {
 
     private static final int BOARD_SIZE = 8;
 
-    private static String PATTERNS_FILE = "coeffs2.bin";
-    private static String BOOK_FILE = "book.bin";
-    private static String BOOK_FILE_COMPRESSED = "book.cmp.z";
 
     // board colors
     static public final byte PLAYER_BLACK = 0;
@@ -143,48 +140,9 @@ public class ZebraEngine {
 
     private boolean initFiles() {
         mFilesDir = null;
-
-        // first check if files exist on internal device
-        File pattern = new File(mContext.getFilesDir(), PATTERNS_FILE);
-        File book = new File(mContext.getFilesDir(), BOOK_FILE_COMPRESSED);
-        if (pattern.exists() && book.exists()) {
-            mFilesDir = mContext.getFilesDir();
-            return true;
-        }
-
-        // if not - try external folder
-        copyAsset(mContext, PATTERNS_FILE, mContext.getFilesDir());
-        copyAsset(mContext, BOOK_FILE_COMPRESSED, mContext.getFilesDir());
-
-        if (!pattern.exists() && !book.exists()) {
-            // will be recreated from resources, the next time, maybe
-            new File(mContext.getFilesDir(), PATTERNS_FILE).delete();
-            new File(mContext.getFilesDir(), BOOK_FILE).delete();
-            new File(mContext.getFilesDir(), BOOK_FILE_COMPRESSED).delete();
-            throw new IllegalStateException("Kann coeeffs.bin und book nicht finden");
-        }
-
+        EngineAssets.prepare(mContext);
         mFilesDir = mContext.getFilesDir();
         return true;
-    }
-
-    private void copyAsset(GameContext assetManager,
-                           String fromAssetPath, File filesdir) {
-        File target = new File(filesdir, fromAssetPath);
-        try (InputStream in = assetManager.open(fromAssetPath); OutputStream out = new FileOutputStream(target)) {
-            copyFile(in, out);
-        } catch (Exception e) {
-            Log.e(ZebraEngine.class.getSimpleName(), "copyAsset: " + fromAssetPath, e);
-            throw new IllegalStateException("Datei konnte nicht geladen werden: " + fromAssetPath, e);
-        }
-    }
-
-    private static void copyFile(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024];
-        int read;
-        while ((read = in.read(buffer)) != -1) {
-            out.write(buffer, 0, read);
-        }
     }
 
     private void waitForEngineState(int milliseconds, ENGINE_STATE... state) {
@@ -559,9 +517,7 @@ public class ZebraEngine {
                     if (mEngineState == ENGINE_STATE.ES_INITIAL) {
                         // delete .bin files if initialization failed
                         // will be recreated from resources
-                        new File(mFilesDir, PATTERNS_FILE).delete();
-                        new File(mFilesDir, BOOK_FILE).delete();
-                        new File(mFilesDir, BOOK_FILE_COMPRESSED).delete();
+                        EngineAssets.deleteAll(mFilesDir);
                     }
                     String error = data.getString("error");
                     ZebraEngine.this.onErrorListener.onError(error);
