@@ -9,6 +9,7 @@ import com.shurik.droidzebra.GameState;
 
 import javax.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,8 +24,13 @@ import org.matomo.sdk.extra.TrackHelper;
 public class Analytics {
 
     static final String ANALYTICS_SETTING = "analytics_setting";
+    static final String FIRST_RUN = "isFirstRun";
     private static final AtomicReference<DroidZebra> app = new AtomicReference<>();
     private static Tracker tracker = null;
+    private static boolean sessionStarted = false;
+    // The open consent dialog, so onStart() running again while it's still
+    // up (e.g. back from the home screen) doesn't stack a second one.
+    private static WeakReference<AlertDialog> consentDialog = new WeakReference<>(null);
 
     public static void setApp(DroidZebra zebra) {
         app.set(zebra);
@@ -33,11 +39,18 @@ public class Analytics {
     public static void ask(DroidZebra app) {
         final SharedPreferences settings =
                 app.getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
-        if (settings.getBoolean("isFirstRun", true)) {
-            settings.edit().putBoolean("isFirstRun", false).apply();
-            new AlertDialog.Builder(app)
+        AlertDialog open = consentDialog.get();
+        if (open != null && open.isShowing()) {
+            return;
+        }
+        if (settings.getBoolean(FIRST_RUN, true)) {
+            // Not cancelable, and FIRST_RUN is only cleared once the user
+            // answers (see initSettings): a dismissed dialog used to count
+            // as asked, leaving consent to whatever default applied later.
+            AlertDialog shown = new AlertDialog.Builder(app)
                     .setTitle(R.string.ask_analytics)
                     .setMessage(R.string.ask_analytics_help)
+                    .setCancelable(false)
                     .setPositiveButton(R.string.ask_analytics_accept, (dialog, which) -> {
                         Analytics.initSettings(app, true);
                         askPlayMode(app);
@@ -46,6 +59,7 @@ public class Analytics {
                         Analytics.initSettings(app, false);
                         askPlayMode(app);
                     }).show();
+            consentDialog = new WeakReference<>(shown);
         }
     }
 
@@ -96,18 +110,19 @@ public class Analytics {
         final SharedPreferences settings =
                 app.getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
 
-        settings.edit().putBoolean(ANALYTICS_SETTING, consent).apply();
+        settings.edit()
+                .putBoolean(ANALYTICS_SETTING, consent)
+                .putBoolean(FIRST_RUN, false)
+                .apply();
 
         handleConsent(app, consent);
     }
 
     public static void settingsChanged() {
-        final SharedPreferences settings =
-                app.get().getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
-
-        boolean consent = settings.getBoolean(ANALYTICS_SETTING, true);
-
-        handleConsent(app.get(), consent);
+        if (app.get() == null) {
+            return;
+        }
+        handleConsent(app.get(), isConsent());
     }
 
     public static void log(String id, String message) {
@@ -140,24 +155,23 @@ public class Analytics {
         return settings.getBoolean(ANALYTICS_SETTING, false);
     }
 
+    // Applies consent every time it's called, not just the first time: the
+    // tracker exists from startup on, and returning early once it did meant
+    // turning analytics off in Settings had no effect until a restart.
     private static void handleConsent(Context app, boolean consent) {
-        if(tracker != null) { //already initialised
+        Tracker current = getTracker(app);
+        current.setOptOut(!consent);
+
+        if (!consent || sessionStarted) {
             return;
         }
+        sessionStarted = true;
 
-        getTracker(app);
+        current.startNewSession();
+        current.setUserId(UUID.randomUUID().toString());
 
-        tracker.setOptOut(!consent);
-
-        if (!consent) {
-            return;
-        }
-
-        tracker.startNewSession();
-        tracker.setUserId(UUID.randomUUID().toString());
-
-        TrackHelper.track().uncaughtExceptions().with(tracker);
-        TrackHelper.track().download().with(tracker);
+        TrackHelper.track().uncaughtExceptions().with(current);
+        TrackHelper.track().download().with(current);
     }
 
     private synchronized static Tracker getTracker(Context app) {
@@ -190,6 +204,6 @@ public class Analytics {
         if(app.get() == null) {
             return;
         }
-        TrackHelper.track().event("error", "E/Message: " + message);
+        TrackHelper.track().event("error", "E/Message: " + message).with(getTracker(app.get()));
     }
 }
