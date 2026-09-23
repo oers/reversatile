@@ -1465,16 +1465,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                     return super.onKeyDown(keyCode, event);
                 }
 
-                // Android 13+ with predictive back never sends KEYCODE_BACK
-                // to onKeyDown above; it calls this instead. On older
-                // versions onKeyDown already stopped and closed the dialog.
-                @Override
-                public void onBackPressed() {
-                    if (isShowing()) {
-                        stopZebra();
-                    }
-                }
-
                 @Override
                 public boolean onTouchEvent(MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -1495,6 +1485,20 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             pd.setMessage(getResources().getString(R.string.dialog_busy_message));
             return pd;
+        }
+
+        // With predictive back (targetSdk 36+) a back gesture neither reaches
+        // the dialog's onKeyDown nor its onBackPressed - it just cancels the
+        // dialog. Stopping the engine here covers that and every other way
+        // the dialog gets cancelled.
+        @Override
+        public void onCancel(@Nonnull DialogInterface dialog) {
+            super.onCancel(dialog);
+            DroidZebra zebra = getDroidZebra();
+            if (zebra != null) {
+                zebra.engine.stopIfThinking(zebra.gameState);
+                zebra.mBusyDialogUp = false;
+            }
         }
     }
 }
