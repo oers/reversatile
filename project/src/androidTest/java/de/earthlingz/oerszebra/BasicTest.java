@@ -1,6 +1,7 @@
 package de.earthlingz.oerszebra;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 
@@ -17,7 +18,8 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 class BasicTest {
-    DroidZebra zebra = null;
+    // set on the main thread by onActivity, read by the test thread
+    volatile DroidZebra zebra = null;
 
     @Before
     public void init() throws InterruptedException {
@@ -29,9 +31,11 @@ class BasicTest {
                 .edit().putBoolean(Analytics.FIRST_RUN, false).commit();
         ActivityScenario<DroidZebra> scen = ActivityScenario.launch(DroidZebra.class);
         scen.onActivity(z -> zebra  = z);
-        while (zebra == null && !zebra.initialized()) {
-            Thread.sleep(100);
-        }
+        // Was "zebra == null && !zebra.initialized()": that threw a
+        // NullPointerException when zebra was still null and never waited
+        // otherwise, so tests could start before the engine was ready.
+        waitUntil(() -> zebra != null && zebra.initialized(), 30000);
+        assertTrue("DroidZebra did not finish initializing", zebra != null && zebra.initialized());
         getInstrumentation().waitForIdleSync();
     }
 
