@@ -1,6 +1,7 @@
 package com.shurik.droidzebra;
 
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN;
+import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_BLACK;
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -16,7 +17,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -384,6 +388,127 @@ public class HostJniSmokeTest {
                 true, gameState.getMoveSequenceAsString().contains("--"));
 
         verifyUndoRedoRoundTrip(engine, file, gameIndex);
+    }
+
+    // Tapping Redo at the end of a finished game, with nothing left to redo,
+    // used to send the post-game-over loop back into the game loop, which
+    // immediately ended the game again and sent a second game-over - in the
+    // app, the Game Over dialog reappeared on every tap.
+    @Test
+    public void redoWithNothingToRedoAtGameEndDoesNotEndTheGameAgain() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        String moveSequence = decodeGameMoveText(file, PASSLESS_GAME_INDEX);
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        GameState gameState = replayGame(engine, file, PASSLESS_GAME_INDEX);
+        waitForMoveSequence(gameState, moveSequence);
+        waitForUserInputWait(engine);
+
+        AtomicInteger gameOvers = new AtomicInteger();
+        gameState.setGameStateListener(new GameStateListener() {
+            @Override
+            public void onGameOver() {
+                gameOvers.incrementAndGet();
+            }
+        });
+
+        engine.redoMove(gameState);
+        waitForUserInputWait(engine);
+        Thread.sleep(500);
+
+        assertEquals("redo with nothing to redo must not end the game a second time", 0, gameOvers.get());
+        assertEquals(moveSequence, removePasses(gameState.getMoveSequenceAsString()));
+    }
+
+    // After "undo all" against the computer, the computer plays the first
+    // move again and may choose a different one than the stored game. The
+    // redo targets used to survive that, so Redo then replayed the old
+    // game's moves on top of the new position - an "Invalid move in redo
+    // sequence" error or a corrupted board. Runs all four symmetric variants
+    // of a real game (each starts with a different opening move), so at
+    // least one of them diverges from whatever the computer plays.
+    @Test
+    public void redoAfterComputerChoseADifferentMoveDoesNotReplayTheOldGame() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        int[][] squares = decodeGameSquares(file, PASSLESS_GAME_INDEX);
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        List<String> errors = Collections.synchronizedList(new ArrayList<>());
+        engine.setOnErrorListener(new ZebraEngine.OnEngineErrorListener() {
+            @Override
+            public void onError(String error) {
+                errors.add(error);
+            }
+        });
+        EngineConfig zebraPlaysBlack = new EngineConfig(FUNCTION_ZEBRA_BLACK, 1, 1, 0,
+                false, null, false, false, false, 0, 0, 0);
+        int divergedVariants = 0;
+        try {
+            for (int variant = 0; variant < 4; variant++) {
+                byte[] moves = new byte[squares.length];
+                StringBuilder text = new StringBuilder();
+                for (int i = 0; i < squares.length; i++) {
+                    int[] square = symmetricSquare(squares[i], variant);
+                    Move move = new Move(square[0], square[1]);
+                    moves[i] = (byte) move.getMoveInt();
+                    text.append(move.getText());
+                }
+                String moveSequence = text.toString();
+
+                GameState gameState = loadGame(engine, moves, zebraPlaysBlack);
+                waitForMoveSequence(gameState, moveSequence);
+                waitForUserInputWait(engine);
+
+                // Back to the start: the computer (Black) moves again, then
+                // it's the human's (White's) turn.
+                engine.undoAll(gameState);
+                long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+                while ((removePasses(gameState.getMoveSequenceAsString()).length() != 2
+                        || engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT)
+                        && System.currentTimeMillis() < deadline) {
+                    Thread.sleep(10);
+                }
+                String computerFirstMove = removePasses(gameState.getMoveSequenceAsString());
+                assertEquals("variant " + variant + ": the computer should have played exactly the first move",
+                        2, computerFirstMove.length());
+
+                engine.redoMove(gameState);
+                if (computerFirstMove.equals(moveSequence.substring(0, 2))) {
+                    // same history as the stored game: redo restores all of it
+                    waitForMoveSequence(gameState, moveSequence);
+                } else {
+                    divergedVariants++;
+                    waitForUserInputWait(engine);
+                    Thread.sleep(500);
+                    assertEquals("variant " + variant + ": redo after the computer chose a different "
+                                    + "first move must not replay the old game",
+                            computerFirstMove, removePasses(gameState.getMoveSequenceAsString()));
+                }
+            }
+        } finally {
+            engine.setOnErrorListener(null);
+        }
+        assertTrue("no variant diverged from the computer's first move - test exercised nothing",
+                divergedVariants > 0);
+        assertEquals("engine errors: " + errors, 0, errors.size());
     }
 
     // ------------------------------------------------------------------
@@ -783,6 +908,69 @@ public class HostJniSmokeTest {
             return "WHITE";
         }
         return "EMPTY";
+    }
+
+    private static GameState loadGame(ZebraEngine engine, byte[] moves, EngineConfig config)
+            throws InterruptedException {
+        AtomicReference<GameState> gameStateRef = new AtomicReference<>();
+        engine.newGameBlocking(moves, moves.length, config,
+                new ZebraEngine.OnGameStateReadyListener() {
+                    @Override
+                    public void onGameStateReady(GameState gameState) {
+                        gameStateRef.set(gameState);
+                    }
+                });
+        long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+        while (gameStateRef.get() == null && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        GameState gameState = gameStateRef.get();
+        if (gameState == null) {
+            fail("Engine never delivered a GameState");
+        }
+        return gameState;
+    }
+
+    // Returns once the engine waits for input again, or after the timeout -
+    // callers assert on the resulting position themselves.
+    private static void waitForUserInputWait(ZebraEngine engine) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+        while (engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT
+                && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+    }
+
+    // The four board symmetries that keep the standard starting position
+    // (identity, 180-degree rotation, both diagonal mirrors), so they turn
+    // one legal game into four legal games with different opening moves.
+    private static int[] symmetricSquare(int[] square, int variant) {
+        int x = square[0];
+        int y = square[1];
+        switch (variant) {
+            case 1:
+                return new int[]{7 - x, 7 - y};
+            case 2:
+                return new int[]{y, x};
+            case 3:
+                return new int[]{7 - y, 7 - x};
+            default:
+                return new int[]{x, y};
+        }
+    }
+
+    // {column, row} (0-based) of every move of a WThor game.
+    private static int[][] decodeGameSquares(byte[] file, int gameIndex) {
+        int offset = WTHOR_HEADER_SIZE + gameIndex * WTHOR_GAME_RECORD_SIZE;
+        List<int[]> squares = new ArrayList<>();
+        for (int i = offset + WTHOR_GAME_HEADER_SIZE; i < offset + WTHOR_GAME_RECORD_SIZE; i++) {
+            int encodedMove = file[i] & 0xff;
+            if (encodedMove == 0) {
+                continue;
+            }
+            squares.add(new int[]{encodedMove % 10 - 1, encodedMove / 10 - 1});
+        }
+        return squares.toArray(new int[0][]);
     }
 
     private static byte[] decodeGameMoveInts(byte[] file, int gameIndex) {

@@ -917,6 +917,12 @@ AGAIN:
 			if ( player_time[side_to_move] != INFINIT_TIME )
 				player_time[side_to_move] -= (move_stop - move_start);
 
+			// A move that differs from the one stored for this ply (e.g. the
+			// computer choosing differently after an undo) starts a new
+			// history - redo would otherwise replay the old game's moves on
+			// top of it.
+			if ( get_stored_move( disks_played ) != curr_move )
+				_droidzebra_undo_stack_clear();
 			store_move( disks_played, curr_move );
 
 			(void) make_move( side_to_move, curr_move, TRUE );
@@ -1000,6 +1006,10 @@ AGAIN:
 			// this loop is reached from) was silently swallowed - the loop
 			// just went back to waiting for the next event instead of
 			// applying it, unlike UNDO/UNDO_ALL right above.
+			// With nothing to redo, keep waiting: going back to AGAIN would
+			// just end the game again and send a second game-over.
+			if ( !_droidzebra_can_redo() )
+				continue;
 			_droidzebra_redo_turn(&side_to_move);
 			// adjust for increment at the beginning of the game loop
 			if ( side_to_move == BLACKSQ )
