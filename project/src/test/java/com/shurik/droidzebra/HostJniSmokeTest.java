@@ -210,6 +210,9 @@ public class HostJniSmokeTest {
     // case exercised separately below.
     private static final int PASSLESS_GAME_INDEX = 4;
 
+    // See undoDuringAPracticeEvaluationLeavesTheBoardIntact.
+    private static final int PASS_AFTER_EVALUATED_MOVE_GAME_INDEX = 155;
+
     @Test
     public void playsFullGameThenUndoesAndRedoesCleanly() throws Exception {
         File nativeLib = findNativeLib();
@@ -606,6 +609,62 @@ public class HostJniSmokeTest {
                     blockedMillis < 100);
 
             waitForMoveSequence(gameState, fullGameText.substring(0, 2 * (prefixLength - 1)));
+        } finally {
+            engine.forceStopGame();
+        }
+    }
+
+    // WThor game 155 after ply 28 (White's only move, g8): Black to move, and
+    // after many of Black's moves (h8 among them) White has to pass. Practice
+    // mode evaluates each of those moves with a second search for Black. An
+    // undo that interrupted that second search used to leave the move on the
+    // board, so the position after the undo was wrong (seen in CI as
+    // WthorReplayTest's "undo of ply 28 (g8) did not clear that square").
+    @Test
+    public void undoDuringAPracticeEvaluationLeavesTheBoardIntact() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        byte[] fullGameMoves = decodeGameMoveInts(file, PASS_AFTER_EVALUATED_MOVE_GAME_INDEX);
+        String fullGameText = decodeGameMoveText(file, PASS_AFTER_EVALUATED_MOVE_GAME_INDEX);
+        int ply = 28;
+        String beforeUndo = fullGameText.substring(0, 2 * ply);
+        String afterUndo = fullGameText.substring(0, 2 * (ply - 1));
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        try {
+            GameState reference = loadGame(engine, java.util.Arrays.copyOf(fullGameMoves, ply - 1),
+                    new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 1,
+                            false, null, false, false, false, 0, 0, 0));
+            waitForMoveSequence(reference, afterUndo);
+            waitForUserInputWait(engine);
+            byte[][] expectedBoard = captureBoard(reference);
+
+            GameState gameState = loadGame(engine, java.util.Arrays.copyOf(fullGameMoves, ply),
+                    new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 10, 10, 10,
+                            false, null, false, true, false, 0, 0, 0));
+            waitForMoveSequence(gameState, beforeUndo);
+            java.util.Random random = new java.util.Random(PASS_AFTER_EVALUATED_MOVE_GAME_INDEX);
+            for (int attempt = 0; attempt < 60; attempt++) {
+                long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+                while (engine.getState() != ZebraEngine.ENGINE_STATE.ES_PLAY_IN_PROGRESS
+                        && System.currentTimeMillis() < deadline) {
+                    Thread.sleep(1);
+                }
+                // Spread the undo over the whole evaluation.
+                Thread.sleep(random.nextInt(60));
+                undoOnce(engine, gameState, afterUndo, ply);
+                assertEquals("board after undo #" + attempt + " of ply " + ply,
+                        "<no differing squares>", diffBoards(expectedBoard, captureBoard(gameState)));
+                redoOnce(engine, gameState, beforeUndo, ply);
+            }
         } finally {
             engine.forceStopGame();
         }
