@@ -68,7 +68,6 @@ public class ZebraEngine {
             MSG_EVAL_TEXT = 11,
             MSG_PV = 12,
             MSG_CANDIDATE_EVALS = 13,
-            MSG_ANALYZE_GAME = 14,
             MSG_NEXT_MOVE = 15,
             MSG_STATUS = 16,
             MSG_DEBUG = 65535;
@@ -436,12 +435,6 @@ public class ZebraEngine {
         );
     }
 
-    // TODO when we want it, then we do it ;), for now it's not clear how it should work so I commented it out
-//    public void analyzeGame(List<Move> moves) {
-//        byte[] bytes = toByte(moves);
-//        zeAnalyzeGame(moves.size(), bytes);
-//    }
-
     // called by native code
     //public void Error(String msg) throws EngineError
     //{
@@ -562,14 +555,6 @@ public class ZebraEngine {
                     }
                 }
                 break;
-                case MSG_ANALYZE_GAME: {
-                    setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
-                    //currentGameState.sendMessage(msg);
-                    waitForEngineState(ENGINE_STATE.ES_PLAY);
-                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
-                }
-                break;
-
                 case MSG_OPENING_NAME: {
                     currentGameState.setOpening(data.getString("opening"));
 
@@ -693,6 +678,14 @@ public class ZebraEngine {
             }
         } catch (JSONException e) {
             onErrorListener.onError("JSONException:" + e.getMessage());
+        } catch (RuntimeException e) {
+            // Must not escape into the native engine: JNI would unwind the
+            // whole zePlay() with it pending and EngineThread would die from
+            // it, crashing the app. Report it like any other engine error
+            // instead (MSG_GET_USER_INPUT then returns null, which the native
+            // side treats as "end the game").
+            Log.e("ZebraEngine", "Callback(" + msgcode + ") failed", e);
+            onErrorListener.onError(e.toString());
         } finally {
             bInCallback = false;
         }
@@ -783,10 +776,6 @@ public class ZebraEngine {
     private native void zeSetUseBook(int enable);
 
     private native boolean zeGameInProgress();
-
-    private native void zeAnalyzeGame(int providedMoveCount, byte[] providedMoves);
-
-    private native void zeJsonTest(JSONObject json);
 
     static {
         System.loadLibrary("droidzebra");
@@ -1018,13 +1007,20 @@ public class ZebraEngine {
                     listener.onGameStateReady(currentGameState);
 
 
-                    if (initialGameState != null) {
-                        GameState initialGameState = ZebraEngine.this.initialGameState;
-                        ZebraEngine.this.initialGameState = null;
-                        byte[] providedMoves = initialGameState.exportMoveSequence();
-                        zePlay(providedMoves.length, providedMoves);
-                    } else
-                        zePlay(0, null);
+                    try {
+                        if (initialGameState != null) {
+                            GameState initialGameState = ZebraEngine.this.initialGameState;
+                            ZebraEngine.this.initialGameState = null;
+                            byte[] providedMoves = initialGameState.exportMoveSequence();
+                            zePlay(providedMoves.length, providedMoves);
+                        } else
+                            zePlay(0, null);
+                    } catch (RuntimeException e) {
+                        // Whatever still makes it out of the engine (Callback()
+                        // catches its own) ends this game, not the engine thread.
+                        Log.e("ZebraEngine", "zePlay failed", e);
+                        onErrorListener.onError(e.toString());
+                    }
 
                 }
 

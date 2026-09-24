@@ -98,34 +98,3 @@ jint droidzebra_json_get_int(JNIEnv* env, jobject json, const char* key)
 	(*env)->DeleteLocalRef(env, cls);
 	return value;
 }
-
-char* droidzebra_json_get_string(JNIEnv* env, jobject json, const char* key, char* buf, int bufsize)
-		{
-	char* retval = buf;
-	const char* str = NULL;
-	jclass cls;
-	jmethodID mid;
-
-	cls = (*env)->GetObjectClass(env, json);
-	mid = (*env)->GetMethodID(env, cls, "getString", "(Ljava/lang/String;)Ljava/lang/String;");
-	assert(mid!=0);
-	if (mid != 0) {
-		jobject obj_str;
-		jobject keyobj = (*env)->NewStringUTF(env, key);
-
-		obj_str = (*env)->CallObjectMethod(env, json, mid, (*env)->NewStringUTF(env, keyobj));
-		if ((*env)->ExceptionCheck(env)) return NULL;
-
-		str = (*env)->GetStringUTFChars(env, obj_str, NULL);
-		if( !str ) return NULL;
-
-		strncpy(buf, str, bufsize);
-		if( strlen(str)>=bufsize ) retval = NULL;
-
-		(*env)->ReleaseStringUTFChars(env, obj_str, str);
-		(*env)->DeleteLocalRef(env, obj_str);
-		(*env)->DeleteLocalRef(env, keyobj);
-	}
-	(*env)->DeleteLocalRef(env, cls);
-	return retval;
-		}

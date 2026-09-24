@@ -429,6 +429,139 @@ public class HostJniSmokeTest {
         assertEquals(moveSequence, removePasses(gameState.getMoveSequenceAsString()));
     }
 
+    // fatal_error() longjmps out of the engine past the end of zePlay, which
+    // used to leave the JNI globals set - the next zePlay then hit
+    // assert(s_env==NULL) and aborted the whole process. More than 64
+    // provided moves is one fatal_error that Java can trigger directly.
+    @Test
+    public void engineErrorDoesNotBreakTheNextGame() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        List<String> errors = Collections.synchronizedList(new ArrayList<>());
+        engine.setOnErrorListener(new ZebraEngine.OnEngineErrorListener() {
+            @Override
+            public void onError(String error) {
+                errors.add(error);
+            }
+        });
+        try {
+            byte[] tooManyMoves = new byte[65];
+            java.util.Arrays.fill(tooManyMoves, (byte) 34);
+            loadGame(engine, tooManyMoves, new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
+                    false, null, false, false, false, 0, 0, 0));
+            long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+            while (errors.isEmpty() && System.currentTimeMillis() < deadline) {
+                Thread.sleep(10);
+            }
+            assertEquals("expected exactly the provided-move-count error", 1, errors.size());
+            assertTrue(errors.get(0), errors.get(0).contains("greater that 64"));
+
+            byte[] file = Files.readAllBytes(wthorFile.toPath());
+            AtomicInteger gameStarts = new AtomicInteger();
+            AtomicReference<GameState> gameStateRef = new AtomicReference<>();
+            byte[] moveInts = decodeGameMoveInts(file, PASSLESS_GAME_INDEX);
+            engine.newGameBlocking(moveInts, moveInts.length,
+                    new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
+                            false, null, false, false, false, 0, 0, 0),
+                    new ZebraEngine.OnGameStateReadyListener() {
+                        @Override
+                        public void onGameStateReady(GameState gameState) {
+                            gameState.setGameStateListener(new GameStateListener() {
+                                @Override
+                                public void onGameStart() {
+                                    gameStarts.incrementAndGet();
+                                }
+                            });
+                            gameStateRef.set(gameState);
+                        }
+                    });
+            deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+            while (gameStateRef.get() == null && System.currentTimeMillis() < deadline) {
+                Thread.sleep(10);
+            }
+            GameState gameState = gameStateRef.get();
+            if (gameState == null) {
+                fail("Engine never delivered a GameState after the engine error");
+            }
+            waitForMoveSequence(gameState, decodeGameMoveText(file, PASSLESS_GAME_INDEX));
+            assertEquals("the game after the error must still send its game start", 1, gameStarts.get());
+            assertEquals("no further errors expected", 1, errors.size());
+        } finally {
+            engine.setOnErrorListener(null);
+        }
+    }
+
+    // Callback() only caught JSONException - any other exception from a
+    // listener unwound the native engine and killed the engine thread, so
+    // the app crashed and no further game could be played.
+    @Test
+    public void exceptionFromAListenerIsReportedAndTheGameGoesOn() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        List<String> errors = Collections.synchronizedList(new ArrayList<>());
+        engine.setOnErrorListener(new ZebraEngine.OnEngineErrorListener() {
+            @Override
+            public void onError(String error) {
+                errors.add(error);
+            }
+        });
+        try {
+            byte[] file = Files.readAllBytes(wthorFile.toPath());
+            byte[] moveInts = decodeGameMoveInts(file, PASSLESS_GAME_INDEX);
+            java.util.concurrent.atomic.AtomicBoolean thrown = new java.util.concurrent.atomic.AtomicBoolean();
+            AtomicReference<GameState> gameStateRef = new AtomicReference<>();
+            engine.newGameBlocking(moveInts, moveInts.length,
+                    new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
+                            false, null, false, false, false, 0, 0, 0),
+                    new ZebraEngine.OnGameStateReadyListener() {
+                        @Override
+                        public void onGameStateReady(GameState gameState) {
+                            gameState.setGameStateListener(new GameStateListener() {
+                                @Override
+                                public void onBoard(GameState board) {
+                                    if (thrown.compareAndSet(false, true)) {
+                                        throw new IllegalStateException("listener bug");
+                                    }
+                                }
+                            });
+                            gameStateRef.set(gameState);
+                        }
+                    });
+            long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+            while (gameStateRef.get() == null && System.currentTimeMillis() < deadline) {
+                Thread.sleep(10);
+            }
+            GameState gameState = gameStateRef.get();
+            if (gameState == null) {
+                fail("Engine never delivered a GameState");
+            }
+            waitForMoveSequence(gameState, decodeGameMoveText(file, PASSLESS_GAME_INDEX));
+            assertTrue("the listener's exception was never thrown", thrown.get());
+            assertEquals("the listener's exception must be reported as an engine error", 1, errors.size());
+            assertTrue(errors.get(0), errors.get(0).contains("listener bug"));
+        } finally {
+            engine.setOnErrorListener(null);
+        }
+    }
+
     // An undo while practice mode still evaluates the position is handed to
     // the engine right away (interrupting the evaluation) instead of the
     // caller - the UI thread - waiting up to a second for the engine and

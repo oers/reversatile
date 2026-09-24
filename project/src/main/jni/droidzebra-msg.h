@@ -34,7 +34,6 @@
 #define MSG_EVAL_TEXT 11
 #define MSG_PV 12
 #define MSG_CANDIDATE_EVALS 13
-#define MSG_ANALYZE_GAME 14
 #define MSG_NEXT_MOVE 15
 #define MSG_STATUS 16
 #define MSG_DEBUG 65535
@@ -107,9 +106,6 @@ droidzebra_msg_status(char *status);
 
 void
 droidzebra_msg_candidate_evals(void);
-
-void
-droidzebra_msg_analyze(char *game);
 
 
 #endif
