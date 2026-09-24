@@ -1,6 +1,10 @@
 package de.earthlingz.oerszebra;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import com.shurik.droidzebra.GameState;
 import com.shurik.droidzebra.InvalidMove;
@@ -9,6 +13,10 @@ import com.shurik.droidzebra.ZebraEngine;
 import de.earthlingz.oerszebra.BoardView.BoardView;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -141,5 +149,46 @@ public class BoardRotateTest extends BasicTest {
         Move rotatedMove = boardView.getMoveFromCoord(topLeft.centerX(), topLeft.centerY());
         assertEquals(7, rotatedMove.getX());
         assertEquals(7, rotatedMove.getY());
+    }
+
+    // Rotating turns the whole board drawing by 180 degrees, which used to turn
+    // the coordinate labels (and the practice-mode evals) upside down with it.
+    // Every text drawn must still run left to right on screen.
+    @Test
+    public void testRotatedBoardKeepsTextUpright() throws InterruptedException {
+        BoardView boardView = zebra.getBoardView();
+        // practice mode (on by default) puts evals on the candidate squares -
+        // give the first ones a moment so they're part of what gets checked
+        waitUntil(() -> zebra.getGameState() != null
+                && zebra.getGameState().getBestMove() != null, 10_000);
+        try {
+            for (boolean rotated : new boolean[]{false, true}) {
+                getInstrumentation().runOnMainSync(() -> boardView.setRotated(rotated));
+                List<String> drawn = new ArrayList<>();
+                List<String> upsideDown = new ArrayList<>();
+                Bitmap bitmap = Bitmap.createBitmap(boardView.getWidth(), boardView.getHeight(),
+                        Bitmap.Config.ARGB_8888);
+                Canvas recording = new Canvas(bitmap) {
+                    @Override
+                    @SuppressWarnings("deprecation")
+                    public void drawText(String text, float x, float y, Paint paint) {
+                        Matrix matrix = getMatrix();
+                        float[] direction = {1, 0};
+                        matrix.mapVectors(direction);
+                        drawn.add(text);
+                        if (direction[0] <= 0) {
+                            upsideDown.add(text);
+                        }
+                        super.drawText(text, x, y, paint);
+                    }
+                };
+                getInstrumentation().runOnMainSync(() -> boardView.draw(recording));
+                assertTrue("rotated=" + rotated + ": no coordinate labels were drawn", drawn.contains("A"));
+                assertTrue("rotated=" + rotated + ": texts drawn upside down: " + upsideDown,
+                        upsideDown.isEmpty());
+            }
+        } finally {
+            getInstrumentation().runOnMainSync(() -> boardView.setRotated(false));
+        }
     }
 }

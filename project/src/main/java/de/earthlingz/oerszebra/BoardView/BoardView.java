@@ -271,12 +271,10 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         // draw guides
         for (int i = 0; i < boardSize; i++) {
             mPaint.setTextSize(mSizeCell * 0.3f);
-            mPaint.setColor(mColors.Line);
-            canvas.drawText(String.valueOf(i + 1), mBoardRect.left / 2 + 1, mBoardRect.top + i * mSizeCell + mSizeCell / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2 + 1, mPaint);
-            canvas.drawText(Character.toString((char) ('A' + i)), mBoardRect.left + i * mSizeCell + mSizeCell / 2 + 1, mBoardRect.top / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2 + 1, mPaint);
-            mPaint.setColor(mColors.Numbers);
-            canvas.drawText(String.valueOf(i + 1), mBoardRect.left / 2, mBoardRect.top + i * mSizeCell + mSizeCell / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2, mPaint);
-            canvas.drawText(Character.toString((char) ('A' + i)), mBoardRect.left + i * mSizeCell + mSizeCell / 2, mBoardRect.top / 2 - (mFontMetrics.ascent + mFontMetrics.descent) / 2, mPaint);
+            drawGuide(canvas, String.valueOf(i + 1),
+                    mBoardRect.left / 2, mBoardRect.top + i * mSizeCell + mSizeCell / 2);
+            drawGuide(canvas, Character.toString((char) ('A' + i)),
+                    mBoardRect.left + i * mSizeCell + mSizeCell / 2, mBoardRect.top / 2);
         }
 
         // draw helpers for move selector
@@ -347,7 +345,9 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
                         mPaintEvalText.setColor(mColors.EvalsBest);
                     else
                         mPaintEvalText.setColor(mColors.Evals);
+                    int upright = saveUpright(canvas, cr.centerX(), cr.centerY());
                     canvas.drawText(move.evalShort, cr.centerX(), cr.centerY() - (mEvalFontMetrics.ascent + mEvalFontMetrics.descent) / 2, mPaintEvalText);
+                    canvas.restoreToCount(upright);
                 } else {
                     float[] pts =
                             {
@@ -375,6 +375,29 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         }
 
         canvas.restoreToCount(rotateSave);
+    }
+
+    // Text on the board has to stay readable when the board is drawn rotated
+    // 180 degrees (see setRotated): turning it back around its own center
+    // keeps it next to its square, but upright. Pair with restoreToCount().
+    private int saveUpright(Canvas canvas, float centerX, float centerY) {
+        int save = canvas.save();
+        if (mRotated) {
+            canvas.rotate(180, centerX, centerY);
+        }
+        return save;
+    }
+
+    // A coordinate label (row number or column letter) centered on the
+    // given point, with its shadow one pixel to the bottom right.
+    private void drawGuide(Canvas canvas, String label, float centerX, float centerY) {
+        float baseline = centerY - (mFontMetrics.ascent + mFontMetrics.descent) / 2;
+        int upright = saveUpright(canvas, centerX, centerY);
+        mPaint.setColor(mColors.Line);
+        canvas.drawText(label, centerX + 1, baseline + 1, mPaint);
+        mPaint.setColor(mColors.Numbers);
+        canvas.drawText(label, centerX, baseline, mPaint);
+        canvas.restoreToCount(upright);
     }
 
     private void drawDiscs(Canvas canvas, BoardViewModel board_view) {
