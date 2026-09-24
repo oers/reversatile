@@ -1,2 +1,11 @@
-Update to Android 34
-Othello Quest Sharing works again
+New:
+• Game analysis: after a game, the app can show you how good each move was. Tap a move to jump straight to it.
+
+Improved:
+• Taking back and replaying moves now works reliably.
+• The back button takes back your last move again.
+• The app starts faster.
+• The game engine has been updated.
+• Several crashes fixed.
+• Your choice about anonymous usage statistics is respected right away.
+• Updated for Android 17.

@@ -1,2 +1,11 @@
-Aktualisierung auf Android 35
-Othello Quest Anbindung funktioniert wieder
+Neu:
+• Partie-Analyse: Nach dem Spiel zeigt die App auf Wunsch, wie gut jeder Zug war. Ein Tipp auf einen Zug springt direkt dorthin.
+
+Verbessert:
+• Züge zurücknehmen und wiederholen funktioniert jetzt zuverlässig.
+• Die Zurück-Taste nimmt wieder den letzten Zug zurück.
+• Die App startet schneller.
+• Die Spiel-Engine wurde aktualisiert.
+• Mehrere Abstürze behoben.
+• Deine Wahl zu anonymen Nutzungsstatistiken wird sofort beachtet.
+• Angepasst an Android 17.
