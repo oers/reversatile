@@ -98,8 +98,10 @@ public class ZebraEngine {
     private transient GameState initialGameState;
     private transient GameState currentGameState;
 
-    // current move
+    // The next UI event for the engine, and whether a stop was asked for -
+    // both guarded by engineStateEventLock, see sendUserEvent().
     private JSONObject mPendingEvent = null;
+    private boolean mExitRequested = false;
     private int mValidMoves[] = null;
 
     // mPlayerInfoChanged must be always inside synchronized block with playerInfoLock
@@ -107,7 +109,7 @@ public class ZebraEngine {
     private boolean mPlayerInfoChanged = false;
     private final Object playerInfoLock = new Object();
 
-    private int mSideToMove = PLAYER_ZEBRA;
+    private volatile int mSideToMove = PLAYER_ZEBRA;
 
     // context
     private GameContext mContext;
@@ -120,7 +122,7 @@ public class ZebraEngine {
 
     private final transient Object engineStateEventLock = new Object();
 
-    private ENGINE_STATE mEngineState = ENGINE_STATE.ES_INITIAL;
+    private volatile ENGINE_STATE mEngineState = ENGINE_STATE.ES_INITIAL;
 
     private boolean isRunning = false;
 
@@ -143,18 +145,6 @@ public class ZebraEngine {
         EngineAssets.prepare(mContext);
         mFilesDir = mContext.getFilesDir();
         return true;
-    }
-
-    private void waitForEngineState(int milliseconds, ENGINE_STATE... state) {
-        synchronized (engineStateEventLock) {
-            if (!ArrayUtils.contains(state, mEngineState))
-                try {
-                    engineStateEventLock.wait(milliseconds);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-
-        }
     }
 
     private void waitForEngineState(ENGINE_STATE... state) {
@@ -197,29 +187,56 @@ public class ZebraEngine {
     // tell zebra to end current game
     private void stopGame() {
         zeForceExit();
-        // if waiting for move - get back into the engine
-        // every other state should work itself out
-        if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            mPendingEvent = new JSONObject();
-            try {
-                mPendingEvent.put("type", UI_EVENT_EXIT);
-            } catch (JSONException e) {
-                // Log.getStackTraceString(e);
+        synchronized (engineStateEventLock) {
+            // Picked up by MSG_GET_USER_INPUT whenever it asks next - also
+            // if that's only just about to happen: the old "post an exit
+            // event if the engine waits right now" missed that case, and the
+            // engine then sat waiting for input with the stop long gone.
+            mExitRequested = true;
+            engineStateEventLock.notifyAll();
+            // releases a pass confirmation (MSG_PASS) waiting right now
+            if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
+                setEngineState(ENGINE_STATE.ES_PLAY);
             }
-            setEngineState(ENGINE_STATE.ES_PLAY);
         }
     }
 
     public void forceStopGame() {
-        zeForceExit();
-        // if waiting for move - get back into the engine
-        mPendingEvent = new JSONObject();
+        stopGame();
+        waitForEngineState(ENGINE_STATE.ES_READY2PLAY, ENGINE_STATE.ES_USER_INPUT_WAIT);
+    }
+
+    private static JSONObject uiEvent(int type) {
+        JSONObject event = new JSONObject();
         try {
-            mPendingEvent.put("type", UI_EVENT_EXIT);
+            event.put("type", type);
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
-        waitForEngineState(ENGINE_STATE.ES_READY2PLAY, ENGINE_STATE.ES_USER_INPUT_WAIT);
+        return event;
+    }
+
+    /**
+     * Hands a UI event to the engine, from any thread. Taken right away if the
+     * engine waits for input. While it's busy on the human's own time -
+     * practice mode evaluating the position, or still finishing the human's
+     * last action - the evaluation is interrupted and the event is taken by
+     * the engine's next input request. That used to block the calling (UI)
+     * thread for up to a second waiting for the engine, and dropped the event
+     * if it took longer. Otherwise (the computer is thinking, no game) it's
+     * dropped, as before. Check and hand-over happen under the same lock the
+     * engine takes the event under, so no other thread can slip in between.
+     */
+    private void sendUserEvent(JSONObject event) {
+        synchronized (engineStateEventLock) {
+            if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
+                mPendingEvent = event;
+                setEngineState(ENGINE_STATE.ES_PLAY);
+            } else if (mPendingEvent == null && isThinkingOnHumanTime()) {
+                mPendingEvent = event;
+                stopMove();
+            }
+        }
     }
 
     public void makeMove(GameState gameState, Move move) throws InvalidMove {
@@ -230,33 +247,13 @@ public class ZebraEngine {
         if (!isValidMove(move))
             throw new InvalidMove();
 
-        // if thinking on human time - stop
-        stopIfThinkingOnHumanTime();
-
-        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            // Log.d("ZebraEngine", "Invalid Engine State");
-            return;
-        }
-
-        // add move the the pending event and tell zebra to pick it up
-        mPendingEvent = new JSONObject();
+        JSONObject event = uiEvent(UI_EVENT_MOVE);
         try {
-            mPendingEvent.put("type", UI_EVENT_MOVE);
-            mPendingEvent.put("move", move.getMoveInt());
+            event.put("move", move.getMoveInt());
         } catch (JSONException e) {
             // Log.getStackTraceString(e);
         }
-        setEngineState(ENGINE_STATE.ES_PLAY);
-    }
-
-    /**
-     * This is needed when zebra is thinking on practice mode but user wants to play - as I found out, maybe it is needed for something else too
-     */
-    private void stopIfThinkingOnHumanTime() {
-        if (isThinkingOnHumanTime()) {
-            stopMove();
-            waitForEngineState(1000, ENGINE_STATE.ES_USER_INPUT_WAIT);
-        }
+        sendUserEvent(event);
     }
 
     public void undoMove(GameState gameState) {
@@ -265,22 +262,7 @@ public class ZebraEngine {
             // TODO why would you need it here right?
             return;
         }
-        // if thinking on human time - stop
-        stopIfThinkingOnHumanTime();
-
-        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            // Log.d("ZebraEngine", "Invalid Engine State");
-            return;
-        }
-
-        // create pending event and tell zebra to pick it up
-        mPendingEvent = new JSONObject();
-        try {
-            mPendingEvent.put("type", UI_EVENT_UNDO);
-        } catch (JSONException e) {
-            // Log.getStackTraceString(e);
-        }
-        setEngineState(ENGINE_STATE.ES_PLAY);
+        sendUserEvent(uiEvent(UI_EVENT_UNDO));
     }
 
 
@@ -290,22 +272,7 @@ public class ZebraEngine {
             // TODO why would you need it here right?
             return;
         }
-        // if thinking on human time - stop
-        stopIfThinkingOnHumanTime();
-
-        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            // Log.d("ZebraEngine", "Invalid Engine State");
-            return;
-        }
-
-        // create pending event and tell zebra to pick it up
-        mPendingEvent = new JSONObject();
-        try {
-            mPendingEvent.put("type", UI_EVENT_UNDO_ALL);
-        } catch (JSONException e) {
-            // Log.getStackTraceString(e);
-        }
-        setEngineState(ENGINE_STATE.ES_PLAY);
+        sendUserEvent(uiEvent(UI_EVENT_UNDO_ALL));
     }
 
     public void redoMove(GameState gameState) {
@@ -313,23 +280,7 @@ public class ZebraEngine {
             //TODO switch context
             return;
         }
-
-        // if thinking on human time - stop
-        stopIfThinkingOnHumanTime();
-
-        if (mEngineState != ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            // Log.d("ZebraEngine", "Invalid Engine State");
-            return;
-        }
-
-        // create pending event and tell zebra to pick it up
-        mPendingEvent = new JSONObject();
-        try {
-            mPendingEvent.put("type", UI_EVENT_REDO);
-        } catch (JSONException e) {
-            // Log.getStackTraceString(e);
-        }
-        setEngineState(ENGINE_STATE.ES_PLAY);
+        sendUserEvent(uiEvent(UI_EVENT_REDO));
     }
 
     private boolean isThinkingOnHumanTime() {
@@ -340,14 +291,11 @@ public class ZebraEngine {
     // notifications that some settings have changes - see if we care
     private void sendSettingsChanged() {
         // if we are waiting for input - restart the move (e.g. if sides switched)
-        if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
-            mPendingEvent = new JSONObject();
-            try {
-                mPendingEvent.put("type", UI_EVENT_SETTINGS_CHANGE);
-            } catch (JSONException e) {
-                // Log.getStackTraceString(e);
+        synchronized (engineStateEventLock) {
+            if (mEngineState == ENGINE_STATE.ES_USER_INPUT_WAIT) {
+                mPendingEvent = uiEvent(UI_EVENT_SETTINGS_CHANGE);
+                setEngineState(ENGINE_STATE.ES_PLAY);
             }
-            setEngineState(ENGINE_STATE.ES_PLAY);
         }
     }
 
@@ -570,30 +518,48 @@ public class ZebraEngine {
                 break;
 
                 case MSG_GET_USER_INPUT: {
-
-                    setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
-
-                    waitForEngineState(ENGINE_STATE.ES_PLAY);
-
-                    while (mPendingEvent == null) {
-                        setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
-                        waitForEngineState(ENGINE_STATE.ES_PLAY);
+                    synchronized (engineStateEventLock) {
+                        // An event may be here already - handed over while
+                        // this position was still being evaluated, see
+                        // sendUserEvent().
+                        while (mPendingEvent == null && !mExitRequested && isRunning) {
+                            setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
+                            try {
+                                engineStateEventLock.wait();
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                        }
+                        retval = (mPendingEvent != null && !mExitRequested)
+                                ? mPendingEvent : uiEvent(UI_EVENT_EXIT);
+                        mPendingEvent = null;
+                        mValidMoves = null;
+                        setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
                     }
-
-                    retval = mPendingEvent;
-
-                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
-
-                    mValidMoves = null;
-                    mPendingEvent = null;
                 }
                 break;
 
                 case MSG_PASS: {
                     setEngineState(ENGINE_STATE.ES_USER_INPUT_WAIT);
                     currentGameState.sendPass();
-                    waitForEngineState(ENGINE_STATE.ES_PLAY);
-                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
+                    // waits for pass() - or a stop, same as MSG_GET_USER_INPUT
+                    synchronized (engineStateEventLock) {
+                        while (mEngineState != ENGINE_STATE.ES_PLAY && !mExitRequested && isRunning) {
+                            try {
+                                engineStateEventLock.wait();
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                        }
+                        // An event sent while the pass waited only confirmed
+                        // the pass - it must not linger into the next input
+                        // request (MSG_GET_USER_INPUT takes a pending event
+                        // without waiting).
+                        mPendingEvent = null;
+                        setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
+                    }
                 }
                 break;
                 case MSG_ANALYZE_GAME: {
@@ -1035,6 +1001,12 @@ public class ZebraEngine {
                 if (!isRunning) break; // something may have happened while we were waiting
 
                 setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
+
+                synchronized (engineStateEventLock) {
+                    // nothing from the previous game carries over
+                    mPendingEvent = null;
+                    mExitRequested = false;
+                }
 
                 synchronized (mJNILock) {
                     setPlayerInfos();

@@ -429,6 +429,101 @@ public class HostJniSmokeTest {
         assertEquals(moveSequence, removePasses(gameState.getMoveSequenceAsString()));
     }
 
+    // An undo while practice mode still evaluates the position is handed to
+    // the engine right away (interrupting the evaluation) instead of the
+    // caller - the UI thread - waiting up to a second for the engine and
+    // dropping the undo if it took longer.
+    @Test
+    public void undoDuringAPracticeEvaluationIsTakenRightAway() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        byte[] fullGameMoves = decodeGameMoveInts(file, PASSLESS_GAME_INDEX);
+        String fullGameText = decodeGameMoveText(file, PASSLESS_GAME_INDEX);
+        int prefixLength = 20;
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        try {
+            // Deep enough that the practice evaluation of this midgame
+            // position is certain to still be running when the undo comes.
+            GameState gameState = loadGame(engine, java.util.Arrays.copyOf(fullGameMoves, prefixLength),
+                    new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 24, 24, 24,
+                            false, null, false, true, false, 0, 0, 0));
+            waitForMoveSequence(gameState, fullGameText.substring(0, 2 * prefixLength));
+            long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+            while (engine.getState() != ZebraEngine.ENGINE_STATE.ES_PLAY_IN_PROGRESS
+                    && System.currentTimeMillis() < deadline) {
+                Thread.sleep(10);
+            }
+            Thread.sleep(200);
+            assertEquals("the practice evaluation should still be running",
+                    ZebraEngine.ENGINE_STATE.ES_PLAY_IN_PROGRESS, engine.getState());
+
+            long start = System.currentTimeMillis();
+            engine.undoMove(gameState);
+            long blockedMillis = System.currentTimeMillis() - start;
+            assertTrue("undoMove() must not wait for the engine, took " + blockedMillis + " ms",
+                    blockedMillis < 100);
+
+            waitForMoveSequence(gameState, fullGameText.substring(0, 2 * (prefixLength - 1)));
+        } finally {
+            engine.forceStopGame();
+        }
+    }
+
+    // A stop that comes while the engine is busy but about to ask for input
+    // (here: from a board update, which the engine sends right before it
+    // asks) used to be lost - the exit event was only posted if the engine
+    // was already waiting, so it then waited for input forever.
+    @Test
+    public void stopJustBeforeTheEngineAsksForInputEndsTheGame() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        byte[] prefix = java.util.Arrays.copyOf(decodeGameMoveInts(file, PASSLESS_GAME_INDEX), 20);
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        java.util.concurrent.atomic.AtomicBoolean stopped = new java.util.concurrent.atomic.AtomicBoolean();
+        engine.newGameBlocking(prefix, prefix.length,
+                new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
+                        false, null, false, false, false, 0, 0, 0),
+                new ZebraEngine.OnGameStateReadyListener() {
+                    @Override
+                    public void onGameStateReady(GameState gameState) {
+                        gameState.setGameStateListener(new GameStateListener() {
+                            @Override
+                            public void onBoard(GameState board) {
+                                if (stopped.compareAndSet(false, true)) {
+                                    engine.disconnect(board);
+                                }
+                            }
+                        });
+                    }
+                });
+        long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+        while (engine.getState() != ZebraEngine.ENGINE_STATE.ES_READY2PLAY
+                && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        assertTrue("the stop was never requested", stopped.get());
+        assertEquals("the stopped game must end instead of waiting for input",
+                ZebraEngine.ENGINE_STATE.ES_READY2PLAY, engine.getState());
+    }
+
     // After "undo all" against the computer, the computer plays the first
     // move again and may choose a different one than the stored game. The
     // redo targets used to survive that, so Redo then replayed the old
