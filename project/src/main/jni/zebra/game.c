@@ -865,8 +865,13 @@ extended_compute_move( int side_to_move, int book_only,
 	    this_eval.res = WON_POSITION;
 	}
 
-	if ( force_return )
+	if ( force_return ) {
+	  /* The second search above (the opponent had to pass) can be
+	     interrupted too - take THIS_MOVE back before leaving, like the
+	     check after the first search does. */
+	  unmake_move( side_to_move, this_move );
 	  break;
+	}
 	else
 	  evaluated_list[index].eval = this_eval;
 
