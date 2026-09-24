@@ -8,6 +8,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      # create/edit the GitHub release and upload the APK to it
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -49,6 +52,18 @@ jobs:
         keyPassword: ${{ secrets.KEY_PASSWORD }}
       env:
         BUILD_TOOLS_VERSION: "37.0.0"
+    # The signing step appends "-signed" to Gradle's
+    # "reversatile-release-<version>-unsigned.apk", which ended up as
+    # "...-unsigned-signed.apk" - name it "reversatile-<version>.apk" instead.
+    - name: Rename signed APK
+      run: |
+        for f in build/release/signed/*.apk; do
+          name=$(basename "$f")
+          name=${name/-release-/-}
+          name=${name/-unsigned-signed/}
+          [ "$f" = "build/release/signed/$name" ] || mv "$f" "build/release/signed/$name"
+        done
+        ls -l build/release/signed
     - name: play store
       uses: r0adkll/upload-google-play@v1
       with:
@@ -60,12 +75,25 @@ jobs:
         userFraction: 0.33
         status: inProgress
         whatsNewDirectory: whatsnew
+    # Creates the GitHub release if the tag was pushed without one, or keeps
+    # the title and text of a release that was already written by hand -
+    # either way the English Play Store release notes are added below the
+    # existing text (once, so a re-run doesn't add them twice), and the APK
+    # is attached.
     - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/release/signed/*.apk
-        file_glob: true
-        tag: ${{ github.ref }}
-        overwrite: true
-        body: "This is my release text"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        notes=$(cat whatsnew/whatsnew-en-US)
+        if gh release view "$TAG" > /dev/null 2>&1; then
+          body=$(gh release view "$TAG" --json body --jq .body)
+          case "$body" in
+            *"$notes"*) ;;
+            "") gh release edit "$TAG" --notes "$notes" ;;
+            *) gh release edit "$TAG" --notes "$(printf '%s\n\n%s' "$body" "$notes")" ;;
+          esac
+        else
+          gh release create "$TAG" --title "$TAG" --notes "$notes"
+        fi
+        gh release upload "$TAG" build/release/signed/*.apk --clobber
