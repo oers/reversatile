@@ -268,14 +268,25 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         canvas.drawCircle(mBoardRect.left + 6 * mSizeCell, mBoardRect.top + 2 * mSizeCell, gridCirclesRadius, mPaint);
         canvas.drawCircle(mBoardRect.left + 6 * mSizeCell, mBoardRect.top + 6 * mSizeCell, gridCirclesRadius, mPaint);
 
-        // draw guides
-        for (int i = 0; i < boardSize; i++) {
-            mPaint.setTextSize(mSizeCell * 0.3f);
-            drawGuide(canvas, String.valueOf(i + 1),
-                    mBoardRect.left / 2, mBoardRect.top + i * mSizeCell + mSizeCell / 2);
-            drawGuide(canvas, Character.toString((char) ('A' + i)),
-                    mBoardRect.left + i * mSizeCell + mSizeCell / 2, mBoardRect.top / 2);
+        // draw guides - always on the left (numbers) and top (letters) edge,
+        // so undo the board's rotation for them; on a rotated board they just
+        // run the other way (8..1, H..A) to still name the squares next to them
+        int guides = canvas.save();
+        if (mRotated) {
+            canvas.rotate(180, mSizeX / 2f, mSizeY / 2f);
         }
+        // where the (possibly rotated) board actually sits on screen
+        float boardLeft = mRotated ? mSizeX - mBoardRect.right : mBoardRect.left;
+        float boardTop = mRotated ? mSizeY - mBoardRect.bottom : mBoardRect.top;
+        for (int i = 0; i < boardSize; i++) {
+            int index = mRotated ? boardSize - 1 - i : i;
+            mPaint.setTextSize(mSizeCell * 0.3f);
+            drawGuide(canvas, String.valueOf(index + 1),
+                    boardLeft / 2, boardTop + i * mSizeCell + mSizeCell / 2);
+            drawGuide(canvas, Character.toString((char) ('A' + index)),
+                    boardLeft + i * mSizeCell + mSizeCell / 2, boardTop / 2);
+        }
+        canvas.restoreToCount(guides);
 
         // draw helpers for move selector
         if (mMoveSelection != null) {
@@ -377,9 +388,9 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
         canvas.restoreToCount(rotateSave);
     }
 
-    // Text on the board has to stay readable when the board is drawn rotated
-    // 180 degrees (see setRotated): turning it back around its own center
-    // keeps it next to its square, but upright. Pair with restoreToCount().
+    // Evals on the squares have to stay readable when the board is drawn
+    // rotated 180 degrees (see setRotated): turning them back around their own
+    // center keeps them on their square, but upright. Pair with restoreToCount().
     private int saveUpright(Canvas canvas, float centerX, float centerY) {
         int save = canvas.save();
         if (mRotated) {
@@ -392,12 +403,10 @@ public class BoardView extends View implements BoardViewModel.BoardViewModelList
     // given point, with its shadow one pixel to the bottom right.
     private void drawGuide(Canvas canvas, String label, float centerX, float centerY) {
         float baseline = centerY - (mFontMetrics.ascent + mFontMetrics.descent) / 2;
-        int upright = saveUpright(canvas, centerX, centerY);
         mPaint.setColor(mColors.Line);
         canvas.drawText(label, centerX + 1, baseline + 1, mPaint);
         mPaint.setColor(mColors.Numbers);
         canvas.drawText(label, centerX, baseline, mPaint);
-        canvas.restoreToCount(upright);
     }
 
     private void drawDiscs(Canvas canvas, BoardViewModel board_view) {
