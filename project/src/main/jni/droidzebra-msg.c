@@ -131,7 +131,12 @@ droidzebra_msg_get_user_input( int side_to_move, ui_event_t* ui_event )
 		ready = 1;
 
 		json_move = droidzebra_RPC_callback(MSG_GET_USER_INPUT, NULL);
-		assert(json_move!=NULL);
+		if( json_move==NULL ) {
+			// Java couldn't produce an event (it reported the error itself) -
+			// end the game instead of dereferencing NULL below
+			ui_event->type = UI_EVENT_EXIT;
+			return 0;
+		}
 		type = droidzebra_json_get_int(env, json_move, "type");
 		ui_event->type = type;
 		switch(type) {
@@ -218,13 +223,6 @@ droidzebra_msg_game_over(void)
 	droidzebra_message(MSG_GAME_OVER, NULL);
 }
 
-
-void
-droidzebra_msg_analyze(char *message) {
-    char json_buffer[64];
-    sprintf(json_buffer, "{\"analyze\":%s}", message);
-    droidzebra_message(MSG_MOVE_START, json_buffer);
-}
 
 // MSG_MOVE_START
 void

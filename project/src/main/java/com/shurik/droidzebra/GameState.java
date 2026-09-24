@@ -9,18 +9,23 @@ import java.util.*;
  * Holds Game State, This state should only be produced by engine as that's the source of truth
  */
 public class GameState {
-    private int sideToMove;
-    private ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
-    private ZebraPlayerStatus whitePlayer = new ZebraPlayerStatus();
-    private int disksPlayed;
-    private byte[] moveSequence = new byte[0];
+    // Written by the engine thread (updateGameState), read by the UI and
+    // by exports on other threads. moveSequence is only ever replaced as a
+    // whole, never modified in place, so a reader always sees one complete
+    // sequence - and it is written before disksPlayed, so a reader that
+    // sees the new count also sees the new sequence.
+    private volatile int sideToMove;
+    private volatile ZebraPlayerStatus blackPlayer = new ZebraPlayerStatus();
+    private volatile ZebraPlayerStatus whitePlayer = new ZebraPlayerStatus();
+    private volatile int disksPlayed;
+    private volatile byte[] moveSequence = new byte[0];
     private CandidateMove[] candidateMoves = new CandidateMove[0];
     private String opening;
     private int lastMove;
     private int nextMove;
 
     private String reachedDepth = "0";
-    private ByteBoard byteBoard;
+    private volatile ByteBoard byteBoard;
     private GameStateListener handler = new GameStateListener() {
     };
 
@@ -100,11 +105,13 @@ public class GameState {
      * @return the mve seqence without skips
      */
     public byte[] exportMoveSequence() {
+        int played = disksPlayed;
+        byte[] sequence = moveSequence;
         List<Byte> list= new ArrayList<>();
-        for(int i = 0; i < disksPlayed; i++) {
+        for(int i = 0; i < played && i < sequence.length; i++) {
             //filter passes
-            if(moveSequence[i] > 0) {
-                list.add(moveSequence[i]);
+            if(sequence[i] > 0) {
+                list.add(sequence[i]);
             }
         }
         byte[] asBytes = new byte[list.size()];
@@ -175,19 +182,20 @@ public class GameState {
 
 
     private void updateMoveSequence(MoveList blackMoveList, MoveList whiteMoveList) {
-        // Only the first blackMoveList.length()/whiteMoveList.length() slots
-        // get overwritten below, so after an undo shortens either list, the
-        // now-stale bytes from the previous (longer) sequence would
-        // otherwise linger past the new end - clear the whole array first
-        // so every slot beyond the current lists is unambiguously empty.
-        Arrays.fill(moveSequence, (byte) 0);
+        // Built in a fresh array and swapped in at the end: clearing and
+        // refilling the shared array in place let other threads read it
+        // half-updated (empty, or old and new moves mixed). A fresh array
+        // also means every slot past the current lists is empty after an
+        // undo shortens them.
+        byte[] sequence = new byte[moveSequence.length];
         for (int i = 0; i < blackMoveList.length(); i++) {
-            moveSequence[2 * i] = blackMoveList.getMoveByte(i);
+            sequence[2 * i] = blackMoveList.getMoveByte(i);
         }
 
         for (int i = 0; i < whiteMoveList.length(); i++) {
-            moveSequence[2 * i + 1] = whiteMoveList.getMoveByte(i);
+            sequence[2 * i + 1] = whiteMoveList.getMoveByte(i);
         }
+        moveSequence = sequence;
     }
 
 
@@ -200,9 +208,11 @@ public class GameState {
         // that scan never found its break condition and fell through to
         // printing the entire fixed-size array - including any stale
         // trailing bytes left over from a longer sequence before an undo.
-        if (moveSequence != null) {
-            for (int i = 0; i < disksPlayed && i < moveSequence.length; i++) {
-                byte move1 = moveSequence[i];
+        int played = disksPlayed;
+        byte[] sequence = moveSequence;
+        if (sequence != null) {
+            for (int i = 0; i < played && i < sequence.length; i++) {
+                byte move1 = sequence[i];
                 if (move1 != 0x00) {
                     sbMoves.append(new Move(move1).getText());
                 }
@@ -214,8 +224,8 @@ public class GameState {
     void updateGameState(int sideToMove, int disksPlayed, String blackTime, float blackEval, int blackDiscCount, String whiteTime, float whiteEval, int whiteDiscCOunt, MoveList blackMoveList, MoveList whiteMoveList, ByteBoard byteBoard) {
         this.byteBoard = byteBoard;
         this.sideToMove = sideToMove;
-        this.disksPlayed = disksPlayed;
         updateMoveSequence(blackMoveList, whiteMoveList);
+        this.disksPlayed = disksPlayed;
         this.blackPlayer = new ZebraPlayerStatus(
                 blackTime,
                 blackEval,

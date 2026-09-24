@@ -115,9 +115,19 @@ static int s_undo_stack_pointer = 0;
 static JNIEnv* s_env = NULL;
 static jobject s_thiz = NULL;
 static jmp_buf s_err_jmp;
+// fatal_error() (and the other DROIDZEBRA_JNI_BREAK sites) longjmp back
+// here from anywhere inside the engine, skipping the DROIDZEBRA_JNI_CLEAN at
+// the end of the JNI function - so clean up here too. Leaving s_env/s_thiz
+// set made the assert below abort the next JNI call after any engine error
+// (debug builds), and a break during a silent replay left messaging off,
+// so the next game's MSG_GAME_START etc. never reached Java.
 #define DROIDZEBRA_JNI_SETUP \
 	assert(s_env==NULL && s_thiz==NULL); \
-	if( setjmp(s_err_jmp) ) return; \
+	if( setjmp(s_err_jmp) ) { \
+		s_enable_msg = TRUE; \
+		DROIDZEBRA_JNI_CLEAN; \
+		return; \
+	} \
 	s_env = env; \
 	s_thiz = thiz;
 #define DROIDZEBRA_JNI_CLEAN \
@@ -137,6 +147,7 @@ static void _droidzebra_redo_turn(int* side_to_move);
 static void _droidzebra_on_settings_change(void);
 static void _droidzebra_compute_evals(int side_to_move);
 static void _droidzebra_throw_engine_error(JNIEnv* env, const char* msg);
+static void _droidzebra_clear_pending_exception(void);
 
 // undo stack helpers
 static void _droidzebra_undo_stack_push(int val);
@@ -148,17 +159,6 @@ JNIEnv* droidzebra_jnienv(void)
 {
 	DROIDZEBRA_CHECK_JNI;
 	return s_env;
-}
-
-JNIEXPORT void
-JNIFn(droidzebra,ZebraEngine,zeJsonTest)( JNIEnv* env, jobject thiz, jobject json )
-{
-	DROIDZEBRA_JNI_SETUP;
-	char* buf = (char*)malloc(500000);
-	char* str = droidzebra_json_get_string(env, json, "testin", buf, 500000);
-	if(str) droidzebra_json_put_string(env, json, "testout", str );
-	free(buf);
-	DROIDZEBRA_JNI_CLEAN;
 }
 
 JNIEXPORT void
@@ -237,13 +237,18 @@ fatal_error( const char *format, ... ) {
 	jobject json;
 
 	DROIDZEBRA_CHECK_JNI;
+	_droidzebra_clear_pending_exception();
 
 	va_start( arg_ptr, format );
-	vsprintf( errmsg, format, arg_ptr );
+	vsnprintf( errmsg, sizeof(errmsg), format, arg_ptr );
 	va_end( arg_ptr );
 
 	json = droidzebra_json_create(s_env, NULL);
-	if( !json ) exit( EXIT_FAILURE );
+	if( !json ) {
+		// can't report it - still abort the engine call rather than the app
+		_droidzebra_clear_pending_exception();
+		DROIDZEBRA_JNI_BREAK;
+	}
 	droidzebra_json_put_string(s_env, json, "error", errmsg);
 	json = droidzebra_RPC_callback(MSG_ERROR, json);
 	(*s_env)->DeleteLocalRef(s_env, json);
@@ -261,260 +266,20 @@ critical_error(const char *format, ...) {
 	jobject json;
 
 	DROIDZEBRA_CHECK_JNI;
+	_droidzebra_clear_pending_exception();
 
 	va_start(arg_ptr, format);
-	vsprintf(errmsg, format, arg_ptr);
+	vsnprintf(errmsg, sizeof(errmsg), format, arg_ptr);
 	va_end(arg_ptr);
 
 	json = droidzebra_json_create(s_env, NULL);
-	if (!json) exit(EXIT_FAILURE);
+	if (!json) {
+		_droidzebra_clear_pending_exception();
+		return;
+	}
 	droidzebra_json_put_string(s_env, json, "error", errmsg);
 	json = droidzebra_RPC_callback(MSG_ERROR, json);
 	(*s_env)->DeleteLocalRef(s_env, json);
-}
-
-JNIEXPORT void
-JNIFn(droidzebra, ZebraEngine, zeAnalyzeGame)(JNIEnv *env, jobject thiz, jint providedMoveCount,
-                                              jbyteArray providedMoves) {
-    EvaluationType best_info1, best_info2, played_info1, played_info2;
-    const char *black_name, *white_name;
-    const char *opening_name;
-    double move_start, move_stop;
-    int i;
-    int side_to_move, opponent;
-    int curr_move, resp_move;
-    int timed_search;
-    int black_hash1, black_hash2, white_hash1, white_hash2;
-    int col, row;
-    int empties;
-    unsigned int best_trans1, best_trans2, played_trans1, played_trans2;
-    char output_stream[1024];
-
-    DROIDZEBRA_JNI_SETUP;
-
-
-
-    /* copy provided moves */
-    int provided_move_index = 0;
-    int provided_move_count = 0;
-    int provided_move[65];
-
-    if (providedMoveCount > 0 && providedMoves) {
-        jbyte *providedMovesJNI;
-        provided_move_count = providedMoveCount;
-        i = (*env)->GetArrayLength(env, providedMoves);
-        if (provided_move_count > i)
-            fatal_error("Provided move count is greater than array size %d>%d", provided_move_count,
-                        i);
-        if (provided_move_count > 64)
-            fatal_error("Provided move count is greater that 64: %d", provided_move_count);
-        providedMovesJNI = (*env)->GetByteArrayElements(env, providedMoves, 0);
-        if (!providedMovesJNI)
-            fatal_error("failed to get provide moves (jni)");
-        for (i = 0; i < provided_move_count; i++) {
-            provided_move[i] = providedMovesJNI[i];
-        }
-        (*env)->ReleaseByteArrayElements(env, providedMoves, providedMovesJNI, 0);
-    }
-
-    game_init(NULL, &side_to_move);
-    setup_hash(TRUE);
-    clear_stored_game();
-
-    reset_book_search();
-    //set_move_list( black_moves, white_moves, score_sheet_row );
-    //set_evals( 0.0, 0.0 );
-
-    for (i = 0; i < 60; i++) {
-        black_moves[i] = PASS;
-        white_moves[i] = PASS;
-    }
-
-
-    best_trans1 = (unsigned int) my_random();
-    best_trans2 = (unsigned int) my_random();
-    played_trans1 = (unsigned int) my_random();
-    played_trans2 = (unsigned int) my_random();
-
-    while (game_in_progress() && (disks_played < provided_move_count)) {
-        remove_coeffs(disks_played);
-        if (SEPARATE_TABLES) {  /* Computer players won't share hash tables */
-            if (side_to_move == BLACKSQ) {
-                hash1 ^= black_hash1;
-                hash2 ^= black_hash2;
-            } else {
-                hash1 ^= white_hash1;
-                hash2 ^= white_hash2;
-            }
-        }
-        generate_all(side_to_move);
-
-        if (side_to_move == BLACKSQ)
-            score_sheet_row++;
-
-        if (move_count[disks_played] != 0) {
-            move_start = get_real_timer();
-            clear_panic_abort();
-
-/*			if ( echo ) {
-				set_move_list( black_moves, white_moves, score_sheet_row );
-				set_times( floor( player_time[BLACKSQ] ),
-						   floor( player_time[WHITESQ] ) );
-				opening_name = find_opening_name();
-				if ( opening_name != NULL )
-					printf( "\nOpening: %s\n", opening_name );
-
-				display_board( stdout, board, side_to_move, TRUE, use_timer, TRUE );
-			}*/
-
-            /* Check what the Thor opening statistics has to say */
-
-            (void) choose_thor_opening_move(board, side_to_move, FALSE);
-
-
-            start_move(player_time[side_to_move],
-                       player_increment[side_to_move],
-                       disks_played + 4);
-            determine_move_time(player_time[side_to_move],
-                                player_increment[side_to_move],
-                                disks_played + 4);
-            timed_search = (skill[side_to_move] >= 60);
-            toggle_experimental(FALSE);
-
-            empties = 60 - disks_played;
-
-            /* Determine the score for the move actually played.
-               A private hash transformation is used so that the parallel
-           search trees - "played" and "best" - don't clash. This way
-           all scores are comparable. */
-
-            set_hash_transformation(played_trans1, played_trans2);
-
-            curr_move = provided_move[disks_played];
-            opponent = OPP(side_to_move);
-            (void) make_move(side_to_move, curr_move, TRUE);
-            if (empties > wld_skill[side_to_move]) {
-                reset_counter(&nodes);
-                resp_move = compute_move(opponent, FALSE, player_time[opponent],
-                                         player_increment[opponent], timed_search,
-                                         s_use_book, skill[opponent] - 2,
-                                         exact_skill[opponent] - 1,
-                                         wld_skill[opponent] - 1, TRUE,
-                                         &played_info1);
-            }
-            reset_counter(&nodes);
-            resp_move = compute_move(opponent, FALSE, player_time[opponent],
-                                     player_increment[opponent], timed_search,
-                                     s_use_book, skill[opponent] - 1,
-                                     exact_skill[opponent] - 1,
-                                     wld_skill[opponent] - 1, TRUE, &played_info2);
-
-            unmake_move(side_to_move, curr_move);
-
-            /* Determine the 'best' move and its score. For midgame moves,
-           search twice to dampen oscillations. Unless we're in the endgame
-           region, a private hash transform is used - see above. */
-
-            if (empties > wld_skill[side_to_move]) {
-                set_hash_transformation(best_trans1, best_trans2);
-                reset_counter(&nodes);
-                curr_move =
-                        compute_move(side_to_move, FALSE, player_time[side_to_move],
-                                     player_increment[side_to_move], timed_search,
-                                     s_use_book, skill[side_to_move] - 1,
-                                     exact_skill[side_to_move], wld_skill[side_to_move],
-                                     TRUE, &best_info1);
-            }
-            reset_counter(&nodes);
-            curr_move =
-                    compute_move(side_to_move, FALSE, player_time[side_to_move],
-                                 player_increment[side_to_move], timed_search,
-                                 s_use_book, skill[side_to_move],
-                                 exact_skill[side_to_move], wld_skill[side_to_move],
-                                 TRUE, &best_info2);
-
-            /* Output the two score-move pairs */
-            sprintf(output_stream, "%c%c ", TO_SQUARE(curr_move));
-            if (empties <= exact_skill[side_to_move])
-                sprintf(output_stream, "%+6d", best_info2.score / 128);
-            else if (empties <= wld_skill[side_to_move]) {
-                if (best_info2.res == WON_POSITION)
-                    strcat(output_stream, "    +1");
-                else if (best_info2.res == LOST_POSITION)
-                    strcat(output_stream, "    -1");
-                else
-                    strcat(output_stream, "     0");
-            } else {
-                /* If the played move is the best, output the already calculated
-                   score for the best move - that way we avoid a subtle problem:
-                   Suppose (N-1)-ply move is X but N-ply move is Y, where Y is
-                   the best move. Then averaging the corresponding scores won't
-                   coincide with the N-ply averaged score for Y. */
-                if ((curr_move == provided_move[disks_played]) &&
-                    (resp_move != PASS))
-                    sprintf(output_stream, "%6.2f",
-                            -(played_info1.score + played_info2.score) / (2 * 128.0));
-                else
-                    sprintf(output_stream, "%6.2f",
-                            (best_info1.score + best_info2.score) / (2 * 128.0));
-            }
-
-            curr_move = provided_move[disks_played];
-
-            sprintf(output_stream, "       %c%c ", TO_SQUARE(curr_move));
-            if (resp_move == PASS)
-                sprintf(output_stream, "     ?");
-            else if (empties <= exact_skill[side_to_move])
-                sprintf(output_stream, "%+6d", -played_info2.score / 128);
-            else if (empties <= wld_skill[side_to_move]) {
-                if (played_info2.res == WON_POSITION)
-                    strcat(output_stream, "    -1");
-                else if (played_info2.res == LOST_POSITION)
-                    strcat(output_stream, "    +1");
-                else
-                    strcat(output_stream, "     0");
-            } else
-                sprintf(output_stream, "%6.2f",
-                        -(played_info1.score + played_info2.score) / (2 * 128.0));
-            strcat("\n", output_stream);
-
-            if (!valid_move(curr_move, side_to_move))
-                fatal_error("Invalid move %c%c in move sequence",
-                            TO_SQUARE(curr_move));
-
-            move_stop = get_real_timer();
-            if (player_time[side_to_move] != INFINIT_TIME)
-                player_time[side_to_move] -= (move_stop - move_start);
-
-            (void) make_move(side_to_move, curr_move, TRUE);
-            if (side_to_move == BLACKSQ)
-                black_moves[score_sheet_row] = curr_move;
-            else {
-                if (white_moves[score_sheet_row] != PASS)
-                    score_sheet_row++;
-                white_moves[score_sheet_row] = curr_move;
-            }
-        } else {
-            if (side_to_move == BLACKSQ)
-                black_moves[score_sheet_row] = PASS;
-            else
-                white_moves[score_sheet_row] = PASS;
-        }
-
-        side_to_move = OPP(side_to_move);
-    } //END While
-
-    if (side_to_move == BLACKSQ)
-        score_sheet_row++;
-
-    set_move_list(black_moves, white_moves, score_sheet_row);
-
-    droidzebra_enable_messaging(TRUE);
-    droidzebra_msg_analyze(output_stream);
-    //TODO callback
-    //display_board( stdout, board, side_to_move, TRUE, use_timer, TRUE );
-    DROIDZEBRA_JNI_CLEAN
-
 }
 
 jobject droidzebra_RPC_callback(jint message, jobject json)
@@ -566,7 +331,7 @@ void droidzebra_message(int category, const char* json_str)
 
 	json = droidzebra_json_create(s_env, json_str);
 	if( !json ) {
-		fatal_error("failed to create JSON object");
+		fatal_error("failed to create JSON object for message %d", category);
 		return; // not reached
 	}
 	json = droidzebra_RPC_callback(category, json);
@@ -584,7 +349,7 @@ int droidzebra_message_debug(const char* format, ...)
 	DROIDZEBRA_CHECK_JNI;
 
 	va_start( arg_ptr, format );
-    int retval = vsprintf(errmsg, format, arg_ptr);
+    int retval = vsnprintf(errmsg, sizeof(errmsg), format, arg_ptr);
 	va_end( arg_ptr );
 
 	json = droidzebra_json_create(s_env, NULL);
@@ -1196,6 +961,17 @@ void _droidzebra_compute_evals(int side_to_move)
 	set_forced_opening( s_forced_opening_seq );
 
 	display_status(stdout, FALSE);
+}
+
+// JNI must not be called with a Java exception pending (e.g. a
+// JSONException from droidzebra_json_create). Log and clear it, so the error
+// that follows can still be reported to Java as MSG_ERROR.
+void _droidzebra_clear_pending_exception(void)
+{
+	if( (*s_env)->ExceptionCheck(s_env) ) {
+		(*s_env)->ExceptionDescribe(s_env);
+		(*s_env)->ExceptionClear(s_env);
+	}
 }
 
 void _droidzebra_throw_engine_error(JNIEnv* env, const char* msg)
