@@ -485,6 +485,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         return engine.getState();
     }
 
+    // Package-private for AnalysisTest: true until a jumpToMove() has landed.
+    // Read on the UI thread only, like everything else touching it.
+    boolean isJumpInProgress() {
+        return jumpInProgress;
+    }
+
     private void startNewGameAndResetUI(int moves_played_count, byte[] moves_played) {
         Analytics.log("new_game", new GameState(8, moves_played, moves_played_count).getMoveSequenceAsString());
         engine.newGame(moves_played, moves_played_count, engineConfig, new ZebraEngine.OnGameStateReadyListener() {
@@ -1387,7 +1393,12 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             return;
         }
         jumpInProgress = false;
-        resetAndLoadOnGuiThread();
+        // Not resetAndLoadOnGuiThread(): the board model already shows the
+        // landed position (every step of the walk updated it), and the
+        // engine sends no new board while it waits for input - resetting
+        // it here left an empty board with only the evals on it until the
+        // next undo/redo.
+        runOnUiThread(this::loadUISettings);
         Runnable pendingAction = pendingActionAfterAnalysis;
         pendingActionAfterAnalysis = null;
         if (pendingAction != null) {

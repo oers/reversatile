@@ -10,6 +10,7 @@ import com.shurik.droidzebra.ZebraEngine;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import de.earthlingz.oerszebra.analysis.MoveEval;
 
@@ -225,6 +226,43 @@ public class AnalysisTest extends BasicTest {
             assertEquals("redo() must reach ply " + ply + " after jumping back to "
                     + targetPly, ply, zebra.getGameState().getDisksPlayed());
         }
+    }
+
+    // Regression test: once a jump had landed (and, with practice mode on,
+    // the evals for the landed position were done), the board model was
+    // reset to an empty board. The engine sends no new board while it waits
+    // for input, so only the evals stayed visible until the next undo/redo.
+    @Test
+    public void testBoardStaysVisibleAfterAJumpLands() throws InterruptedException {
+        loadGame(SHORT_LEGAL_GAME, SHORT_LEGAL_GAME_MOVES);
+        int originalDisksPlayed = zebra.getGameState().getDisksPlayed();
+
+        zebra.runOnUiThread(zebra::analyzeGame);
+        waitForAnalysisResults(originalDisksPlayed, 60000);
+        waitForAnalysisProgressGone(60000);
+        waitForDisksPlayed(originalDisksPlayed, 20000);
+
+        int targetPly = 2;
+        zebra.runOnUiThread(() -> zebra.jumpToMove(targetPly));
+        waitForDisksPlayed(targetPly, 20000);
+        waitUntil(() -> onUiThread(() -> !zebra.isJumpInProgress()), 20000);
+        getInstrumentation().waitForIdleSync();
+
+        assertTrue("the jump did not land", !onUiThread(zebra::isJumpInProgress));
+        int discs = countSquares(ZebraEngine.PLAYER_BLACK) + countSquares(ZebraEngine.PLAYER_WHITE);
+        assertEquals("discs on the board after the jump landed", 4 + targetPly, discs);
+        assertEquals("score after the jump landed", 4 + targetPly,
+                zebra.getState().getBlackScore() + zebra.getState().getWhiteScore());
+
+        // leave the game back where it was
+        zebra.runOnUiThread(() -> zebra.jumpToMove(originalDisksPlayed));
+        waitForDisksPlayed(originalDisksPlayed, 20000);
+    }
+
+    private boolean onUiThread(BooleanSupplier read) {
+        boolean[] result = new boolean[1];
+        getInstrumentation().runOnMainSync(() -> result[0] = read.getAsBoolean());
+        return result[0];
     }
 
     // Regression test: the engine's disksPlayed counts pass turns, the
