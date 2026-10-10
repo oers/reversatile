@@ -98,6 +98,7 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
         private final TextView scoreLabel;
         private final View blackSpacer;
         private final View blackBar;
+        private final View centerLine;
         private final View whiteBar;
         private final View whiteSpacer;
 
@@ -107,6 +108,7 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
             scoreLabel = itemView.findViewById(R.id.eval_score_label);
             blackSpacer = itemView.findViewById(R.id.eval_bar_black_spacer);
             blackBar = itemView.findViewById(R.id.eval_bar_black);
+            centerLine = itemView.findViewById(R.id.eval_bar_center);
             whiteBar = itemView.findViewById(R.id.eval_bar_white);
             whiteSpacer = itemView.findViewById(R.id.eval_bar_white_spacer);
         }
@@ -136,6 +138,13 @@ public class AnalysisAdapter extends RecyclerView.Adapter<AnalysisAdapter.ViewHo
                 setWeight(whiteBar, whiteWeight);
                 setWeight(whiteSpacer, 1f - whiteWeight);
             }
+
+            // The zero line takes the color of the bar next to it, so a
+            // Black-favoring row is all black instead of black with a white
+            // stub. Set every time: views get recycled.
+            boolean favorsBlack = !eval.isPending() && eval.getScore() < 0;
+            centerLine.setBackgroundColor(ContextCompat.getColor(itemView.getContext(),
+                    favorsBlack ? R.color.black : R.color.white));
 
             // Make the ply currently being analyzed stand out from already-
             // finished rows - isInProgress() (not isPending()) covers both
