@@ -45,6 +45,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.core.view.MenuCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -210,6 +211,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             MenuBuilder m = (MenuBuilder) menu;
             m.setOptionalIconsVisible(true);
         }
+        MenuCompat.setGroupDividerEnabled(menu, true);
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -228,15 +230,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 return true;
             case R.id.menu_quit:
                 finish();
-                return true;
-            case R.id.menu_take_back:
-                undo();
-                return true;
-            case R.id.menu_goto_beginning:
-                undoAll();
-                return true;
-            case R.id.menu_take_redo:
-                redo();
                 return true;
             case R.id.menu_settings: {
                 // Launch Preference activity
@@ -264,10 +257,6 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             return true;
             case R.id.menu_hint: {
                 showHint();
-            }
-            return true;
-            case R.id.menu_rotate: {
-                rotate();
             }
             return true;
             case R.id.menu_analyze_game: {

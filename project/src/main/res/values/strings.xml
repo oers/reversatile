@@ -28,28 +28,26 @@
     <string name="settings_ui_display_pv_summary">Display sequence of moves that is the most advantageous to the current
         player (computed at the lookahead setting)
     </string>
-    <string name="settings_ui_display_pv_title">Display principal variation</string>
+    <string name="settings_ui_display_pv_title">Show best line</string>
     <string name="settings_ui_display_enable_animations_summary">Enable animation effects during move transitions, etc
     </string>
     <string name="settings_ui_display_enable_animations_title">Enable animations</string>
-    <string name="settings_ui_preferences">User Interface</string>
-    <string name="settings_engine_function_summary">Select which side computer plays</string>
-    <string name="settings_engine_function_title">Engine Function</string>
-    <string name="settings_engine_function_dialog_title">Select Engine Function</string>
+    <string name="settings_engine_function_summary">Which side the computer plays</string>
+    <string name="settings_engine_function_title">Computer plays</string>
+    <string name="settings_engine_function_dialog_title">Computer plays</string>
     <string name="settings_sendmail_title">e-mail Address</string>
     <string name="settings_sendmail_summary">Default e-mail address for sending game transcripts</string>
     <string name="setting_strength_preference_summary">Engine strength: number of moves computer will analyze while
         playing
     </string>
-    <string name="settings_strength_preference_title">Search Depth</string>
+    <string name="settings_strength_preference_title">Computer strength</string>
     <string name="settings_strength_dialog_title">Choose One</string>
     <string name="setting_analysis_strength_preference_summary">Engine strength used only for "Analyze Game" - lower is
         faster, especially in the midgame
     </string>
-    <string name="settings_analysis_strength_preference_title">Analysis Search Depth</string>
+    <string name="settings_analysis_strength_preference_title">Analysis strength</string>
     <string name="app_name">Reversatile</string>
 
-    <string name="settings_engine_preferences">Engine Preferences</string>
 
     <string name="gameover_text_white_wins">White wins</string>
     <string name="gameover_text_black_wins">Black wins</string>
@@ -103,7 +101,6 @@
     <string name="analysis_timed_out">Analysis stopped responding for one move and was cancelled. Your game is unaffected.</string>
     <string name="settings_analysis_drawer_side_title">Analysis panel side</string>
     <string name="settings_analysis_drawer_side_summary">Which edge the game-analysis panel opens from</string>
-    <string name="settings_analysis_preferences">Analysis</string>
     <string name="onboarding_mode_title">What would you like to do?</string>
     <string name="onboarding_mode_analyze">Analyze games</string>
     <string name="onboarding_mode_vs_human">Play locally vs. a friend</string>
@@ -115,4 +112,9 @@
     <string name="ask_analytics_accept">Accept</string>
     <string name="ask_analytics_deny">Deny</string>
     <string name="ask.analytics.help">To improve the app I need some anonymous usage statistics and error logs Please allow the collection and transmision of these statistics. The app uses Google Analytics for Firebase and Firebase Crashlytics. DeviceIds and Ad-Ids are not transmitted. You can change your this in the settings later.</string>
+    <string name="settings_category_game">Game</string>
+    <string name="settings_category_openings">Openings</string>
+    <string name="settings_category_training">Practice &amp; Analysis</string>
+    <string name="settings_category_display">Display</string>
+    <string name="settings_category_other">Sharing &amp; Privacy</string>
 </resources>

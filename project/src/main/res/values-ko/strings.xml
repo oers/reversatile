@@ -29,7 +29,6 @@
     <string name="settings_ui_display_pv_title">중요한 변동 전시</string>
     <string name="settings_ui_display_enable_animations_summary">위치 이동 시 애니메이션 효과를 주게하다</string>
     <string name="settings_ui_display_enable_animations_title">애니메이션 가능하게하다</string>
-    <string name="settings_ui_preferences">사용자 인터페이스</string>
     <string name="settings_engine_function_summary">컴퓨터가 경기 할 팀 선택하기</string>
     <string name="settings_engine_function_title">엔진 기능</string>
     <string name="settings_engine_function_dialog_title">엔진 기능 선택</string>
@@ -42,7 +41,6 @@
     <string name="settings_strength_dialog_title">하나를 선택하다</string>
     <string name="app_name">Reversatile</string>
 
-    <string name="settings_engine_preferences">엔진 환경설정</string>
 
     <string name="gameover_text_white_wins">백이 승리했습니다</string>
     <string name="gameover_text_black_wins">흑이 승리했습니다</string>
@@ -89,7 +87,6 @@
     <string name="analysis_timed_out">분석이 한 수에 응답하지 않아 취소되었습니다. 게임에는 영향이 없습니다.</string>
     <string name="settings_analysis_drawer_side_title">분석 패널 위치</string>
     <string name="settings_analysis_drawer_side_summary">분석 패널이 열리는 방향</string>
-    <string name="settings_analysis_preferences">분석</string>
     <string name="onboarding_mode_title">무엇을 하시겠습니까?</string>
     <string name="onboarding_mode_analyze">게임 분석하기</string>
     <string name="onboarding_mode_vs_human">친구와 로컬 대전</string>
@@ -101,4 +98,9 @@
     <string name="ask_analytics_deny">거부</string>
     <string name="ask_analytics_accept">허용</string>
     <string name="ask.analytics.help">앱을 개선하기 위해 익명의 사용 통계와 오류 로그가 필요합니다. 이 통계의 수집과 전송을 허용해 주세요. 이 앱은 Google Analytics for Firebase와 Firebase Crashlytics를 사용합니다. 기기 ID와 광고 ID는 전송되지 않습니다. 이 설정은 나중에 언제든지 변경할 수 있습니다.</string>
+    <string name="settings_category_game">게임</string>
+    <string name="settings_category_openings">오프닝</string>
+    <string name="settings_category_training">연습 및 분석</string>
+    <string name="settings_category_display">화면 표시</string>
+    <string name="settings_category_other">공유 및 개인정보</string>
 </resources>
