@@ -53,7 +53,7 @@ public class PlayModeButtonTest extends BasicTest {
             assertTrue(onUi(() -> zebra.evalsDisplayEnabled()));
         } finally {
             // the other tests expect the default: analysis
-            cycleUntil(PlayMode.ANALYSIS);
+            restoreAnalysisAndSettle();
         }
     }
 
@@ -72,8 +72,38 @@ public class PlayModeButtonTest extends BasicTest {
             assertEquals(PlayMode.VS_COMPUTER, onUiMode());
             assertEquals(FUNCTION_ZEBRA_BLACK, function());
         } finally {
-            cycleUntil(PlayMode.ANALYSIS);
+            restoreAnalysisAndSettle();
         }
+    }
+
+    // Every mode change makes the engine reload its settings and, in
+    // analysis, start evaluating the position again. Leaving while it is
+    // still busy let the next test's activity start a game on a busy engine
+    // (seen in CI: WthorReplayTest's first move never landed right after
+    // this test), so wait until it is back waiting for input.
+    private void restoreAnalysisAndSettle() {
+        cycleUntil(PlayMode.ANALYSIS);
+        // The settings change reaches the engine asynchronously, so it can
+        // still read "waiting" for a moment before picking it up - require
+        // it to stay waiting for a while, not just once.
+        long deadline = System.currentTimeMillis() + 20_000;
+        long waitingSince = -1;
+        try {
+            while (System.currentTimeMillis() < deadline) {
+                boolean waiting = zebra.getEngineState() == ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT;
+                if (!waiting) {
+                    waitingSince = -1;
+                } else if (waitingSince < 0) {
+                    waitingSince = System.currentTimeMillis();
+                } else if (System.currentTimeMillis() - waitingSince >= 500) {
+                    break;
+                }
+                Thread.sleep(20);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        getInstrumentation().waitForIdleSync();
     }
 
     private void cycle() {
