@@ -81,11 +81,26 @@ jobs:
           ndk: 26.1.10909125
           # On a failure, also print what the app and engine logged - an
           # engine error, for one, makes the app start a new game, which a
-          # test only sees as an input that never landed.
-          script: ./gradlew connectedCheck || (adb logcat -d -v time | grep -iE "alert|ZebraEngine|DroidZebra|droidzebra|AndroidRuntime|WthorReplayTest|GameAnalyzer" | tail -n 400; exit 1)
+          # test only sees as an input that never landed. The engine's own
+          # log (tag "engine": its state changes, and what the native side
+          # reports on undo/redo) shows the order things happened in; only
+          # the search progress it reports all the time is left out. A large
+          # log buffer keeps the start of the run from being overwritten.
+          # Either way, show when the engine had to put a position back
+          # after a practice evaluation (see _droidzebra_compute_evals).
+          script: |
+            adb logcat -G 16M || true
+            ./gradlew connectedCheck || (adb logcat -d -v time > logcat.txt; grep -E "^[0-9-]+ [0-9:.]+ [VDIWEF]/(alert|engine|ZebraEngine|DroidZebra|WthorReplayTest|GameAnalyzer|TestRunner|AndroidRuntime|Invalid Move) *\(" logcat.txt | grep -vE "/engine *\([ 0-9]+\): (Status|Depth): " | tail -n 6000; exit 1)
+            adb logcat -d -v time | grep "practice evaluation changed" | tail -n 50 || true
       - name: Print test results
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;
+      - name: Upload logcat
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logcat
+          path: logcat.txt
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4

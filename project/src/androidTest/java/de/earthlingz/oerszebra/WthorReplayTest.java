@@ -210,9 +210,16 @@ public class WthorReplayTest extends BasicTest {
         int offset = HEADER_SIZE + gameIndex * GAME_RECORD_SIZE;
         int expectedBlackScore = file[offset + 6] & 0xff;
         int expectedWhiteScore = 64 - expectedBlackScore;
-        assertEquals("WThor black score for game " + gameIndex,
+        String context = " (moves " + (zebra.getGameState() == null ? "<no game state>"
+                : removePasses(zebra.getGameState().getMoveSequenceAsString()))
+                + ", engine state " + zebra.getEngineState()
+                + ", score in the game state " + (zebra.getGameState() == null ? "-"
+                : zebra.getGameState().getBlackPlayer().getDiscCount() + "/"
+                + zebra.getGameState().getWhitePlayer().getDiscCount())
+                + ", open dialogs: " + openDialogTags() + ")";
+        assertEquals("WThor black score for game " + gameIndex + context,
                 expectedBlackScore, zebra.getState().getBlackScore());
-        assertEquals("WThor white score for game " + gameIndex,
+        assertEquals("WThor white score for game " + gameIndex + context,
                 expectedWhiteScore, zebra.getState().getWhiteScore());
     }
 
@@ -527,7 +534,8 @@ public class WthorReplayTest extends BasicTest {
                 + ", side to move before final redo: " + fieldName(sideToMoveBeforeCall)
                 + " (expected " + fieldName(expectedFinalMoveColor) + ")"
                 + ", board diff vs. original playthrough: "
-                + diffBoards(originalBoard, captureBoard()));
+                + diffBoards(originalBoard, captureBoard())
+                + ", open dialogs: " + openDialogTags());
     }
 
     // The activity's GameState right before the last undo()/redo() call -
@@ -607,8 +615,8 @@ public class WthorReplayTest extends BasicTest {
                 ? "<no game state>"
                 : removePasses(zebra.getGameState().getMoveSequenceAsString());
         int expectedMoveIndex = actualMoves.length() / 2;
-        String expectedMove = expectedMoveIndex < expectedMoves.length()
-                ? expectedMoves.substring(expectedMoveIndex, expectedMoveIndex + 2)
+        String expectedMove = actualMoves.length() + 2 <= expectedMoves.length()
+                ? expectedMoves.substring(actualMoves.length(), actualMoves.length() + 2)
                 : "<end>";
         String actualLastMove = actualMoves.length() >= 2
                 ? actualMoves.substring(actualMoves.length() - 2)
@@ -627,7 +635,19 @@ public class WthorReplayTest extends BasicTest {
                 + ", engine state before " + callLabel + "()/now: " + stateBeforeCall
                 + "/" + zebra.getEngineState()
                 + (stateBeforeCall == null ? "" : ", game state replaced since the call: "
-                        + (zebra.getGameState() != gameStateBeforeCall)));
+                        + (zebra.getGameState() != gameStateBeforeCall))
+                + ", open dialogs: " + openDialogTags());
+    }
+
+    private String openDialogTags() {
+        StringBuilder tags = new StringBuilder();
+        for (androidx.fragment.app.Fragment fragment
+                : zebra.getSupportFragmentManager().getFragments()) {
+            if (fragment instanceof androidx.fragment.app.DialogFragment) {
+                tags.append(tags.length() == 0 ? "" : ", ").append(fragment.getTag());
+            }
+        }
+        return tags.length() == 0 ? "none" : tags.toString();
     }
 
     // Re-sending onMakeMove every poll tick raced the engine: a move that was

@@ -1,8 +1,9 @@
 /*
- * Plain C test of the engine core's complete_pv(), without JNI: the case
- * behind a lost undo/redo in CI ("Error in PV completion") depends on a
- * search being interrupted at an exact moment, which a JVM test can't hit
- * on purpose. Built and run by "make check" (see the Makefile).
+ * Plain C test of the engine core's complete_pv() and of saving and
+ * restoring a position, without JNI: the cases behind lost undos/redos in
+ * CI ("Error in PV completion", "Invalid move in redo sequence") depend on
+ * a search being interrupted at an exact moment, which a JVM test can't
+ * hit on purpose. Built and run by "make check" (see the Makefile).
  *
  * Usage: complete_pv_test <assets dir with coeffs2.bin>
  */
@@ -15,6 +16,7 @@
 #include "zebra/macros.h"
 #include "zebra/globals.h"
 #include "zebra/game.h"
+#include "zebra/moves.h"
 #include "zebra/search.h"
 #include "zebra/threads.h"
 
@@ -94,6 +96,75 @@ static void check(const char *name, const int *moves, int count,
     report("PASS %s\n", name);
 }
 
+/* f5 d6 c3: squares are 10 * row + column */
+static const int opening[] = {56, 64, 33};
+
+static int play_opening(void) {
+    int side = BLACKSQ, i;
+
+    game_init(NULL, &side);
+    for (i = 0; i < 3; i++) {
+        make_move(side, opening[i], TRUE);
+        side = OPP(side);
+    }
+    return side;
+}
+
+static int is_start_position(void) {
+    int side, i, start[100];
+
+    for (i = 0; i < 100; i++)
+        start[i] = board[i];
+    game_init(NULL, &side);
+    for (i = 0; i < 100; i++)
+        if (board[i] != start[i])
+            return 0;
+    return 1;
+}
+
+static void check_position_kept(void) {
+    static PositionState state;
+    int side = play_opening();
+
+    if (setjmp(on_fatal)) {
+        report("FAIL a search leaves the position as it was: \"%s\"\n", fatal_text);
+        failures++;
+        return;
+    }
+    save_position(&state);
+    extended_compute_move(side, FALSE, TRUE, 4, 4, 4);
+    if (restore_position_if_changed(&state)) {
+        report("FAIL a search leaves the position as it was: it was changed\n");
+        failures++;
+        return;
+    }
+    report("PASS a search leaves the position as it was\n");
+}
+
+/* As a search cut short at the wrong moment did in CI: one move taken
+   back more than was made, so the count is one short. */
+static void check_position_put_back(void) {
+    static PositionState state;
+    int i;
+
+    play_opening();
+    save_position(&state);
+    unmake_move(BLACKSQ, opening[2]);
+    if (!restore_position_if_changed(&state) || disks_played != 3) {
+        report("FAIL a changed position is put back: disks played %d\n", disks_played);
+        failures++;
+        return;
+    }
+    for (i = 2; i >= 0; i--)
+        unmake_move(i % 2 == 0 ? BLACKSQ : WHITESQ, opening[i]);
+    if (disks_played != 0 || !is_start_position()) {
+        report("FAIL a changed position is put back: taking the moves back doesn't end on the start position\n");
+        failures++;
+        return;
+    }
+    report("PASS a changed position is put back, and its moves can still be taken back\n");
+}
+
 int main(int argc, char **argv) {
     int side;
 
@@ -123,5 +194,7 @@ int main(int argc, char **argv) {
         const int line[] = {33, 56};
         check("a line that doesn't fit at all leaves an empty line", line, 2, line, 0);
     }
+    check_position_kept();
+    check_position_put_back();
     return failures == 0 ? 0 : 1;
 }
