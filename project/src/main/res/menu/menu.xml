@@ -1,60 +1,56 @@
-<menu xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+<!-- Undo, redo, back to the start and rotate are not in here: they are
+     the buttons below the board, always one tap away. The toolbar shows
+     the two other things needed during play, the overflow the rest in
+     groups (separated by dividers, see DroidZebra#onCreateOptionsMenu). -->
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/menu_hint"
-        android:icon="@drawable/ic_wb_incandescent_white_24dp"
-        android:title="@string/menu_item_hint" />
-    <item
-        android:id="@+id/menu_take_back"
-        android:icon="@drawable/ic_undo_white_24dp"
-        android:title="@string/menu_item_undo"
-        app:showAsAction="ifRoom|withText" />
-    <item
-        android:id="@+id/menu_take_redo"
-        android:icon="@drawable/ic_redo_white_24dp"
-        android:title="@string/menu_item_redo"
-        app:showAsAction="ifRoom|withText" />
-    <item
-        android:id="@+id/menu_goto_beginning"
-        android:icon="@drawable/ic_fast_rewind_white_24dp"
-        android:title="@string/menu_item_first_move" />
-    <item
-        android:id="@+id/menu_rotate"
-        android:icon="@drawable/ic_rotate_right_white_24dp"
-        android:title="@string/gameover_choices_rotate" />
-    <item
-        android:id="@+id/menu_analyze_game"
-        android:icon="@drawable/ic_assessment_white_24dp"
-        android:title="@string/gameover_choices_analyze" />
     <item
         android:id="@+id/menu_new_game"
         android:icon="@drawable/ic_play_arrow_white_24dp"
         android:title="@string/menu_item_new_game"
-        app:showAsAction="ifRoom|withText"
-        tools:ignore="AppCompatResource" />
-    <item
-        android:id="@+id/menu_settings"
-        android:icon="@drawable/ic_settings_white_24dp"
-        android:title="@string/menu_item_settings" />
-    <item
-        android:id="@+id/menu_switch_sides"
-        android:icon="@drawable/ic_swap_horiz_white_24dp"
-        android:title="@string/menu_item_switch_sides" />
-    <item
-        android:id="@+id/menu_enter_moves"
-        android:icon="@drawable/ic_edit_white_24dp"
-        android:title="@string/menu_enter_moves" />
-    <item
-        android:id="@+id/menu_mail"
-        android:icon="@drawable/ic_email_white_24dp"
-        android:title="@string/menu_item_mail" />
-    <item
-        android:id="@+id/menu_guess_move"
-        android:icon="@drawable/ic_question_answer_white_24dp"
-        android:title="@string/menu_item_guess_move" />
-    <item
-        android:id="@+id/menu_quit"
-        android:icon="@drawable/ic_exit_to_app_exit_24dp"
-        android:title="@string/menu_item_quit"
         app:showAsAction="ifRoom" />
-     </menu>
+    <item
+        android:id="@+id/menu_hint"
+        android:icon="@drawable/ic_wb_incandescent_white_24dp"
+        android:title="@string/menu_item_hint"
+        app:showAsAction="ifRoom" />
+
+    <!-- the current game -->
+    <group android:id="@+id/menu_group_game">
+        <item
+            android:id="@+id/menu_switch_sides"
+            android:icon="@drawable/ic_swap_horiz_white_24dp"
+            android:title="@string/menu_item_switch_sides" />
+        <item
+            android:id="@+id/menu_analyze_game"
+            android:icon="@drawable/ic_assessment_white_24dp"
+            android:title="@string/gameover_choices_analyze" />
+    </group>
+
+    <!-- games in and out -->
+    <group android:id="@+id/menu_group_transcript">
+        <item
+            android:id="@+id/menu_enter_moves"
+            android:icon="@drawable/ic_edit_white_24dp"
+            android:title="@string/menu_enter_moves" />
+        <item
+            android:id="@+id/menu_mail"
+            android:icon="@drawable/ic_email_white_24dp"
+            android:title="@string/menu_item_mail" />
+    </group>
+
+    <group android:id="@+id/menu_group_app">
+        <item
+            android:id="@+id/menu_guess_move"
+            android:icon="@drawable/ic_question_answer_white_24dp"
+            android:title="@string/menu_item_guess_move" />
+        <item
+            android:id="@+id/menu_settings"
+            android:icon="@drawable/ic_settings_white_24dp"
+            android:title="@string/menu_item_settings" />
+        <item
+            android:id="@+id/menu_quit"
+            android:icon="@drawable/ic_exit_to_app_exit_24dp"
+            android:title="@string/menu_item_quit" />
+    </group>
+</menu>

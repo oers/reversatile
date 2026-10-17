@@ -29,7 +29,6 @@
     <string name="settings_ui_display_pv_title">想定される手順表示</string>
     <string name="settings_ui_display_enable_animations_summary">アニメーション効果</string>
     <string name="settings_ui_display_enable_animations_title">アニメーション設定</string>
-    <string name="settings_ui_preferences">表示設定</string>
     <string name="settings_engine_function_summary">コンピュータとの対局設定</string>
     <string name="settings_engine_function_title">機能</string>
     <string name="settings_engine_function_dialog_title">機能</string>
@@ -42,7 +41,6 @@
     <string name="settings_strength_dialog_title">読みの深さ</string>
     <string name="app_name">Reversatile</string>
 
-    <string name="settings_engine_preferences">対局設定</string>
 
     <string name="gameover_text_white_wins">白 勝ち</string>
     <string name="gameover_text_black_wins">黒 勝ち</string>
@@ -89,7 +87,6 @@
     <string name="analysis_timed_out">ある手の解析が応答しなくなったため中止しました。対局には影響ありません。</string>
     <string name="settings_analysis_drawer_side_title">分析パネルの位置</string>
     <string name="settings_analysis_drawer_side_summary">分析パネルを開く側</string>
-    <string name="settings_analysis_preferences">分析</string>
     <string name="onboarding_mode_title">何をしますか？</string>
     <string name="onboarding_mode_analyze">対局を分析する</string>
     <string name="onboarding_mode_vs_human">友達とローカル対戦</string>
@@ -101,4 +98,9 @@
     <string name="ask_analytics_deny">拒否</string>
     <string name="ask_analytics_accept">許可</string>
     <string name="ask.analytics.help">アプリを改善するために、匿名の利用統計とエラーログが必要です。これらの統計の収集と送信を許可してください。本アプリはGoogle Analytics for FirebaseとFirebase Crashlyticsを使用しています。デバイスIDや広告IDは送信されません。この設定は後から変更できます。</string>
+    <string name="settings_category_game">対局</string>
+    <string name="settings_category_openings">定石</string>
+    <string name="settings_category_training">練習と分析</string>
+    <string name="settings_category_display">表示</string>
+    <string name="settings_category_other">共有とプライバシー</string>
 </resources>

@@ -29,7 +29,6 @@
     <string name="settings_ui_display_pv_title">Afficher la variation principale</string>
     <string name="settings_ui_display_enable_animations_summary">Permettre les animations, etc</string>
     <string name="settings_ui_display_enable_animations_title">Animations</string>
-    <string name="settings_ui_preferences">Interface</string>
     <string name="settings_engine_function_summary">Couleur du programme</string>
     <string name="settings_engine_function_title">Fonction du moteur du programme</string>
     <string name="settings_engine_function_dialog_title">Sélection couleur du programme</string>
@@ -41,7 +40,6 @@
     <string name="settings_strength_preference_title">Profondeur d\'analyse</string>
     <string name="settings_strength_dialog_title">Choix</string>
     <string name="app_name">Reversatile</string>
-    <string name="settings_engine_preferences">Réglages du moteur de jeu</string>
     <string name="gameover_text_white_wins">Blanc a gagné</string>
     <string name="gameover_text_black_wins">Noir a gagné</string>
     <string name="gameover_text_draw">Partie nulle</string>
@@ -87,7 +85,6 @@
     <string name="analysis_timed_out">L\'analyse ne répondait plus pour un coup et a été annulée. Votre partie n\'est pas affectée.</string>
     <string name="settings_analysis_drawer_side_title">Côté du panneau d\'analyse</string>
     <string name="settings_analysis_drawer_side_summary">Côté d\'ouverture du panneau d\'analyse</string>
-    <string name="settings_analysis_preferences">Analyse</string>
     <string name="onboarding_mode_title">Que souhaitez-vous faire ?</string>
     <string name="onboarding_mode_analyze">Analyser des parties</string>
     <string name="onboarding_mode_vs_human">Jouer localement contre un ami</string>
@@ -99,4 +96,9 @@
     <string name="ask_analytics_deny">Refuser</string>
     <string name="ask_analytics_accept">Accepter</string>
     <string name="ask.analytics.help">Pour améliorer l\'application, nous avons besoin de statistiques d\'utilisation anonymes et de journaux d\'erreurs. Veuillez autoriser la collecte et la transmission de ces statistiques. L\'application utilise Google Analytics for Firebase et Firebase Crashlytics. Les identifiants d\'appareil et publicitaires ne sont pas transmis. Vous pouvez modifier ce choix plus tard dans les paramètres.</string>
+    <string name="settings_category_game">Partie</string>
+    <string name="settings_category_openings">Ouvertures</string>
+    <string name="settings_category_training">Entraînement et analyse</string>
+    <string name="settings_category_display">Affichage</string>
+    <string name="settings_category_other">Partage et confidentialité</string>
 </resources>

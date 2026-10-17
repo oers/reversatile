@@ -29,7 +29,6 @@
     <string name="settings_ui_display_pv_title">Строка главного изменения (PV)</string>
     <string name="settings_ui_display_enable_animations_summary">Включить анимационные эффекты</string>
     <string name="settings_ui_display_enable_animations_title">Включить анимацию</string>
-    <string name="settings_ui_preferences">Интерфейс пользователя</string>
     <string name="settings_engine_function_summary">Выбрать, кто каким цветом играет</string>
     <string name="settings_engine_function_title">Выбор цвета</string>
     <string name="settings_engine_function_dialog_title">Выбор цвета</string>
@@ -42,7 +41,6 @@
     <string name="settings_strength_dialog_title">Глубина поиска</string>
     <string name="app_name">Reversatile</string>
 
-    <string name="settings_engine_preferences">Настройки программы</string>
 
     <string name="gameover_text_white_wins">Белые выиграли</string>
     <string name="gameover_text_black_wins">Черные выиграли</string>
@@ -89,7 +87,6 @@
     <string name="analysis_timed_out">Анализ хода не отвечал и был отменён. На вашу партию это не повлияло.</string>
     <string name="settings_analysis_drawer_side_title">Сторона панели анализа</string>
     <string name="settings_analysis_drawer_side_summary">С какой стороны открывается панель анализа</string>
-    <string name="settings_analysis_preferences">Анализ</string>
     <string name="onboarding_mode_title">Что вы хотите делать?</string>
     <string name="onboarding_mode_analyze">Анализировать партии</string>
     <string name="onboarding_mode_vs_human">Играть локально с другом</string>
@@ -101,5 +98,9 @@
     <string name="ask_analytics_deny">Запретить</string>
     <string name="ask_analytics_accept">Разрешить</string>
     <string name="ask.analytics.help">Для улучшения приложения нам нужна анонимная статистика использования и журналы ошибок. Пожалуйста, разрешите сбор и передачу этой статистики. Приложение использует Google Analytics для Firebase и Firebase Crashlytics. Идентификаторы устройств и идентификаторы рекламных объявлений не передаются. Вы можете изменить свой выбор в настройках.</string>
-
+    <string name="settings_category_game">Игра</string>
+    <string name="settings_category_openings">Дебюты</string>
+    <string name="settings_category_training">Тренировка и анализ</string>
+    <string name="settings_category_display">Отображение</string>
+    <string name="settings_category_other">Отправка и конфиденциальность</string>
 </resources>
