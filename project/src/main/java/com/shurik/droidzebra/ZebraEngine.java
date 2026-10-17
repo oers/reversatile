@@ -250,12 +250,25 @@ public class ZebraEngine {
             } else if (mPendingEvent == null && isThinkingOnHumanTime()) {
                 mPendingEvent = event;
                 stopMove();
+            } else {
+                onDebugListener.onDebug("Dropped " + event + " in " + mEngineState
+                        + (mPendingEvent != null ? ", already pending: " + mPendingEvent : "")
+                        + ", side to move " + mSideToMove);
             }
         }
     }
 
+    // Input for a game the engine isn't playing (any more) is ignored.
+    private boolean isCurrentGame(GameState gameState, String input) {
+        if (gameState == currentGameState) {
+            return true;
+        }
+        onDebugListener.onDebug("Dropped " + input + ": not the game the engine plays");
+        return false;
+    }
+
     public void makeMove(GameState gameState, Move move) throws InvalidMove {
-        if (gameState != currentGameState) {
+        if (!isCurrentGame(gameState, "move " + move.getText())) {
             //TODO switch context and play
             return;
         }
@@ -272,7 +285,7 @@ public class ZebraEngine {
     }
 
     public void undoMove(GameState gameState) {
-        if (currentGameState != gameState) {
+        if (!isCurrentGame(gameState, "undo")) {
             //TODO switch context and undo on that board - later we might do it completely without engine -
             // TODO why would you need it here right?
             return;
@@ -291,7 +304,7 @@ public class ZebraEngine {
     }
 
     public void redoMove(GameState gameState) {
-        if (currentGameState != gameState) {
+        if (!isCurrentGame(gameState, "redo")) {
             //TODO switch context
             return;
         }

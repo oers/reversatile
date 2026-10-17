@@ -880,7 +880,8 @@ void _droidzebra_redo_turn(int* side_to_move)
 		if( move_count[disks_played]>0 ) {
 			curr_move = get_stored_move(disks_played);
 			if( curr_move==ILLEGAL || !valid_move(curr_move, *side_to_move) ) {
-				fatal_error( "Invalid move %c%c in redo sequence", TO_SQUARE( curr_move ));
+				fatal_error( "Invalid move %c%c in redo sequence (disks played %d, redo target %d, side %d, row %d)",
+						TO_SQUARE( curr_move ), disks_played, target_disks_played, *side_to_move, score_sheet_row );
 			}
 			(void) make_move( *side_to_move, curr_move, TRUE );
 		} else {

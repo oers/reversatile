@@ -891,14 +891,17 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         if (getState().isValidMove(move)) {
             // if zebra is still thinking - no move is possible yet - throw a busy dialog
             if (engine.isThinking(gameState) && !engine.isHumanToMove(gameState, engineConfig)) {
+                Log.d("DroidZebra", "move " + move.getText() + " while the computer thinks");
                 showBusyDialog();
             } else {
                 try {
                     engine.makeMove(gameState, move);
                 } catch (InvalidMove e) {
-                    Log.e("Invalid Move", e.getMessage(), e);
+                    Log.e("Invalid Move", move.getText() + " is no move for the engine right now", e);
                 }
             }
+        } else {
+            Log.d("DroidZebra", "move " + move.getText() + " is no legal move on the board shown");
         }
     }
 
