@@ -86,9 +86,12 @@ jobs:
           # reports on undo/redo) shows the order things happened in; only
           # the search progress it reports all the time is left out. A large
           # log buffer keeps the start of the run from being overwritten.
+          # Either way, show when the engine had to put a position back
+          # after a practice evaluation (see _droidzebra_compute_evals).
           script: |
             adb logcat -G 16M || true
             ./gradlew connectedCheck || (adb logcat -d -v time > logcat.txt; grep -E "^[0-9-]+ [0-9:.]+ [VDIWEF]/(alert|engine|ZebraEngine|DroidZebra|WthorReplayTest|GameAnalyzer|TestRunner|AndroidRuntime|Invalid Move) *\(" logcat.txt | grep -vE "/engine *\([ 0-9]+\): (Status|Depth): " | tail -n 6000; exit 1)
+            adb logcat -d -v time | grep "practice evaluation changed" | tail -n 50 || true
       - name: Print test results
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;

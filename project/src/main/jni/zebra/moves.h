@@ -79,6 +79,26 @@ game_in_progress( void );
 int
 make_move( int side_to_move, int move, int update_hash );
 
+/* Everything make_move() and unmake_move() keep track of: the board and
+   what it takes to take the moves played so far back. */
+typedef struct {
+  int board[128];
+  int disks_played;
+  int flip_depth;
+  int *flips[2048];
+  int flip_count[65];
+  unsigned int hash1, hash2;
+  unsigned int hash_stored1[MAX_SEARCH_DEPTH];
+  unsigned int hash_stored2[MAX_SEARCH_DEPTH];
+  int piece_count[3][MAX_SEARCH_DEPTH];
+} PositionState;
+
+void
+save_position( PositionState *state );
+
+int
+restore_position_if_changed( const PositionState *state );
+
 int
 make_move_no_hash( int side_to_move, int move );
 

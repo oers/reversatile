@@ -318,6 +318,76 @@ make_move_no_hash( int side_to_move, int move ) {
 
 
 /*
+  SAVE_POSITION
+  RESTORE_POSITION_IF_CHANGED
+  A search has to leave the position as it found it. These check that it
+  did, and put the position back if it didn't - see
+  _droidzebra_compute_evals() for why. Returns TRUE if it had to.
+*/
+
+void
+save_position( PositionState *state ) {
+  int i;
+
+  for ( i = 0; i < 128; i++ )
+    state->board[i] = board[i];
+  state->disks_played = disks_played;
+  state->flip_depth = flip_stack - global_flip_stack;
+  for ( i = 0; i < state->flip_depth; i++ )
+    state->flips[i] = global_flip_stack[i];
+  for ( i = 0; i < 65; i++ )
+    state->flip_count[i] = flip_count[i];
+  state->hash1 = hash1;
+  state->hash2 = hash2;
+  for ( i = 0; i < MAX_SEARCH_DEPTH; i++ ) {
+    state->hash_stored1[i] = hash_stored1[i];
+    state->hash_stored2[i] = hash_stored2[i];
+    state->piece_count[BLACKSQ][i] = piece_count[BLACKSQ][i];
+    state->piece_count[WHITESQ][i] = piece_count[WHITESQ][i];
+  }
+}
+
+int
+restore_position_if_changed( const PositionState *state ) {
+  int i;
+  int changed;
+
+  /* Not hash1/hash2: a search sets those up for itself from the board. */
+  changed = (disks_played != state->disks_played) ||
+    (flip_stack - global_flip_stack != state->flip_depth);
+  for ( i = 0; !changed && (i < 100); i++ )
+    changed = (board[i] != state->board[i]);
+  for ( i = 0; !changed && (i < state->flip_depth); i++ )
+    changed = (global_flip_stack[i] != state->flips[i]);
+  for ( i = 0; !changed && (i < state->disks_played); i++ )
+    changed = (flip_count[i] != state->flip_count[i]) ||
+      (hash_stored1[i] != state->hash_stored1[i]) ||
+      (hash_stored2[i] != state->hash_stored2[i]);
+  if ( !changed )
+    return FALSE;
+
+  for ( i = 0; i < 128; i++ )
+    board[i] = state->board[i];
+  disks_played = state->disks_played;
+  flip_stack = global_flip_stack + state->flip_depth;
+  for ( i = 0; i < state->flip_depth; i++ )
+    global_flip_stack[i] = state->flips[i];
+  for ( i = 0; i < 65; i++ )
+    flip_count[i] = state->flip_count[i];
+  hash1 = state->hash1;
+  hash2 = state->hash2;
+  for ( i = 0; i < MAX_SEARCH_DEPTH; i++ ) {
+    hash_stored1[i] = state->hash_stored1[i];
+    hash_stored2[i] = state->hash_stored2[i];
+    piece_count[BLACKSQ][i] = state->piece_count[BLACKSQ][i];
+    piece_count[WHITESQ][i] = state->piece_count[WHITESQ][i];
+  }
+  return TRUE;
+}
+
+
+
+/*
   UNMAKE_MOVE
   Takes back a move.
 */

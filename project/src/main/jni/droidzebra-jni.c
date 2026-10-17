@@ -102,6 +102,7 @@ static const char* s_forced_opening_seq = NULL;
 static int s_use_book = TRUE;
 static int s_enable_msg = TRUE;
 static int s_undo_stack[64];
+static PositionState s_evaluated_position; // see _droidzebra_compute_evals
 static int s_undo_stack_pointer = 0;
 // --
 
@@ -951,8 +952,21 @@ void _droidzebra_compute_evals(int side_to_move)
 	set_forced_opening( NULL );
 	memcpy(stored_pv, full_pv, sizeof(stored_pv));
 	stored_pv_depth = full_pv_depth;
+	save_position(&s_evaluated_position);
 
 	extended_compute_move(side_to_move, FALSE, TRUE, skill[EMPTY], exact_skill[EMPTY], wld_skill[EMPTY]);
+
+	// The evaluation must leave the game where it was. Cut short by a
+	// redo, it was seen in CI to leave one move too few counted (where in
+	// the search is not pinned down yet): the next redo then replayed the
+	// wrong stored move, a fatal error that threw the game away. Put the
+	// game back, and say so.
+	{
+		int disks_after = disks_played;
+		if ( restore_position_if_changed(&s_evaluated_position) )
+			droidzebra_message_debug("practice evaluation changed the position (disks played %d -> %d%s) - put back",
+					s_evaluated_position.disks_played, disks_after, force_return ? ", interrupted" : "");
+	}
 
 	memcpy(full_pv, stored_pv, sizeof(full_pv));
 	full_pv_depth = stored_pv_depth;
