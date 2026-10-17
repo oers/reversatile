@@ -41,8 +41,8 @@ public class MenuAndSettingsTest {
         });
 
         assertEquals(Arrays.asList(
-                R.id.menu_new_game, R.id.menu_hint,
-                R.id.menu_switch_sides, R.id.menu_analyze_game,
+                R.id.menu_new_game, R.id.menu_play_mode,
+                R.id.menu_switch_sides, R.id.menu_hint, R.id.menu_analyze_game,
                 R.id.menu_enter_moves, R.id.menu_mail,
                 R.id.menu_guess_move, R.id.menu_settings, R.id.menu_quit), ids);
     }

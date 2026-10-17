@@ -1,6 +1,6 @@
 <!-- Undo, redo, back to the start and rotate are not in here: they are
      the buttons below the board, always one tap away. The toolbar shows
-     the two other things needed during play, the overflow the rest in
+     new game and the play mode, the overflow the rest in
      groups (separated by dividers, see DroidZebra#onCreateOptionsMenu). -->
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:android="http://schemas.android.com/apk/res/android">
@@ -9,10 +9,12 @@
         android:icon="@drawable/ic_play_arrow_white_24dp"
         android:title="@string/menu_item_new_game"
         app:showAsAction="ifRoom" />
+    <!-- Cycles analysis / vs computer / vs human. Icon and title show the
+         current mode and are set in DroidZebra#onPrepareOptionsMenu. -->
     <item
-        android:id="@+id/menu_hint"
+        android:id="@+id/menu_play_mode"
         android:icon="@drawable/ic_wb_incandescent_white_24dp"
-        android:title="@string/menu_item_hint"
+        android:title="@string/onboarding_mode_analyze"
         app:showAsAction="ifRoom" />
 
     <!-- the current game -->
@@ -21,6 +23,10 @@
             android:id="@+id/menu_switch_sides"
             android:icon="@drawable/ic_swap_horiz_white_24dp"
             android:title="@string/menu_item_switch_sides" />
+        <item
+            android:id="@+id/menu_hint"
+            android:icon="@drawable/ic_wb_incandescent_white_24dp"
+            android:title="@string/menu_item_hint" />
         <item
             android:id="@+id/menu_analyze_game"
             android:icon="@drawable/ic_assessment_white_24dp"

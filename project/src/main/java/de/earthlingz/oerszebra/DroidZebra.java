@@ -40,6 +40,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
@@ -90,7 +91,9 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZE
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_WHITE;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.DEFAULT_SETTING_SENDMAIL;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.OnSettingsChangedListener;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_DISPLAY_MOVES;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_FUNCTION;
+import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_PRACTICE_MODE;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SETTINGS_KEY_SENDMAIL;
 import static de.earthlingz.oerszebra.GlobalSettingsLoader.SHARED_PREFS_NAME;
 
@@ -216,6 +219,65 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem playMode = menu.findItem(R.id.menu_play_mode);
+        if (playMode != null && settingsProvider != null) {
+            PlayMode mode = currentPlayMode();
+            playMode.setIcon(playModeIcon(mode));
+            playMode.setTitle(playModeLabel(mode));
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    PlayMode currentPlayMode() {
+        return PlayMode.of(settingsProvider.getSettingFunction(), settingsProvider.isSettingPracticeMode());
+    }
+
+    /**
+     * Moves on to the next play mode (analysis, vs computer, vs human). Only
+     * writes the settings the mode stands for - who the computer plays, and
+     * whether evaluations and legal moves are shown; the settings listener
+     * then applies them to the engine and the board like any other change.
+     */
+    void cyclePlayMode() {
+        PlayMode mode = currentPlayMode().next();
+        boolean blackToMove = gameState == null
+                || gameState.getSideToMove() == ZebraEngine.PLAYER_BLACK;
+        setHintUp(false);
+        getSharedPreferences(SHARED_PREFS_NAME, 0).edit()
+                .putString(SETTINGS_KEY_FUNCTION, String.valueOf(mode.engineFunction(blackToMove)))
+                .putBoolean(SETTINGS_KEY_PRACTICE_MODE, mode.showsHelp())
+                .putBoolean(SETTINGS_KEY_DISPLAY_MOVES, mode.showsHelp())
+                .apply();
+        invalidateOptionsMenu();
+        Toast.makeText(this, playModeLabel(mode), Toast.LENGTH_SHORT).show();
+    }
+
+    private static int playModeIcon(PlayMode mode) {
+        switch (mode) {
+            case VS_COMPUTER:
+                return R.drawable.ic_computer_white_24dp;
+            case VS_HUMAN:
+                return R.drawable.ic_people_white_24dp;
+            case ANALYSIS:
+            default:
+                return R.drawable.ic_wb_incandescent_white_24dp;
+        }
+    }
+
+    private static int playModeLabel(PlayMode mode) {
+        switch (mode) {
+            case VS_COMPUTER:
+                return R.string.onboarding_mode_vs_computer;
+            case VS_HUMAN:
+                return R.string.onboarding_mode_vs_human;
+            case ANALYSIS:
+            default:
+                return R.string.onboarding_mode_analyze;
+        }
+    }
+
     public boolean initialized() {
         return mIsInitCompleted;
     }
@@ -255,6 +317,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 sendMail();
             }
             return true;
+            case R.id.menu_play_mode:
+                cyclePlayMode();
+                return true;
             case R.id.menu_hint: {
                 showHint();
             }
@@ -814,6 +879,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     public void onSettingsChanged() {
         loadUISettings();
         loadEngineSettings();
+        // the play mode button shows the mode these settings make up
+        invalidateOptionsMenu();
     }
 
     @Override
