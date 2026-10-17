@@ -1,11 +1,8 @@
 Neu:
-• Partie-Analyse: Nach dem Spiel zeigt die App auf Wunsch, wie gut jeder Zug war. Ein Tipp auf einen Zug springt direkt dorthin.
+• Die Lampen-Taste wechselt per Tipp zwischen Analyse, Spiel gegen den Computer und Spiel gegen einen Freund. Beim Spielen gibt es keine Hilfen.
+• Menü und Einstellungen sind aufgeräumt und klar gegliedert.
 
 Verbessert:
-• Züge zurücknehmen und wiederholen funktioniert jetzt zuverlässig.
-• Die Zurück-Taste nimmt wieder den letzten Zug zurück.
-• Die App startet schneller.
-• Die Spiel-Engine wurde aktualisiert.
-• Mehrere Abstürze behoben.
-• Deine Wahl zu anonymen Nutzungsstatistiken wird sofort beachtet.
-• Angepasst an Android 17.
+• Züge, Zurücknehmen und Wiederholen gehen nicht mehr verloren, eine Partie startet nicht mehr unerwartet neu.
+• Das Brett bleibt nach dem Sprung zu einem analysierten Zug sichtbar.
+• Beschriftung und Bewertungen bleiben auf gedrehtem Brett lesbar.
