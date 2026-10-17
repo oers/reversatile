@@ -4,6 +4,7 @@ import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_HUMAN_VS_HU
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_BLACK;
 import static de.earthlingz.oerszebra.GameSettingsConstants.FUNCTION_ZEBRA_VS_ZEBRA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -157,10 +158,12 @@ public class HostJniSmokeTest {
         // f5 is a real move from a WThor tournament game this same engine
         // has replayed correctly many times over in WthorReplayTest - a
         // known-legal Black opening move in this app's coordinate system,
-        // not a guess. makeMove() silently no-ops until the engine reaches
-        // ES_USER_INPUT_WAIT (asynchronously, on the native engine thread),
-        // so retry it - same pattern WthorReplayTest's undo/redo helpers
-        // use for the same reason.
+        // not a guess. makeMove() throws InvalidMove until the engine has
+        // reported the legal moves, and silently no-ops until it reaches
+        // ES_USER_INPUT_WAIT (both asynchronously, on the native engine
+        // thread) - so wait for that first, then retry - same pattern
+        // WthorReplayTest's undo/redo helpers use for the same reason.
+        waitForUserInputWait(engine);
         Move f5 = new Move(5, 4);
         deadline = System.currentTimeMillis() + 20_000;
         while (!"f5".equals(removePasses(gameState.getMoveSequenceAsString()))
@@ -281,7 +284,16 @@ public class HostJniSmokeTest {
     // catches a redo that gets its own square right but computes the
     // wrong flip set, not just a wrong final square. Works for any game
     // regardless of how many forced passes it contains.
+    private static final EngineConfig REPLAY_CONFIG = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
+            false, null, false, false, false, 0, 0, 0);
+
     private static void verifyUndoRedoRoundTrip(ZebraEngine engine, byte[] wthorFile, int gameIndex)
+            throws InterruptedException {
+        verifyUndoRedoRoundTrip(engine, wthorFile, gameIndex, REPLAY_CONFIG);
+    }
+
+    private static void verifyUndoRedoRoundTrip(ZebraEngine engine, byte[] wthorFile, int gameIndex,
+                                                EngineConfig config)
             throws InterruptedException {
         String moveSequence = decodeGameMoveText(wthorFile, gameIndex);
         int realMoveCount = moveSequence.length() / 2;
@@ -292,7 +304,7 @@ public class HostJniSmokeTest {
         // undoing the whole game) to check whether unmake_move() actually
         // restores this exact position.
         byte[][] pristineStart = capturePristineStartBoard(engine);
-        GameState gameState = replayGame(engine, wthorFile, gameIndex);
+        GameState gameState = replayGame(engine, wthorFile, gameIndex, config);
 
         waitForMoveSequence(gameState, moveSequence);
         byte[][] finalBoard = captureBoard(gameState);
@@ -664,6 +676,117 @@ public class HostJniSmokeTest {
                 assertEquals("board after undo #" + attempt + " of ply " + ply,
                         "<no differing squares>", diffBoards(expectedBoard, captureBoard(gameState)));
                 redoOnce(engine, gameState, beforeUndo, ply);
+            }
+        } finally {
+            engine.forceStopGame();
+        }
+    }
+
+    // Same round trip as allWthorGamesUndoRedoRoundTripCleanly, but with
+    // practice mode on, as in the app: every position is evaluated, and the
+    // next undo/redo comes as soon as the board shows the previous one -
+    // while that evaluation is still starting or running, the way
+    // WthorReplayTest drives the app. In CI such an undo/redo was sometimes
+    // lost (the move sequence never changed, the engine sat waiting).
+    @Test
+    public void undoRedoDuringPracticeEvaluationsLosesNoInput() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        EngineConfig practice = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 4, 4, 4,
+                false, null, false, true, false, 0, 0, 0);
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        try {
+            for (int round = 0; round < 3; round++) {
+                for (int gameIndex : new int[]{4, 0, 97, 155}) {
+                    verifyUndoRedoRoundTrip(engine, file, gameIndex, practice);
+                }
+            }
+        } finally {
+            engine.forceStopGame();
+        }
+    }
+
+    // Two new games requested right after each other (in the app: a test
+    // or the user starting a game while the activity's own start is still
+    // in flight, or the analysis restoring the game and then jumping). The
+    // start moves and the "game ready" listener used to be single shared
+    // fields, so the two requests could mix: one listener got a game that
+    // was then stopped, the game that actually ran was never handed to
+    // anyone, and every move/undo/redo on the GameState the caller held
+    // was silently ignored (seen in CI as a first move or redo that never
+    // landed, and as a jump that ended on an empty game).
+    @Test
+    public void overlappingNewGamesEndOnTheLastOneAndItsListenerHasIt() throws Exception {
+        File nativeLib = findNativeLib();
+        Assume.assumeTrue("host libdroidzebra not built (run project/hostjni's Makefile first) - "
+                + "skipping, this is expected on workflows that don't build it", nativeLib != null);
+        File assetsDir = findAssetsDir();
+        Assume.assumeTrue("could not locate project/src/main/assets from " + new File(".").getAbsolutePath(),
+                assetsDir != null);
+        File wthorFile = findWthorFile();
+        Assume.assumeTrue("could not locate " + WTHOR_FILE_NAME + " from " + new File(".").getAbsolutePath(),
+                wthorFile != null);
+
+        byte[] file = Files.readAllBytes(wthorFile.toPath());
+        byte[] gameMoves = decodeGameMoveInts(file, PASSLESS_GAME_INDEX);
+        String gameText = decodeGameMoveText(file, PASSLESS_GAME_INDEX);
+        EngineConfig config = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 4, 4, 4,
+                false, null, false, true, false, 0, 0, 0);
+        ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        java.util.Random random = new java.util.Random(4);
+        try {
+            for (int round = 0; round < 40; round++) {
+                int firstLength = 10 + random.nextInt(10);
+                int secondLength = 30 + random.nextInt(10);
+                AtomicInteger handedOut = new AtomicInteger();
+                AtomicReference<GameState> first = new AtomicReference<>();
+                AtomicReference<GameState> second = new AtomicReference<>();
+                AtomicInteger firstOrder = new AtomicInteger(-1);
+                AtomicInteger secondOrder = new AtomicInteger(-1);
+                Thread firstCaller = new Thread(() -> engine.newGameBlocking(
+                        java.util.Arrays.copyOf(gameMoves, firstLength), firstLength,
+                        config, recording(first, firstOrder, handedOut)));
+                firstCaller.start();
+                Thread.sleep(random.nextInt(4));
+                engine.newGameBlocking(java.util.Arrays.copyOf(gameMoves, secondLength), secondLength,
+                        config, recording(second, secondOrder, handedOut));
+                firstCaller.join(WAIT_TIMEOUT_MILLIS);
+                assertFalse("round " + round + ": a new game request never returned",
+                        firstCaller.isAlive());
+
+                // Whichever game was handed out last is the one running, it
+                // went to the listener of its own request, and it accepts
+                // input. Both calls return once the start is signalled, so
+                // let the engine settle (replayed and waiting) before
+                // looking at which listener got the last game.
+                long deadline = System.currentTimeMillis() + WAIT_TIMEOUT_MILLIS;
+                long waitingSince = -1;
+                while (System.currentTimeMillis() < deadline) {
+                    if (handedOut.get() == 0 || engine.getState() != ZebraEngine.ENGINE_STATE.ES_USER_INPUT_WAIT) {
+                        waitingSince = -1;
+                    } else if (waitingSince < 0) {
+                        waitingSince = System.currentTimeMillis();
+                    } else if (System.currentTimeMillis() - waitingSince >= 300) {
+                        break;
+                    }
+                    Thread.sleep(10);
+                }
+                boolean secondIsLast = secondOrder.get() > firstOrder.get();
+                GameState gameState = secondIsLast ? second.get() : first.get();
+                int length = secondIsLast ? secondLength : firstLength;
+                assertTrue("round " + round + ": no new game was handed out", gameState != null);
+                waitForMoveSequence(gameState, gameText.substring(0, 2 * length));
+                waitForUserInputWait(engine);
+                undoOnce(engine, gameState, gameText.substring(0, 2 * (length - 1)), length);
             }
         } finally {
             engine.forceStopGame();
@@ -1094,11 +1217,15 @@ public class HostJniSmokeTest {
 
     private static GameState replayGame(ZebraEngine engine, byte[] wthorFile, int gameIndex)
             throws InterruptedException {
+        return replayGame(engine, wthorFile, gameIndex, REPLAY_CONFIG);
+    }
+
+    private static GameState replayGame(ZebraEngine engine, byte[] wthorFile, int gameIndex,
+                                        EngineConfig config)
+            throws InterruptedException {
         byte[] moveInts = decodeGameMoveInts(wthorFile, gameIndex);
         AtomicReference<GameState> gameStateRef = new AtomicReference<>();
-        engine.newGameBlocking(moveInts, moveInts.length,
-                new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 0,
-                        false, null, false, false, false, 0, 0, 0),
+        engine.newGameBlocking(moveInts, moveInts.length, config,
                 new ZebraEngine.OnGameStateReadyListener() {
                     @Override
                     public void onGameStateReady(GameState gameState) {
@@ -1195,6 +1322,18 @@ public class HostJniSmokeTest {
             return "WHITE";
         }
         return "EMPTY";
+    }
+
+    private static ZebraEngine.OnGameStateReadyListener recording(AtomicReference<GameState> ref,
+                                                                  AtomicInteger order,
+                                                                  AtomicInteger counter) {
+        return new ZebraEngine.OnGameStateReadyListener() {
+            @Override
+            public void onGameStateReady(GameState gameState) {
+                ref.set(gameState);
+                order.set(counter.incrementAndGet());
+            }
+        };
     }
 
     private static GameState loadGame(ZebraEngine engine, byte[] moves, EngineConfig config)
