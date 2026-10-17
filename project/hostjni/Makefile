@@ -74,8 +74,21 @@ LDLIBS := -lm -lz -lpthread
 
 TARGET := $(BUILD_DIR)/libdroidzebra.$(SHARED_EXT)
 
-.PHONY: all clean
+# A plain C test of the engine core (no JNI), for what the JVM tests can't
+# reach on purpose - see tests/complete_pv_test.c.
+CHECK_SRCS := $(filter-out $(JNI_SRC_DIR)/droidzebra-jni.c $(JNI_SRC_DIR)/droidzebra-autop.c \
+	$(JNI_SRC_DIR)/droidzebra-json.c $(JNI_SRC_DIR)/droidzebra-msg.c,$(SRCS))
+CHECK_TARGET := $(BUILD_DIR)/complete_pv_test
+
+.PHONY: all clean check
 all: $(TARGET)
+
+check: $(CHECK_TARGET)
+	$(CHECK_TARGET) ../src/main/assets
+
+$(CHECK_TARGET): tests/complete_pv_test.c $(CHECK_SRCS)
+	mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $@ tests/complete_pv_test.c $(CHECK_SRCS) $(LDLIBS)
 
 $(TARGET): $(SRCS)
 	mkdir -p $(BUILD_DIR)

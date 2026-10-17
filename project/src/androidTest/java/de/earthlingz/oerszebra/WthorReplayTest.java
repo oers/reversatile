@@ -530,9 +530,16 @@ public class WthorReplayTest extends BasicTest {
                 + diffBoards(originalBoard, captureBoard()));
     }
 
+    // The activity's GameState right before the last undo()/redo() call -
+    // if it is a different one when that call fails, the app started a new
+    // game in between (e.g. after an engine error), rather than the call
+    // simply being lost.
+    private Object gameStateBeforeCall;
+
     private void sendUndoUntilApplied(String expectedMoves, int gameIndex)
             throws InterruptedException {
         ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
+        gameStateBeforeCall = zebra.getGameState();
         Log.i("WthorReplayTest", "game " + gameIndex + " undo() -> target ply "
                 + expectedMoves.length() / 2 + ", engine state before call: " + stateBeforeCall);
         zebra.runOnUiThread(zebra::undo);
@@ -544,6 +551,7 @@ public class WthorReplayTest extends BasicTest {
     private void sendRedoUntilApplied(String expectedMoves, int gameIndex)
             throws InterruptedException {
         ZebraEngine.ENGINE_STATE stateBeforeCall = zebra.getEngineState();
+        gameStateBeforeCall = zebra.getGameState();
         Log.i("WthorReplayTest", "game " + gameIndex + " redo() -> target ply "
                 + expectedMoves.length() / 2 + ", engine state before call: " + stateBeforeCall);
         zebra.runOnUiThread(zebra::redo);
@@ -617,7 +625,9 @@ public class WthorReplayTest extends BasicTest {
                 + ", expected prefix: " + expectedMoves
                 + ", actual: " + actualMoves
                 + ", engine state before " + callLabel + "()/now: " + stateBeforeCall
-                + "/" + zebra.getEngineState());
+                + "/" + zebra.getEngineState()
+                + (stateBeforeCall == null ? "" : ", game state replaced since the call: "
+                        + (zebra.getGameState() != gameStateBeforeCall)));
     }
 
     // Re-sending onMakeMove every poll tick raced the engine: a move that was

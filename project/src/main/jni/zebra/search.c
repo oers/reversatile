@@ -328,6 +328,7 @@ clear_pv( void ) {
 void
 complete_pv( int side_to_move ) {
   int i;
+  int made = 0;
   int actual_side_to_move[60];
 
   full_pv_depth = 0;
@@ -338,30 +339,28 @@ complete_pv( int side_to_move ) {
       full_pv_depth++;
     }
     else {
-      full_pv[full_pv_depth] = PASS;
-      full_pv_depth++;
       side_to_move = OPP( side_to_move );
       if ( make_move( side_to_move, pv[0][i], TRUE ) ) {
 	actual_side_to_move[i] = side_to_move;
+	full_pv[full_pv_depth] = PASS;
+	full_pv_depth++;
 	full_pv[full_pv_depth] = pv[0][i];
 	full_pv_depth++;
       }
       else {
-#ifdef TEXT_BASED
-	int j;
-
-	printf( "pv_depth[0] = %d\n", pv_depth[0] );
-	for ( j = 0; j < pv_depth[0]; j++ )
-	  printf( "%c%c ", TO_SQUARE( pv[0][j] ) );
-	puts( "" );
-	printf( "i=%d\n", i );
-#endif
-	fatal_error( PV_ERROR );
+	/* The PV doesn't fit this position: it is left over from a
+	   search on a different one, cut short before it set its own -
+	   e.g. practice mode's evaluation of the next candidate move,
+	   interrupted by an undo/redo right as it started. That used to be
+	   a fatal error, which made the app throw the game away and start
+	   a new one. Keep the part of the line that does fit instead. */
+	break;
       }
     }
     side_to_move = OPP( side_to_move );
+    made = i + 1;
   }
-  for ( i = pv_depth[0] - 1; i >= 0; i-- )
+  for ( i = made - 1; i >= 0; i-- )
     unmake_move( actual_side_to_move[i], pv[0][i] );
 }
 

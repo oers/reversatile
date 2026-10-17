@@ -27,7 +27,6 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 
 import static de.earthlingz.oerszebra.GameSettingsConstants.*;
@@ -94,8 +93,27 @@ public class ZebraEngine {
     private PlayerInfo whitePlayerInfo = new PlayerInfo(0, 0, 0);
 
 
-    private transient GameState initialGameState;
     private transient GameState currentGameState;
+
+    // A request to start a game: its start position, settings and listener
+    // travel together, so requests that overlap can't mix them up.
+    private static final class NewGameRequest {
+        final GameState initial; // null: the standard start
+        final EngineConfig config;
+        final OnGameStateReadyListener listener;
+
+        NewGameRequest(GameState initial, EngineConfig config, OnGameStateReadyListener listener) {
+            this.initial = initial;
+            this.config = config;
+            this.listener = listener;
+        }
+    }
+
+    // Both guarded by engineStateEventLock. The latest request the engine
+    // hasn't started yet, and whether a start has already been signalled
+    // (ES_PLAY) that the engine thread hasn't taken up - see requestNewGame().
+    private NewGameRequest mNewGameRequest = null;
+    private boolean mStartSignalled = false;
 
     // The next UI event for the engine, and whether a stop was asked for -
     // both guarded by engineStateEventLock, see sendUserEvent().
@@ -129,8 +147,6 @@ public class ZebraEngine {
     private OnEngineErrorListener onErrorListener = new OnEngineErrorListener() {
     };
     private OnEngineDebugListener onDebugListener = new OnEngineDebugListener() {
-    };
-    private OnGameStateReadyListener onGameStateReadyListener = new OnGameStateReadyListener() {
     };
 
     private ZebraEngine(GameContext context) {
@@ -298,16 +314,6 @@ public class ZebraEngine {
         }
     }
 
-    private void sendReplayMoves(List<Move> moves) {
-        if (mEngineState != ZebraEngine.ENGINE_STATE.ES_READY2PLAY) {
-            stopGame();
-            waitForEngineState(ZebraEngine.ENGINE_STATE.ES_READY2PLAY);
-        }
-        initialGameState = new GameState(BOARD_SIZE, moves);
-
-        setEngineState(ENGINE_STATE.ES_PLAY);
-    }
-
     // settings helpers
 
 
@@ -399,14 +405,6 @@ public class ZebraEngine {
         computerMoveDelay = delay;
     }
 
-    private void setInitialGameState(LinkedList<Move> moves) {
-        ZebraEngine.this.initialGameState = new GameState(BOARD_SIZE, moves);
-    }
-
-    // gamestate manipulators
-    private void setInitialGameState(int moveCount, byte[] moves) {
-        initialGameState = new GameState(BOARD_SIZE, moves, moveCount);
-    }
 
     private void setPlayerInfos() {
         zeSetPlayerInfo(
@@ -844,38 +842,16 @@ public class ZebraEngine {
         sendSettingsChanged();
     }
 
-    private void waitForReadyToPlay(final Runnable completion) {
-        new CompletionAsyncTask(completion, this)
-                .execute();
-    }
-
     public void newGame(EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
-        this.onGameStateReadyListener = onGameStateReadyListener;
-        if (!isReadyToPlay()) {
-            stopGame();
-        }
-        waitForReadyToPlay(
-                () -> {
-                    loadConfig(engineConfig);
-                    setEngineStatePlay();
-                }
-        );
+        requestNewGame(new NewGameRequest(null, engineConfig, onGameStateReadyListener), false);
     }
 
     // Package-private: newGame() waits for ES_READY2PLAY via
     // CompletionAsyncTask, which needs a Looper - unavailable outside an
     // Android runtime. Plain-JVM tests (no emulator, no Android framework)
-    // use this instead: same effect, using the plain blocking
-    // waitForReadyToPlay() overload that's already used elsewhere in this
-    // class for non-AsyncTask waits.
+    // use this instead: same effect, waiting on the calling thread.
     void newGameBlocking(EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
-        this.onGameStateReadyListener = onGameStateReadyListener;
-        if (!isReadyToPlay()) {
-            stopGame();
-        }
-        waitForReadyToPlay();
-        loadConfig(engineConfig);
-        setEngineStatePlay();
+        requestNewGame(new NewGameRequest(null, engineConfig, onGameStateReadyListener), true);
     }
 
     // Blocking counterpart of newGame(byte[], int, EngineConfig, listener),
@@ -883,18 +859,81 @@ public class ZebraEngine {
     // lets a plain-JVM test bulk-replay a known move list (the engine drives
     // straight through it, no search) without an Android Looper.
     void newGameBlocking(byte[] fromMoves, int movesCount, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
-        engine.setInitialGameState(movesCount, fromMoves);
-        newGameBlocking(engineConfig, onGameStateReadyListener);
+        requestNewGame(new NewGameRequest(new GameState(BOARD_SIZE, fromMoves, movesCount),
+                engineConfig, onGameStateReadyListener), true);
     }
 
     public void newGame(LinkedList<Move> fromMoves, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
-        engine.setInitialGameState(fromMoves);
-        newGame(engineConfig, onGameStateReadyListener);
+        requestNewGame(new NewGameRequest(new GameState(BOARD_SIZE, fromMoves),
+                engineConfig, onGameStateReadyListener), false);
     }
 
     public void newGame(byte[] fromMoves, int movesCount, EngineConfig engineConfig, OnGameStateReadyListener onGameStateReadyListener) {
-        engine.setInitialGameState(movesCount, fromMoves);
-        newGame(engineConfig, onGameStateReadyListener);
+        requestNewGame(new NewGameRequest(new GameState(BOARD_SIZE, fromMoves, movesCount),
+                engineConfig, onGameStateReadyListener), false);
+    }
+
+    /**
+     * Starts the requested game once the current one has stopped. The
+     * latest request wins: one that a newer request replaces before its game
+     * starts is dropped, and its listener is not called.
+     * <p>
+     * The start moves and the listener used to be single shared fields, and
+     * the engine thread cleared the stop flag when it started a game. So a
+     * second request while the first was starting could (a) have its stop
+     * wiped out, leaving it waiting for ES_READY2PLAY forever, or (b) get
+     * the first game handed to it, after which the game that actually ran
+     * reached no one and every move/undo/redo on the caller's GameState was
+     * silently ignored.
+     */
+    private void requestNewGame(NewGameRequest request, boolean blocking) {
+        boolean startSignalled;
+        synchronized (engineStateEventLock) {
+            mNewGameRequest = request;
+            startSignalled = mStartSignalled;
+            engineStateEventLock.notifyAll(); // ends an older request's waitToStart()
+        }
+        if (startSignalled) {
+            // The engine thread is about to start a game and will take this
+            // request instead of the one that signalled it.
+            return;
+        }
+        if (!isReadyToPlay()) {
+            stopGame();
+        }
+        if (blocking) {
+            waitToStart(request);
+            startRequestedGame(request);
+        } else {
+            new CompletionAsyncTask(() -> waitToStart(request), () -> startRequestedGame(request))
+                    .execute();
+        }
+    }
+
+    // Until the engine can start a game, or this request doesn't need to
+    // wait any more because a newer one replaced it - otherwise a replaced
+    // request would wait as long as the newer game runs.
+    private void waitToStart(NewGameRequest request) {
+        synchronized (engineStateEventLock) {
+            while (mEngineState != ENGINE_STATE.ES_READY2PLAY && mNewGameRequest == request && isRunning) {
+                try {
+                    engineStateEventLock.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+    }
+
+    private void startRequestedGame(NewGameRequest request) {
+        synchronized (engineStateEventLock) {
+            if (mNewGameRequest != request || mStartSignalled) {
+                return; // a newer request took over, and starts itself
+            }
+            mStartSignalled = true;
+            setEngineStatePlay();
+        }
     }
 
     public void onReady(Runnable onEngineReady) {
@@ -989,29 +1028,36 @@ public class ZebraEngine {
 
                 if (!isRunning) break; // something may have happened while we were waiting
 
-                setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
-
+                NewGameRequest request;
                 synchronized (engineStateEventLock) {
+                    // Taken together with clearing the stop flag: a request
+                    // that comes after this sees no start signalled and stops
+                    // this game, one before it is the request taken here.
+                    request = mNewGameRequest;
+                    mNewGameRequest = null;
+                    mStartSignalled = false;
                     // nothing from the previous game carries over
                     mPendingEvent = null;
                     mExitRequested = false;
+                    setEngineState(ENGINE_STATE.ES_PLAY_IN_PROGRESS);
                 }
+                if (request == null) {
+                    // ES_PLAY without a request - nothing to start
+                    setEngineState(ENGINE_STATE.ES_READY2PLAY);
+                    continue;
+                }
+                loadConfig(request.config);
 
                 synchronized (mJNILock) {
                     setPlayerInfos();
 
                     currentGameState = new GameState(BOARD_SIZE);
-                    OnGameStateReadyListener listener = onGameStateReadyListener;
-                    onGameStateReadyListener = new OnGameStateReadyListener() {
-                    };
-                    listener.onGameStateReady(currentGameState);
+                    request.listener.onGameStateReady(currentGameState);
 
 
                     try {
-                        if (initialGameState != null) {
-                            GameState initialGameState = ZebraEngine.this.initialGameState;
-                            ZebraEngine.this.initialGameState = null;
-                            byte[] providedMoves = initialGameState.exportMoveSequence();
+                        if (request.initial != null) {
+                            byte[] providedMoves = request.initial.exportMoveSequence();
                             zePlay(providedMoves.length, providedMoves);
                         } else
                             zePlay(0, null);
