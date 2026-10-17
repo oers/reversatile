@@ -701,18 +701,30 @@ public class HostJniSmokeTest {
                 wthorFile != null);
 
         byte[] file = Files.readAllBytes(wthorFile.toPath());
-        // The app's defaults: opening book on, randomness "large" (slack
-        // and perturbation 6), and the instrumented tests' depth 1|1|1.
-        EngineConfig practice = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 1,
-                false, "None", false, true, true, 6, 6, 0);
         ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
+        List<String> errors = Collections.synchronizedList(new ArrayList<>());
+        engine.setOnErrorListener(new ZebraEngine.OnEngineErrorListener() {
+            @Override
+            public void onError(String error) {
+                errors.add(error);
+            }
+        });
         try {
-            for (int round = 0; round < 3; round++) {
+            // The app's defaults (opening book on, randomness "large": slack
+            // and perturbation 6) at the instrumented tests' depth 1|1|1 and
+            // at deeper ones, where the evaluation is still running when the
+            // next undo/redo comes and is cut short by it.
+            for (int depth : new int[]{1, 4, 8}) {
+                EngineConfig practice = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, depth, depth, depth,
+                        false, "None", false, true, true, 6, 6, 0);
                 for (int gameIndex : new int[]{4, 0, 97, 155}) {
                     verifyUndoRedoRoundTrip(engine, file, gameIndex, practice);
+                    assertEquals("engine errors at depth " + depth + ", game " + gameIndex,
+                            Collections.emptyList(), new ArrayList<>(errors));
                 }
             }
         } finally {
+            engine.setOnErrorListener(null);
             engine.forceStopGame();
         }
     }

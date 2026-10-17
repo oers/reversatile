@@ -106,6 +106,9 @@ jobs:
       - name: Build host libdroidzebra.so (arm64)
         run: make -C project/hostjni
 
+      - name: run engine core C tests
+        run: make -C project/hostjni check
+
       # "test" is Android's lifecycle aggregator task (plain Task, not a
       # Test-type task), so it doesn't accept --tests - target the actual
       # per-variant unit test task instead.
