@@ -953,6 +953,7 @@ void _droidzebra_compute_evals(int side_to_move)
 	memcpy(stored_pv, full_pv, sizeof(stored_pv));
 	stored_pv_depth = full_pv_depth;
 	save_position(&s_evaluated_position);
+	drift_where = NULL;
 
 	extended_compute_move(side_to_move, FALSE, TRUE, skill[EMPTY], exact_skill[EMPTY], wld_skill[EMPTY]);
 
@@ -964,8 +965,9 @@ void _droidzebra_compute_evals(int side_to_move)
 	{
 		int disks_after = disks_played;
 		if ( restore_position_if_changed(&s_evaluated_position) )
-			droidzebra_message_debug("practice evaluation changed the position (disks played %d -> %d%s) - put back",
-					s_evaluated_position.disks_played, disks_after, force_return ? ", interrupted" : "");
+			droidzebra_message_debug("practice evaluation changed the position (disks played %d -> %d%s, first in %s: %d -> %d) - put back",
+					s_evaluated_position.disks_played, disks_after, force_return ? ", interrupted" : "",
+					drift_where ? drift_where : "?", drift_expected, drift_found);
 	}
 
 	memcpy(full_pv, stored_pv, sizeof(full_pv));

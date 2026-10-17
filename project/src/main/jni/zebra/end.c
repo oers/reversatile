@@ -2119,6 +2119,7 @@ full_expand_pv( int side_to_move,
   int new_pv_depth;
   int new_pv[61];
   int new_side_to_move[61];
+  int entry_disks = disks_played;
 
   new_pv_depth = 0;
   pass_count = 0;
@@ -2149,6 +2150,7 @@ full_expand_pv( int side_to_move,
   for ( i = 0; i < new_pv_depth; i++ )
     pv[0][i] = new_pv[i];
   pv_depth[0] = new_pv_depth;
+  drift_check( entry_disks, "full_expand_pv" );
 }
 
 
