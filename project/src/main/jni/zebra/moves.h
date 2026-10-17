@@ -96,6 +96,15 @@ typedef struct {
 void
 save_position( PositionState *state );
 
+/* Where a search first left the move count different from what it was
+   called with, if one did since drift_where was last cleared - to find
+   the search behind a changed position (see _droidzebra_compute_evals). */
+extern const char *drift_where;
+extern int drift_expected, drift_found;
+
+void
+drift_check( int expected_disks_played, const char *where );
+
 int
 restore_position_if_changed( const PositionState *state );
 

@@ -325,6 +325,18 @@ make_move_no_hash( int side_to_move, int move ) {
   _droidzebra_compute_evals() for why. Returns TRUE if it had to.
 */
 
+const char *drift_where = NULL;
+int drift_expected, drift_found;
+
+void
+drift_check( int expected_disks_played, const char *where ) {
+  if ( (disks_played != expected_disks_played) && (drift_where == NULL) ) {
+    drift_where = where;
+    drift_expected = expected_disks_played;
+    drift_found = disks_played;
+  }
+}
+
 void
 save_position( PositionState *state ) {
   int i;
