@@ -79,7 +79,10 @@ jobs:
         with:
           api-level: 29
           ndk: 26.1.10909125
-          script: ./gradlew connectedCheck
+          # On a failure, also print what the app and engine logged - an
+          # engine error, for one, makes the app start a new game, which a
+          # test only sees as an input that never landed.
+          script: ./gradlew connectedCheck || (adb logcat -d -v time | grep -iE "alert|ZebraEngine|DroidZebra|droidzebra|AndroidRuntime|WthorReplayTest|GameAnalyzer" | tail -n 400; exit 1)
       - name: Print test results
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;

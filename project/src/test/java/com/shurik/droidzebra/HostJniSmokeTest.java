@@ -701,8 +701,10 @@ public class HostJniSmokeTest {
                 wthorFile != null);
 
         byte[] file = Files.readAllBytes(wthorFile.toPath());
-        EngineConfig practice = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 4, 4, 4,
-                false, null, false, true, false, 0, 0, 0);
+        // The app's defaults: opening book on, randomness "large" (slack
+        // and perturbation 6), and the instrumented tests' depth 1|1|1.
+        EngineConfig practice = new EngineConfig(FUNCTION_HUMAN_VS_HUMAN, 1, 1, 1,
+                false, "None", false, true, true, 6, 6, 0);
         ZebraEngine engine = ZebraEngine.get(new TestGameContext(filesDir.getRoot(), assetsDir));
         try {
             for (int round = 0; round < 3; round++) {
