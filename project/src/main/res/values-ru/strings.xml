@@ -47,6 +47,7 @@
     <string name="gameover_text_draw">Ничья</string>
     <string name="menu_item_new_game">Новая игра</string>
     <string name="menu_item_switch_sides">Поменять цвет</string>
+    <string name="menu_item_play_mode">Режим игры</string>
     <string name="menu_item_undo">Отмена</string>
     <string name="menu_item_redo">Повторить</string>
     <string name="menu_item_quit">Выход</string>

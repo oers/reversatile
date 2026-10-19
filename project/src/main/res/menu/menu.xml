@@ -13,12 +13,33 @@
          current mode and are set in DroidZebra#onPrepareOptionsMenu. -->
     <item
         android:id="@+id/menu_play_mode"
-        android:icon="@drawable/ic_wb_incandescent_white_24dp"
+        android:icon="@drawable/ic_assessment_white_24dp"
         android:title="@string/onboarding_mode_analyze"
         app:showAsAction="ifRoom" />
 
     <!-- the current game -->
     <group android:id="@+id/menu_group_game">
+        <!-- The same modes as the toolbar button, to pick directly and with
+             a readable name. Icon and checked mode are set in
+             DroidZebra#onPrepareOptionsMenu. -->
+        <item
+            android:id="@+id/menu_play_mode_choice"
+            android:icon="@drawable/ic_assessment_white_24dp"
+            android:title="@string/menu_item_play_mode">
+            <menu>
+                <group android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/menu_mode_analysis"
+                        android:title="@string/onboarding_mode_analyze" />
+                    <item
+                        android:id="@+id/menu_mode_vs_computer"
+                        android:title="@string/onboarding_mode_vs_computer" />
+                    <item
+                        android:id="@+id/menu_mode_vs_human"
+                        android:title="@string/onboarding_mode_vs_human" />
+                </group>
+            </menu>
+        </item>
         <item
             android:id="@+id/menu_switch_sides"
             android:icon="@drawable/ic_swap_horiz_white_24dp"

@@ -54,6 +54,7 @@
     <string name="gameover_text_draw">Draw</string>
     <string name="menu_item_new_game">New Game</string>
     <string name="menu_item_switch_sides">Switch Sides</string>
+    <string name="menu_item_play_mode">Play mode</string>
     <string name="menu_item_redo">Redo</string>
     <string name="menu_item_undo">Undo</string>
     <string name="menu_item_quit">Quit</string>
