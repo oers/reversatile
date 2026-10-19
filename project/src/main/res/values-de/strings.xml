@@ -36,6 +36,7 @@
     <string name="menu_item_redo">Wiederholen</string>
     <string name="menu_item_settings">Einstellungen</string>
     <string name="menu_item_switch_sides">Seite tauschen</string>
+    <string name="menu_item_play_mode">Spielmodus</string>
     <string name="menu_item_undo">Zurücknehmen</string>
     <string name="setting_strength_preference_summary">Spielstärke: Anzahl der Züge, die der Computer beim Spielen analysiert</string>
     <string name="setting_analysis_strength_preference_summary">Spielstärke nur für "Spiel analysieren" - niedriger ist schneller, besonders im Mittelspiel</string>

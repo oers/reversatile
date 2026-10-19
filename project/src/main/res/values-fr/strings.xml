@@ -45,6 +45,7 @@
     <string name="gameover_text_draw">Partie nulle</string>
     <string name="menu_item_new_game">Nouvelle partie</string>
     <string name="menu_item_switch_sides">Permuter les couleurs</string>
+    <string name="menu_item_play_mode">Mode de jeu</string>
     <string name="menu_item_redo">Rejouer</string>
     <string name="menu_item_undo">Annuler</string>
     <string name="menu_item_quit">Quitter</string>

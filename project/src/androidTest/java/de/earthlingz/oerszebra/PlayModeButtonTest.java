@@ -76,6 +76,22 @@ public class PlayModeButtonTest extends BasicTest {
         }
     }
 
+    // The menu's play mode submenu picks a mode directly instead of
+    // cycling, and checks the current one.
+    @Test
+    public void menuPicksAModeDirectly() {
+        try {
+            cycleUntil(PlayMode.ANALYSIS);
+            getInstrumentation().runOnMainSync(() -> zebra.setPlayMode(PlayMode.VS_HUMAN));
+            getInstrumentation().waitForIdleSync();
+            assertEquals(PlayMode.VS_HUMAN, onUiMode());
+            assertEquals(FUNCTION_HUMAN_VS_HUMAN, function());
+            assertFalse(prefs().getBoolean(SETTINGS_KEY_PRACTICE_MODE, true));
+        } finally {
+            restoreAnalysisAndSettle();
+        }
+    }
+
     // Every mode change makes the engine reload its settings and, in
     // analysis, start evaluating the position again. Leaving while it is
     // still busy let the next test's activity start a game on a busy engine

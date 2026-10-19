@@ -47,6 +47,7 @@
     <string name="gameover_text_draw">무승부</string>
     <string name="menu_item_new_game">새로운 게임</string>
     <string name="menu_item_switch_sides">흑백 자리 바뀌다</string>
+    <string name="menu_item_play_mode">플레이 모드</string>
     <string name="menu_item_redo">다시 실행</string>
     <string name="menu_item_undo">실행 취소</string>
     <string name="menu_item_quit">나가기</string>

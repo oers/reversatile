@@ -226,6 +226,14 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             PlayMode mode = currentPlayMode();
             playMode.setIcon(playModeIcon(mode));
             playMode.setTitle(playModeLabel(mode));
+            MenuItem choice = menu.findItem(R.id.menu_play_mode_choice);
+            if (choice != null) {
+                choice.setIcon(playModeIcon(mode));
+            }
+            MenuItem checked = menu.findItem(playModeMenuId(mode));
+            if (checked != null) {
+                checked.setChecked(true);
+            }
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -241,7 +249,11 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
      * then applies them to the engine and the board like any other change.
      */
     void cyclePlayMode() {
-        PlayMode mode = currentPlayMode().next();
+        setPlayMode(currentPlayMode().next());
+    }
+
+    /** Switches to the given play mode, see {@link #cyclePlayMode()}. */
+    void setPlayMode(PlayMode mode) {
         boolean blackToMove = gameState == null
                 || gameState.getSideToMove() == ZebraEngine.PLAYER_BLACK;
         setHintUp(false);
@@ -262,7 +274,19 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 return R.drawable.ic_people_white_24dp;
             case ANALYSIS:
             default:
-                return R.drawable.ic_wb_incandescent_white_24dp;
+                return R.drawable.ic_assessment_white_24dp;
+        }
+    }
+
+    private static int playModeMenuId(PlayMode mode) {
+        switch (mode) {
+            case VS_COMPUTER:
+                return R.id.menu_mode_vs_computer;
+            case VS_HUMAN:
+                return R.id.menu_mode_vs_human;
+            case ANALYSIS:
+            default:
+                return R.id.menu_mode_analysis;
         }
     }
 
@@ -285,6 +309,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (!mIsInitCompleted) return false;
+        // only opens the play mode submenu
+        if (item.getItemId() == R.id.menu_play_mode_choice) return false;
         cancelAnalysisIfRunning();
         switch (item.getItemId()) {
             case R.id.menu_new_game:
@@ -319,6 +345,15 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             return true;
             case R.id.menu_play_mode:
                 cyclePlayMode();
+                return true;
+            case R.id.menu_mode_analysis:
+                setPlayMode(PlayMode.ANALYSIS);
+                return true;
+            case R.id.menu_mode_vs_computer:
+                setPlayMode(PlayMode.VS_COMPUTER);
+                return true;
+            case R.id.menu_mode_vs_human:
+                setPlayMode(PlayMode.VS_HUMAN);
                 return true;
             case R.id.menu_hint: {
                 showHint();

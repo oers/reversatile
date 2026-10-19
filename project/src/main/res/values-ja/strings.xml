@@ -47,6 +47,7 @@
     <string name="gameover_text_draw">引き分け</string>
     <string name="menu_item_new_game">新規盤面</string>
     <string name="menu_item_switch_sides">色を変える</string>
+    <string name="menu_item_play_mode">プレイモード</string>
     <string name="menu_item_redo">１手進む</string>
     <string name="menu_item_undo">１手戻る</string>
     <string name="menu_item_quit">終了</string>
