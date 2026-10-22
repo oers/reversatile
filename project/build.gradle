@@ -104,7 +104,7 @@ dependencies {
     api 'com.google.guava:guava:33.7.2-android'
 
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'androidx.core:core:1.19.0'
+    implementation 'androidx.core:core:1.17.0'
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.github.matomo-org:matomo-sdk-android:4.1.4'
