@@ -9,7 +9,7 @@ import android.text.InputType;
 import android.widget.EditText;
 import androidx.fragment.app.DialogFragment;
 
-import javax.annotation.Nonnull;
+import androidx.annotation.NonNull;
 
 /**
  * Created by stefan on 18.03.2018.
@@ -29,7 +29,7 @@ public class EnterMovesDialog extends DialogFragment {
         return (MoveStringConsumer) getActivity();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

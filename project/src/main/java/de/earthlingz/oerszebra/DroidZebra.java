@@ -75,7 +75,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.annotation.Nonnull;
+import androidx.annotation.NonNull;
 
 import de.earthlingz.oerszebra.BoardView.BoardView;
 import de.earthlingz.oerszebra.BoardView.GameStateBoardModel;
@@ -887,7 +887,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     }
 
     @Override
-    protected void onSaveInstanceState(@Nonnull Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         GameState gs = gameState;
         if (gs != null) {
             byte[] moves = gs.exportMoveSequence();
@@ -1569,7 +1569,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             return new AlertDialog.Builder(getActivity())
                     .setTitle(R.string.app_name)
@@ -1587,13 +1587,13 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         // the game never continued). These fragment lifecycle callbacks are
         // the dialog's own, guaranteed path, whichever way it closes.
         @Override
-        public void onCancel(@Nonnull DialogInterface dialog) {
+        public void onCancel(@NonNull DialogInterface dialog) {
             super.onCancel(dialog);
             pass();
         }
 
         @Override
-        public void onDismiss(@Nonnull DialogInterface dialog) {
+        public void onDismiss(@NonNull DialogInterface dialog) {
             super.onDismiss(dialog);
             pass();
         }
@@ -1734,7 +1734,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             return (DroidZebra) getActivity();
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             ProgressDialog pd = new ProgressDialog(getActivity()) {
@@ -1771,7 +1771,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         // dialog. Stopping the engine here covers that and every other way
         // the dialog gets cancelled.
         @Override
-        public void onCancel(@Nonnull DialogInterface dialog) {
+        public void onCancel(@NonNull DialogInterface dialog) {
             super.onCancel(dialog);
             DroidZebra zebra = getDroidZebra();
             if (zebra != null) {
