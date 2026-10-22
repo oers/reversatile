@@ -31,7 +31,7 @@ android {
         ndk {
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
         }
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 37
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -103,8 +103,8 @@ repositories {
 dependencies {
     api 'com.google.guava:guava:33.7.2-android'
 
-    implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'androidx.core:core:1.17.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
+    implementation 'androidx.core:core:1.19.1'
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.github.matomo-org:matomo-sdk-android:4.1.4'
