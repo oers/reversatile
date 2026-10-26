@@ -1,0 +1,173 @@
+package de.earthlingz.oerszebra;
+
+import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Rect;
+import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ListView;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.DisplayCutoutCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.test.core.app.ActivityScenario;
+
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Edge to edge (enforced from Android 15 on) the system bars lie over the
+ * layout. With three-button navigation, buttons at the bottom used to end
+ * up under the navigation bar, where they can't be tapped (reported for the
+ * guess move screen's "New game", on a Samsung S21).
+ */
+public class SystemBarsTest {
+
+    private static final int STATUS_BAR = 100;
+    private static final int NAVIGATION_BAR = 144;
+    // A punch-hole camera, at the side in landscape, where no bar covers it
+    private static final int CUTOUT = 90;
+
+    @Test
+    public void guessMoveNewGameStaysClearOfTheSystemBars() {
+        int[] views = {R.id.guess_move_board, R.id.guess_move_new};
+        assertClear(R.layout.activity_guess_move, Configuration.ORIENTATION_PORTRAIT, 0, views);
+        assertClear(R.layout.activity_guess_move, Configuration.ORIENTATION_LANDSCAPE, 0, views);
+        assertClear(R.layout.activity_guess_move, Configuration.ORIENTATION_LANDSCAPE, CUTOUT, views);
+    }
+
+    @Test
+    public void buttonsBelowTheBoardStayClearOfTheSystemBars() {
+        int[] views = {R.id.board,
+                R.id.status_first_move, R.id.status_undo, R.id.status_redo, R.id.status_rotate};
+        assertClear(R.layout.board_layout, Configuration.ORIENTATION_PORTRAIT, 0, views);
+        assertClear(R.layout.board_layout, Configuration.ORIENTATION_LANDSCAPE, 0, views);
+        assertClear(R.layout.board_layout, Configuration.ORIENTATION_LANDSCAPE, CUTOUT, views);
+    }
+
+    @Test
+    public void settingsListEndsClearOfTheSystemBars() {
+        // On the settings screen itself: the list is padded and scrolls
+        // under the bars. Only the top is checked there - on Android before
+        // 11 (the CI emulator), androidx caps the navigation bar inset of a
+        // view in a window at the window's real one, which is 0 for an app
+        // that isn't drawn edge to edge.
+        try (ActivityScenario<SettingsPreferences> scenario =
+                     ActivityScenario.launch(SettingsPreferences.class)) {
+            int[] paddingTop = new int[2];
+            boolean[] clipsToPadding = new boolean[1];
+            scenario.onActivity(activity -> {
+                ListView list = activity.getListView();
+                paddingTop[0] = list.getPaddingTop();
+                ViewCompat.dispatchApplyWindowInsets(list, insets(0, STATUS_BAR, 0, NAVIGATION_BAR));
+                paddingTop[1] = list.getPaddingTop();
+                clipsToPadding[0] = list.getClipToPadding();
+            });
+            assertEquals(paddingTop[0] + STATUS_BAR, paddingTop[1]);
+            assertFalse("the list should scroll under the bars", clipsToPadding[0]);
+        }
+
+        // ...and the bars add to the list's own padding, on every side.
+        int[] padding = new int[4];
+        getInstrumentation().runOnMainSync(() -> {
+            ListView list = new ListView(getInstrumentation().getTargetContext());
+            list.setPadding(1, 2, 3, 4);
+            SystemBars.keepClear(list);
+            ViewCompat.dispatchApplyWindowInsets(list, insets(10, STATUS_BAR, 20, NAVIGATION_BAR));
+            padding[0] = list.getPaddingLeft();
+            padding[1] = list.getPaddingTop();
+            padding[2] = list.getPaddingRight();
+            padding[3] = list.getPaddingBottom();
+        });
+        assertEquals(1 + 10, padding[0]);
+        assertEquals(2 + STATUS_BAR, padding[1]);
+        assertEquals(3 + 20, padding[2]);
+        assertEquals(4 + NAVIGATION_BAR, padding[3]);
+    }
+
+    // Lays the layout out on a phone-sized screen with a status bar and a
+    // navigation bar - at the bottom in portrait, at the side in landscape,
+    // as with three-button navigation - and, if cutout isn't 0, a camera
+    // cutout on the other side in landscape; then checks each view lies
+    // clear of them all.
+    private static void assertClear(int layout, int orientation, int cutout, int... ids) {
+        boolean landscape = orientation == Configuration.ORIENTATION_LANDSCAPE;
+        int width = landscape ? 2400 : 1080;
+        int height = landscape ? 1080 : 2400;
+        Insets bars = landscape
+                ? Insets.of(0, STATUS_BAR, NAVIGATION_BAR, 0)
+                : Insets.of(0, STATUS_BAR, 0, NAVIGATION_BAR);
+        WindowInsetsCompat.Builder builder = new WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.systemBars(), bars);
+        if (cutout > 0) {
+            builder.setDisplayCutout(new DisplayCutoutCompat(new Rect(cutout, 0, 0, 0),
+                    Collections.singletonList(new Rect(0, height / 2 - 40, cutout, height / 2 + 40))));
+        }
+        WindowInsetsCompat insets = builder.build();
+        Insets clear = Insets.max(bars, Insets.of(cutout, 0, 0, 0));
+
+        Context target = getInstrumentation().getTargetContext();
+        Configuration config = new Configuration(target.getResources().getConfiguration());
+        config.orientation = orientation;
+        Context context = new ContextThemeWrapper(target.createConfigurationContext(config),
+                R.style.CustomActionBarTheme);
+
+        List<String> problems = new ArrayList<>();
+        getInstrumentation().runOnMainSync(() -> {
+            View root = LayoutInflater.from(context).inflate(layout, null);
+            SystemBars.keepClear(root.findViewById(R.id.main_frame));
+            ViewCompat.dispatchApplyWindowInsets(root, insets);
+            root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, width, height);
+
+            String where = (landscape ? "landscape " : "portrait ")
+                    + target.getResources().getResourceEntryName(layout)
+                    + (cutout > 0 ? " with a cutout" : "");
+            for (int id : ids) {
+                View view = root.findViewById(id);
+                int left = 0;
+                int top = 0;
+                for (View v = view; v != root; v = (View) v.getParent()) {
+                    left += v.getLeft();
+                    top += v.getTop();
+                }
+                String name = target.getResources().getResourceEntryName(id);
+                if (view.getWidth() <= 0 || view.getHeight() <= 0) {
+                    problems.add(name + " is not laid out in " + where);
+                }
+                if (top < clear.top) {
+                    problems.add(name + " starts under the status bar in " + where + ": " + top);
+                }
+                if (left < clear.left) {
+                    problems.add(name + " starts under the cutout in " + where + ": " + left);
+                }
+                if (top + view.getHeight() > height - clear.bottom) {
+                    problems.add(name + " ends under the navigation bar in " + where + ": "
+                            + (top + view.getHeight()));
+                }
+                if (left + view.getWidth() > width - clear.right) {
+                    problems.add(name + " ends under the navigation bar in " + where + ": "
+                            + (left + view.getWidth()));
+                }
+            }
+        });
+        assertTrue(problems.toString(), problems.isEmpty());
+    }
+
+    private static WindowInsetsCompat insets(int left, int top, int right, int bottom) {
+        return new WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(left, top, right, bottom))
+                .build();
+    }
+}
