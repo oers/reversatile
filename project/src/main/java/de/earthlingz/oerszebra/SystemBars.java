@@ -16,14 +16,19 @@ public final class SystemBars {
     }
 
     /**
-     * Keeps everything in {@code root} clear of the system bars, by padding
-     * it by their size.
+     * Keeps everything in {@code view} clear of the system bars, by adding
+     * their size to its padding.
      */
-    public static void keepClear(View root) {
+    public static void keepClear(View view) {
+        int left = view.getPaddingLeft();
+        int top = view.getPaddingTop();
+        int right = view.getPaddingRight();
+        int bottom = view.getPaddingBottom();
         //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
-        ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+            v.setPadding(left + insets.left, top + insets.top,
+                    right + insets.right, bottom + insets.bottom);
             return WindowInsetsCompat.CONSUMED;
         });
     }

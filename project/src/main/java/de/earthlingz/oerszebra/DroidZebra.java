@@ -513,24 +513,10 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             mBoardView.setRotated(savedInstanceState.getBoolean("board_rotated", false));
         }
 
-        //https://developer.android.com/develop/ui/views/layout/edge-to-edge?hl=de#java
-        ViewCompat.setOnApplyWindowInsetsListener(mBoardView, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // Apply the insets as a margin to the view. This solution sets only the
-            // bottom, left, and right dimensions, but you can apply whichever insets are
-            // appropriate to your layout. You can also update the view padding if that's
-            // more appropriate.
-            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-            mlp.topMargin = insets.top;
-            mlp.leftMargin = insets.left;
-            mlp.bottomMargin = insets.bottom;
-            mlp.rightMargin = insets.right;
-            v.setLayoutParams(mlp);
-
-            // Return CONSUMED if you don't want want the window insets to keep passing
-            // down to descendant views.
-            return WindowInsetsCompat.CONSUMED;
-        });
+        // Only the board used to be kept clear of the system bars - the
+        // buttons below it (back to the start, undo, redo, rotate) ended up
+        // under the navigation buttons, where they can't be tapped.
+        SystemBars.keepClear(findViewById(R.id.main_frame));
 
         resetStatusView();
 
