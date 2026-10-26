@@ -50,23 +50,42 @@ public class SystemBarsTest {
 
     @Test
     public void settingsListEndsClearOfTheSystemBars() {
+        // On the settings screen itself: the list is padded and scrolls
+        // under the bars. Only the top is checked there - on Android before
+        // 11 (the CI emulator), androidx caps the navigation bar inset of a
+        // view in a window at the window's real one, which is 0 for an app
+        // that isn't drawn edge to edge.
         try (ActivityScenario<SettingsPreferences> scenario =
                      ActivityScenario.launch(SettingsPreferences.class)) {
-            int[] padding = new int[4];
+            int[] paddingTop = new int[2];
             boolean[] clipsToPadding = new boolean[1];
             scenario.onActivity(activity -> {
                 ListView list = activity.getListView();
-                padding[0] = list.getPaddingTop();
-                padding[1] = list.getPaddingBottom();
+                paddingTop[0] = list.getPaddingTop();
                 ViewCompat.dispatchApplyWindowInsets(list, insets(0, STATUS_BAR, 0, NAVIGATION_BAR));
-                padding[2] = list.getPaddingTop();
-                padding[3] = list.getPaddingBottom();
+                paddingTop[1] = list.getPaddingTop();
                 clipsToPadding[0] = list.getClipToPadding();
             });
-            assertEquals(padding[0] + STATUS_BAR, padding[2]);
-            assertEquals(padding[1] + NAVIGATION_BAR, padding[3]);
+            assertEquals(paddingTop[0] + STATUS_BAR, paddingTop[1]);
             assertFalse("the list should scroll under the bars", clipsToPadding[0]);
         }
+
+        // ...and the bars add to the list's own padding, on every side.
+        int[] padding = new int[4];
+        getInstrumentation().runOnMainSync(() -> {
+            ListView list = new ListView(getInstrumentation().getTargetContext());
+            list.setPadding(1, 2, 3, 4);
+            SystemBars.keepClear(list);
+            ViewCompat.dispatchApplyWindowInsets(list, insets(10, STATUS_BAR, 20, NAVIGATION_BAR));
+            padding[0] = list.getPaddingLeft();
+            padding[1] = list.getPaddingTop();
+            padding[2] = list.getPaddingRight();
+            padding[3] = list.getPaddingBottom();
+        });
+        assertEquals(1 + 10, padding[0]);
+        assertEquals(2 + STATUS_BAR, padding[1]);
+        assertEquals(3 + 20, padding[2]);
+        assertEquals(4 + NAVIGATION_BAR, padding[3]);
     }
 
     // Lays the layout out on a phone-sized screen with a status bar and a
