@@ -142,9 +142,11 @@ jobs:
           arch: x86_64
           ndk: 26.1.10909125
           script: |
-            adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton || true
+            adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton
             adb shell cmd overlay list | grep -i navbar || true
+            adb logcat -c || true
             ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=de.earthlingz.oerszebra.ScreenEdgeTest,de.earthlingz.oerszebra.SystemBarsTest
+            adb logcat -d -s ScreenEdgeTest || true
       - name: Print test results
         if: failure()
         run: find project/build -path '*androidTest-results*' -name '*.xml' -print -exec cat {} \;

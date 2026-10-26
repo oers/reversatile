@@ -1,6 +1,7 @@
 package de.earthlingz.oerszebra;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
@@ -67,6 +68,8 @@ public class ScreenEdgeTest extends BasicTest {
         String name = activity.getResources().getResourceEntryName(view.getId());
         String where = " (" + left + "," + top + " - " + right + "," + bottom + " in a "
                 + decor.getWidth() + "x" + decor.getHeight() + " window, clear of " + clear + ")";
+        // Shows in CI which bars the check ran against.
+        Log.i("ScreenEdgeTest", name + where);
         if (view.getWidth() <= 0 || view.getHeight() <= 0) {
             problems.add(name + " is not laid out" + where);
         }
