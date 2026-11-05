@@ -29,9 +29,10 @@ Differences from droidzebra:
 
 Current features:
 - Zebra engine
-- play human vs human, hunam vs computer, computer vs computer
-- multiple levels of play
-- practice mode
+- play human vs human, human vs computer, computer vs computer
+- "New game" asks how to play: against the computer as Black or White, two players, or analysis
+- multiple levels of play, up to a custom level (up to 40 moves lookahead, up to 32 perfect endgame moves)
+- practice mode and game analysis
 - unlimited undo
 
 The Development/Master Branch uses play store apis. The foss branch is free vom closed source software.
@@ -49,3 +50,9 @@ Version 1.4.X.
   - Better Status View
   - Minimum Android 5
   - landscape mode
+
+Version 2.1.x
+  - "New game" dialog to pick how to play (vs. computer as Black or White, two players, analysis)
+  - search depths beyond 20 moves: two new levels and a custom level
+  - screens stay clear of the navigation bar and camera cutout (Android 15 edge to edge)
+  - minimum Android 6 (API 23), updated build tools and libraries

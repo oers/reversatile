@@ -1,8 +1,7 @@
 Neu:
-• Die Lampen-Taste wechselt per Tipp zwischen Analyse, Spiel gegen den Computer und Spiel gegen einen Freund. Beim Spielen gibt es keine Hilfen.
-• Menü und Einstellungen sind aufgeräumt und klar gegliedert.
+• Bei „Neues Spiel“ wählst du, wie du spielen willst: gegen den Computer mit Schwarz oder Weiß, zu zweit oder Analyse.
+• Mehr Spielstärke: zwei neue Stufen und eine eigene Stufe mit bis zu 40 Zügen Vorausberechnung und bis zu 32 perfekten Endspielzügen.
 
 Verbessert:
-• Züge, Zurücknehmen und Wiederholen gehen nicht mehr verloren, eine Partie startet nicht mehr unerwartet neu.
-• Das Brett bleibt nach dem Sprung zu einem analysierten Zug sichtbar.
-• Beschriftung und Bewertungen bleiben auf gedrehtem Brett lesbar.
+• Tasten und Einstellungen liegen nicht mehr unter der Navigationsleiste oder der Kamera (Android 15).
+• Die App braucht jetzt Android 6 oder neuer.

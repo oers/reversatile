@@ -1,2 +1,7 @@
-better Layout for the status view
-landscape mode
+New:
+• "New game" asks how you want to play: against the computer as Black or White, with a friend, or analysis.
+• Stronger play: two new levels and a custom level with up to 40 moves of lookahead and up to 32 perfectly played endgame moves.
+
+Improved:
+• Buttons and settings no longer hide under the navigation bar or the camera cutout (Android 15).
+• The app now needs Android 6 or newer.
