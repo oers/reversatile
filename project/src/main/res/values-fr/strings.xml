@@ -102,4 +102,8 @@
     <string name="settings_category_training">Entraînement et analyse</string>
     <string name="settings_category_display">Affichage</string>
     <string name="settings_category_other">Partage et confidentialité</string>
+    <string name="new_game_mode_title">Comment voulez-vous jouer ?</string>
+    <string name="new_game_mode_vs_computer_as_white">Contre l\'ordinateur avec les Blancs</string>
+    <string name="new_game_mode_vs_computer_as_black">Contre l\'ordinateur avec les Noirs</string>
+    <string name="new_game_mode_two_players">Deux joueurs sur cet appareil</string>
 </resources>

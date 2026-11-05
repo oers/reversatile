@@ -102,4 +102,8 @@
     <string name="settings_category_training">Üben &amp; Analyse</string>
     <string name="settings_category_display">Darstellung</string>
     <string name="settings_category_other">Teilen &amp; Datenschutz</string>
+    <string name="new_game_mode_title">Wie soll gespielt werden?</string>
+    <string name="new_game_mode_vs_computer_as_white">Gegen den Computer als Weiß</string>
+    <string name="new_game_mode_vs_computer_as_black">Gegen den Computer als Schwarz</string>
+    <string name="new_game_mode_two_players">Mensch gegen Mensch auf dem Gerät</string>
 </resources>

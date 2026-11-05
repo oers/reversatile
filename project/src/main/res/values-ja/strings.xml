@@ -104,4 +104,8 @@
     <string name="settings_category_training">練習と分析</string>
     <string name="settings_category_display">表示</string>
     <string name="settings_category_other">共有とプライバシー</string>
+    <string name="new_game_mode_title">どのように対局しますか？</string>
+    <string name="new_game_mode_vs_computer_as_white">コンピュータと対戦（白番）</string>
+    <string name="new_game_mode_vs_computer_as_black">コンピュータと対戦（黒番）</string>
+    <string name="new_game_mode_two_players">この端末で2人対戦</string>
 </resources>
