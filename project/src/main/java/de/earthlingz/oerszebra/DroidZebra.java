@@ -186,19 +186,21 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     /**
      * Asks how the new game should be played (vs. the computer as White or
-     * Black, or two people on this device), writes the matching existing
-     * settings and then starts the game. Cancelling keeps the current game.
+     * Black, two people on this device, or analysis), writes the matching
+     * existing settings and then starts the game. Cancelling keeps the
+     * current game.
      */
     void askNewGameModeAndStart() {
         CharSequence[] labels = {
                 getString(R.string.new_game_mode_vs_computer_as_white),
                 getString(R.string.new_game_mode_vs_computer_as_black),
-                getString(R.string.new_game_mode_two_players)
+                getString(R.string.new_game_mode_two_players),
+                getString(R.string.onboarding_mode_analyze)
         };
         new AlertDialog.Builder(this)
                 .setTitle(R.string.new_game_mode_title)
                 .setItems(labels, (dialog, which) -> {
-                    applyNewGameMode(NEW_GAME_MODE_FUNCTIONS[which]);
+                    applyNewGameMode(NEW_GAME_MODE_FUNCTIONS[which], NEW_GAME_MODE_HELP[which]);
                     startNewGameAndResetUI();
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -209,22 +211,25 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     static final int[] NEW_GAME_MODE_FUNCTIONS = {
             FUNCTION_ZEBRA_BLACK,    // you play White
             FUNCTION_ZEBRA_WHITE,    // you play Black
-            FUNCTION_HUMAN_VS_HUMAN  // two people on this device
+            FUNCTION_HUMAN_VS_HUMAN, // two people on this device
+            FUNCTION_HUMAN_VS_HUMAN  // analysis
     };
 
+    /** Evaluations and legal-move markers per entry of the new-game dialog. */
+    static final boolean[] NEW_GAME_MODE_HELP = {false, false, false, true};
+
     /**
-     * Writes the settings for a played game (no evaluations or legal-move
-     * help, like the play mode button's vs. computer / vs. human modes).
-     * The settings listener updates engineConfig synchronously, so the game
-     * started right after already uses it; reloading here makes that
-     * explicit.
+     * Writes the settings for the chosen way of playing, the same ones the
+     * play mode button writes. The settings listener updates engineConfig
+     * synchronously, so the game started right after already uses it;
+     * reloading here makes that explicit.
      */
-    private void applyNewGameMode(int engineFunction) {
+    private void applyNewGameMode(int engineFunction, boolean showHelp) {
         setHintUp(false);
         getSharedPreferences(SHARED_PREFS_NAME, 0).edit()
                 .putString(SETTINGS_KEY_FUNCTION, String.valueOf(engineFunction))
-                .putBoolean(SETTINGS_KEY_PRACTICE_MODE, false)
-                .putBoolean(SETTINGS_KEY_DISPLAY_MOVES, false)
+                .putBoolean(SETTINGS_KEY_PRACTICE_MODE, showHelp)
+                .putBoolean(SETTINGS_KEY_DISPLAY_MOVES, showHelp)
                 .apply();
         this.engineConfig = settingsProvider.createEngineConfig();
         invalidateOptionsMenu();
