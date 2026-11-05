@@ -32,6 +32,11 @@ public class SettingsPreferences extends PreferenceActivity
 	    super.onCreate(savedInstanceState);
         getPreferenceManager().setSharedPreferencesName(SHARED_PREFS_NAME);
 	    addPreferencesFromResource(R.xml.settings);
+        // Drawn edge to edge (from Android 15 on): let the list scroll under
+        // the system bars, but end clear of them, so the first and last
+        // settings can be reached.
+        getListView().setClipToPadding(false);
+        SystemBars.keepClear(getListView());
         getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
