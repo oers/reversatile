@@ -68,6 +68,10 @@ public class SystemBarsTest {
             boolean[] clipsToPadding = new boolean[1];
             scenario.onActivity(activity -> {
                 ListView list = activity.getListView();
+                // The real window insets may already be applied (edge to
+                // edge on Android 15+), so measure the list's own padding
+                // with no bars first instead of reading it as it is.
+                ViewCompat.dispatchApplyWindowInsets(list, insets(0, 0, 0, 0));
                 paddingTop[0] = list.getPaddingTop();
                 ViewCompat.dispatchApplyWindowInsets(list, insets(0, STATUS_BAR, 0, NAVIGATION_BAR));
                 paddingTop[1] = list.getPaddingTop();
