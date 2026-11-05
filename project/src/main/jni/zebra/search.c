@@ -330,6 +330,7 @@ complete_pv( int side_to_move ) {
   int i;
   int made = 0;
   int actual_side_to_move[60];
+  int entry_disks = disks_played;
 
   full_pv_depth = 0;
   for ( i = 0; i < pv_depth[0]; i++ ) {
@@ -362,6 +363,7 @@ complete_pv( int side_to_move ) {
   }
   for ( i = made - 1; i >= 0; i-- )
     unmake_move( actual_side_to_move[i], pv[0][i] );
+  drift_check( entry_disks, "complete_pv" );
 }
 
 
@@ -381,6 +383,7 @@ hash_expand_pv( int side_to_move,
   int new_pv_depth;
   int new_pv[61];
   int new_side_to_move[61];
+  int entry_disks = disks_played;
   HashEntry entry;
 
   determine_hash_values( side_to_move, board );
@@ -426,6 +429,7 @@ hash_expand_pv( int side_to_move,
   for ( i = 0; i < new_pv_depth; i++ )
     pv[0][i] = new_pv[i];
   pv_depth[0] = new_pv_depth;
+  drift_check( entry_disks, "hash_expand_pv" );
 }
 
 
