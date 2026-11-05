@@ -184,6 +184,52 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     }
 
+    /**
+     * Asks how the new game should be played (vs. the computer as White or
+     * Black, or two people on this device), writes the matching existing
+     * settings and then starts the game. Cancelling keeps the current game.
+     */
+    void askNewGameModeAndStart() {
+        CharSequence[] labels = {
+                getString(R.string.new_game_mode_vs_computer_as_white),
+                getString(R.string.new_game_mode_vs_computer_as_black),
+                getString(R.string.new_game_mode_two_players)
+        };
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.new_game_mode_title)
+                .setItems(labels, (dialog, which) -> {
+                    applyNewGameMode(NEW_GAME_MODE_FUNCTIONS[which]);
+                    startNewGameAndResetUI();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /** "Computer plays" setting per entry of the new-game dialog. */
+    static final int[] NEW_GAME_MODE_FUNCTIONS = {
+            FUNCTION_ZEBRA_BLACK,    // you play White
+            FUNCTION_ZEBRA_WHITE,    // you play Black
+            FUNCTION_HUMAN_VS_HUMAN  // two people on this device
+    };
+
+    /**
+     * Writes the settings for a played game (no evaluations or legal-move
+     * help, like the play mode button's vs. computer / vs. human modes).
+     * The settings listener updates engineConfig synchronously, so the game
+     * started right after already uses it; reloading here makes that
+     * explicit.
+     */
+    private void applyNewGameMode(int engineFunction) {
+        setHintUp(false);
+        getSharedPreferences(SHARED_PREFS_NAME, 0).edit()
+                .putString(SETTINGS_KEY_FUNCTION, String.valueOf(engineFunction))
+                .putBoolean(SETTINGS_KEY_PRACTICE_MODE, false)
+                .putBoolean(SETTINGS_KEY_DISPLAY_MOVES, false)
+                .apply();
+        this.engineConfig = settingsProvider.createEngineConfig();
+        invalidateOptionsMenu();
+    }
+
     private void startNewGame() {
         clearAnalysisResults();
         engine.newGame(engineConfig, new ZebraEngine.OnGameStateReadyListener() {
@@ -314,7 +360,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         cancelAnalysisIfRunning();
         switch (item.getItemId()) {
             case R.id.menu_new_game:
-                startNewGameAndResetUI();
+                askNewGameModeAndStart();
                 return true;
             case R.id.menu_quit:
                 finish();
@@ -1651,7 +1697,7 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
             button.setOnClickListener(
                     v15 -> {
                         dismiss();
-                        getDroidZebra().startNewGameAndResetUI();
+                        getDroidZebra().askNewGameModeAndStart();
                     });
 
             button = v.findViewById(R.id.gameover_choice_rotate);

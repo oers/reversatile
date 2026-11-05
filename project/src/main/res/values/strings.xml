@@ -118,4 +118,8 @@
     <string name="settings_category_training">Practice &amp; Analysis</string>
     <string name="settings_category_display">Display</string>
     <string name="settings_category_other">Sharing &amp; Privacy</string>
+    <string name="new_game_mode_title">How do you want to play?</string>
+    <string name="new_game_mode_vs_computer_as_white">Vs. the computer as White</string>
+    <string name="new_game_mode_vs_computer_as_black">Vs. the computer as Black</string>
+    <string name="new_game_mode_two_players">Two players on this device</string>
 </resources>

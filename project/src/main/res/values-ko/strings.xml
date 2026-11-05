@@ -104,4 +104,8 @@
     <string name="settings_category_training">연습 및 분석</string>
     <string name="settings_category_display">화면 표시</string>
     <string name="settings_category_other">공유 및 개인정보</string>
+    <string name="new_game_mode_title">어떻게 플레이하시겠습니까?</string>
+    <string name="new_game_mode_vs_computer_as_white">컴퓨터와 대전 (백)</string>
+    <string name="new_game_mode_vs_computer_as_black">컴퓨터와 대전 (흑)</string>
+    <string name="new_game_mode_two_players">이 기기에서 2인 대전</string>
 </resources>

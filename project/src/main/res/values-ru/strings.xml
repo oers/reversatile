@@ -104,4 +104,8 @@
     <string name="settings_category_training">Тренировка и анализ</string>
     <string name="settings_category_display">Отображение</string>
     <string name="settings_category_other">Отправка и конфиденциальность</string>
+    <string name="new_game_mode_title">Как вы хотите играть?</string>
+    <string name="new_game_mode_vs_computer_as_white">Против компьютера за белых</string>
+    <string name="new_game_mode_vs_computer_as_black">Против компьютера за чёрных</string>
+    <string name="new_game_mode_two_players">Два игрока на этом устройстве</string>
 </resources>
