@@ -3,7 +3,7 @@ Reversatile - Zebra Reversi for Android
 
 This app continues the work of the discontinued Droidzebra: https://github.com/alkom/droidzebra
 
-Since Version 1.4 this app needs Android 5 to run. The latest release that supports older version can be found [here](https://github.com/oers/reversatile/releases/tag/1.3.11)
+This app needs Android 6 (API 23) or newer. Releases for older Android versions are on the [releases page](https://github.com/oers/reversatile/releases); the last one for Android 4 is [1.3.11](https://github.com/oers/reversatile/releases/tag/1.3.11).
 
 
 Reversatile is a graphical front-end for well-known Zebra Othello

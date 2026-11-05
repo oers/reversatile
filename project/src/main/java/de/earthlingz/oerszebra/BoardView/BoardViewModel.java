@@ -4,7 +4,7 @@ import com.shurik.droidzebra.CandidateMove;
 import com.shurik.droidzebra.Move;
 import de.earthlingz.oerszebra.Player;
 
-import javax.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public interface BoardViewModel {
 

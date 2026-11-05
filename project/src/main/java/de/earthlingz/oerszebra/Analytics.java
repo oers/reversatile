@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import com.shurik.droidzebra.GameState;
 
-import javax.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.UUID;

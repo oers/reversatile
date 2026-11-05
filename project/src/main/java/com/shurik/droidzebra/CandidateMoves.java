@@ -1,6 +1,6 @@
 package com.shurik.droidzebra;
 
-import javax.annotation.Nonnull;
+import androidx.annotation.NonNull;
 import java.util.Observable;
 
 /**
@@ -18,7 +18,7 @@ public class CandidateMoves extends Observable {
         return moves;
     }
 
-    public void setMoves(@Nonnull CandidateMove[] moves) {
+    public void setMoves(@NonNull CandidateMove[] moves) {
         this.moves = moves;
         super.setChanged();
         super.notifyObservers(moves);
