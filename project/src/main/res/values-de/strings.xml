@@ -60,6 +60,11 @@
     <string name="settings_sendmail_summary">Standard E-Mail zum Versenden von Transkripten</string>
     <string name="settings_sendmail_title">E-Mail Adresse</string>
     <string name="settings_strength_dialog_title">Wähle</string>
+    <string name="settings_strength_custom_dialog_title">Eigene Spielstärke</string>
+    <string name="settings_strength_custom_midgame">Vorausberechnete Züge</string>
+    <string name="settings_strength_custom_endgame">Perfektes Spiel in den letzten … Zügen (0 = aus)</string>
+    <string name="settings_strength_custom_hint">Hohe Werte können pro Zug Minuten dauern.</string>
+    <string name="settings_strength_custom_summary">Benutzerdefiniert: %1$d Züge + letzte %2$d perfekt</string>
     <string name="settings_strength_preference_title">Spielstärke</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_ui_display_enable_animations_summary">Umdrehen der Steine animieren</string>

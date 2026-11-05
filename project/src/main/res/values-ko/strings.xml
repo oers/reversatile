@@ -39,6 +39,11 @@
     <string name="settings_analysis_strength_preference_title">분석 검색 깊이</string>
     <string name="settings_strength_preference_title">검색 강도</string>
     <string name="settings_strength_dialog_title">하나를 선택하다</string>
+    <string name="settings_strength_custom_dialog_title">사용자 지정 강도</string>
+    <string name="settings_strength_custom_midgame">미리 계산할 수</string>
+    <string name="settings_strength_custom_endgame">마지막 … 수 완전하게 (0 = 끄기)</string>
+    <string name="settings_strength_custom_hint">값이 높으면 한 수에 몇 분이 걸릴 수 있습니다.</string>
+    <string name="settings_strength_custom_summary">사용자 지정: %1$d 이동 + 마지막 %2$d 완전하게</string>
     <string name="app_name">Reversatile</string>
 
 

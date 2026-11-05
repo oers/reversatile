@@ -39,6 +39,11 @@
     <string name="settings_analysis_strength_preference_title">分析の読みの深さ</string>
     <string name="settings_strength_preference_title">読みの深さ</string>
     <string name="settings_strength_dialog_title">読みの深さ</string>
+    <string name="settings_strength_custom_dialog_title">カスタムの読みの深さ</string>
+    <string name="settings_strength_custom_midgame">中盤の読みの手数</string>
+    <string name="settings_strength_custom_endgame">終盤の完全読み（残り手数、0 = オフ）</string>
+    <string name="settings_strength_custom_hint">大きな値では1手に数分かかることがあります。</string>
+    <string name="settings_strength_custom_summary">カスタム: %1$d 手読み + 終盤 %2$d 完全読み</string>
     <string name="app_name">Reversatile</string>
 
 
