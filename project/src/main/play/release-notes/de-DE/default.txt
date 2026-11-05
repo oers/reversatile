@@ -1,2 +1,7 @@
-Besseres Layout für die Brettansicht
-Landscape-Ansicht
+Neu:
+• Bei „Neues Spiel“ wählst du, wie du spielen willst: gegen den Computer mit Schwarz oder Weiß, zu zweit oder Analyse.
+• Mehr Spielstärke: zwei neue Stufen und eine eigene Stufe mit bis zu 40 Zügen Vorausberechnung und bis zu 32 perfekten Endspielzügen.
+
+Verbessert:
+• Tasten und Einstellungen liegen nicht mehr unter der Navigationsleiste oder der Kamera (Android 15).
+• Die App braucht jetzt Android 6 oder neuer.
