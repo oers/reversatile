@@ -42,6 +42,11 @@
     </string>
     <string name="settings_strength_preference_title">Computer strength</string>
     <string name="settings_strength_dialog_title">Choose One</string>
+    <string name="settings_strength_custom_dialog_title">Custom strength</string>
+    <string name="settings_strength_custom_midgame">Moves to look ahead</string>
+    <string name="settings_strength_custom_endgame">Perfect play for the last … moves (0 = off)</string>
+    <string name="settings_strength_custom_hint">High values can take minutes per move.</string>
+    <string name="settings_strength_custom_summary">Custom: %1$d moves + last %2$d perfect</string>
     <string name="setting_analysis_strength_preference_summary">Engine strength used only for "Analyze Game" - lower is
         faster, especially in the midgame
     </string>

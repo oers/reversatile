@@ -51,6 +51,16 @@ public class GameAnalyzer {
     // slowdown/unresponsiveness this comment used to just call "hang".
     private static final long PLY_INACTIVITY_TIMEOUT_MILLIS = 60_000;
 
+    // Depths beyond the strongest fixed level (20|22, see
+    // settings_engine_strengh_values) can go well past a minute between two
+    // eval reports on a phone, so they get a much longer safety net. The
+    // user can still cancel the analysis at any time.
+    private static final long DEEP_PLY_INACTIVITY_TIMEOUT_MILLIS = 15 * 60_000;
+    private static final int DEEP_MIDGAME_DEPTH = 20;
+    private static final int DEEP_EXACT_DEPTH = 22;
+
+    private long inactivityTimeoutMillis = PLY_INACTIVITY_TIMEOUT_MILLIS;
+
     // How often to check whether the current ply's search has actually
     // finished (see pollForReady) - cheap (one field read and one enum
     // compare), so this can be tight without costing anything real.
@@ -156,6 +166,7 @@ public class GameAnalyzer {
                 .alterEngineFunction(GameSettingsConstants.FUNCTION_HUMAN_VS_HUMAN)
                 .alterPracticeMode(true)
                 .alterAutoForcedMoves(false);
+        this.inactivityTimeoutMillis = inactivityTimeoutFor(baseConfig);
         this.listener = listener;
         this.results = new ArrayList<>();
         this.isGameOver = isGameOver;
@@ -317,6 +328,11 @@ public class GameAnalyzer {
     // time - so an active search that keeps reporting progress never
     // accumulates more than this one pending callback, no matter how many
     // eval updates arrive.
+    static long inactivityTimeoutFor(EngineConfig config) {
+        boolean deep = config.depth > DEEP_MIDGAME_DEPTH || config.depthExact > DEEP_EXACT_DEPTH;
+        return deep ? DEEP_PLY_INACTIVITY_TIMEOUT_MILLIS : PLY_INACTIVITY_TIMEOUT_MILLIS;
+    }
+
     private void armInactivityWatchdog(int attemptId) {
         lastActivityAtMillis = System.currentTimeMillis();
         checkInactivity(attemptId);
@@ -327,11 +343,11 @@ public class GameAnalyzer {
             return; // this attempt already resolved, or a later one superseded it
         }
         long elapsed = System.currentTimeMillis() - lastActivityAtMillis;
-        if (elapsed >= PLY_INACTIVITY_TIMEOUT_MILLIS) {
+        if (elapsed >= inactivityTimeoutMillis) {
             finish(true, true);
             return;
         }
-        mainHandler.postDelayed(() -> checkInactivity(attemptId), PLY_INACTIVITY_TIMEOUT_MILLIS - elapsed);
+        mainHandler.postDelayed(() -> checkInactivity(attemptId), inactivityTimeoutMillis - elapsed);
     }
 
     private void advance(int justFinishedPly) {

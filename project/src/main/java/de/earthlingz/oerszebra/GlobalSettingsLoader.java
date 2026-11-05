@@ -130,15 +130,15 @@ public class GlobalSettingsLoader implements SharedPreferences.OnSharedPreferenc
         SharedPreferences settings = context.getSharedPreferences(SHARED_PREFS_NAME, 0);
 
         settingsFunction = Integer.parseInt(settings.getString(SETTINGS_KEY_FUNCTION, String.format(Locale.getDefault(), "%d", DEFAULT_SETTING_FUNCTION)));
-        String[] strength = settings.getString(SETTINGS_KEY_STRENGTH, DEFAULT_SETTING_STRENGTH).split("\\|");
-        settingZebraDepth = Integer.parseInt(strength[0]);
-        settingZebraDepthExact = Integer.parseInt(strength[1]);
-        settingZebraDepthWLD = Integer.parseInt(strength[2]);
+        SearchDepth strength = SearchDepth.read(settings, SETTINGS_KEY_STRENGTH, DEFAULT_SETTING_STRENGTH);
+        settingZebraDepth = strength.midgame;
+        settingZebraDepthExact = strength.exact;
+        settingZebraDepthWLD = strength.wld;
 
-        String[] analysisDepth = settings.getString(SETTINGS_KEY_ANALYSIS_DEPTH, DEFAULT_SETTING_ANALYSIS_DEPTH).split("\\|");
-        int settingAnalysisDepth = Integer.parseInt(analysisDepth[0]);
-        int settingAnalysisDepthExact = Integer.parseInt(analysisDepth[1]);
-        int settingAnalysisDepthWLD = Integer.parseInt(analysisDepth[2]);
+        SearchDepth analysisDepth = SearchDepth.read(settings, SETTINGS_KEY_ANALYSIS_DEPTH, DEFAULT_SETTING_ANALYSIS_DEPTH);
+        int settingAnalysisDepth = analysisDepth.midgame;
+        int settingAnalysisDepthExact = analysisDepth.exact;
+        int settingAnalysisDepthWLD = analysisDepth.wld;
 
         settingAutoMakeForcedMoves = settings.getBoolean(SETTINGS_KEY_AUTO_MAKE_FORCED_MOVES, DEFAULT_SETTING_AUTO_MAKE_FORCED_MOVES);
         settingRandomness = Integer.parseInt(settings.getString(SETTINGS_KEY_RANDOMNESS, String.format(Locale.getDefault(), "%d", DEFAULT_SETTING_RANDOMNESS)));

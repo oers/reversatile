@@ -11,18 +11,9 @@
 <item>12 手読み + 終盤 18 完全読み</item>
 <item>16 手読み + 終盤 20 完全読み</item>
 <item>20 手読み + 終盤 22 完全読み</item>
-</string-array>
-<string-array name="settings_engine_strengh_values"><item>1|1|1</item>
-<item>1|2|2</item>
-<item>3|3|3</item>
-<item>4|4|4</item>
-<item>4|12|12</item>
-<item>6|6|6</item>
-    <item>6|14|0</item>
-    <item>8|16|0</item>
-    <item>12|18|0</item>
-    <item>16|20|0</item>
-    <item>20|22|0</item>
+    <item>24 手読み + 終盤 24 完全読み</item>
+    <item>28 手読み + 終盤 26 完全読み</item>
+    <item>カスタム…</item>
 </string-array>
 <string-array name="settings_engine_function_preferences"><item>Zebraを使用しない</item>
 <item>Zebraは白番</item>

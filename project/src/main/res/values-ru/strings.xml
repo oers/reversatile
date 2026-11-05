@@ -39,6 +39,11 @@
     <string name="settings_analysis_strength_preference_title">Глубина поиска анализа</string>
     <string name="settings_strength_preference_title">Глубина поиска</string>
     <string name="settings_strength_dialog_title">Глубина поиска</string>
+    <string name="settings_strength_custom_dialog_title">Своя глубина поиска</string>
+    <string name="settings_strength_custom_midgame">Ходов вперёд</string>
+    <string name="settings_strength_custom_endgame">Точная игра на последних … ходах (0 = выкл.)</string>
+    <string name="settings_strength_custom_hint">Большие значения могут занимать минуты на ход.</string>
+    <string name="settings_strength_custom_summary">Своя: %1$d ходов + %2$d последних</string>
     <string name="app_name">Reversatile</string>
 
 

@@ -12,8 +12,11 @@
 <item>12 moves + last 18 perfect</item>
 <item>16 moves + last 20 perfect</item>
 <item>20 moves + last 22 perfect</item>
+    <item>24 moves + last 24 perfect</item>
+    <item>28 moves + last 26 perfect</item>
+    <item>Custom…</item>
 </string-array>
-<string-array name="settings_engine_strengh_values">
+<string-array name="settings_engine_strengh_values" translatable="false">
 <item>1|1|1</item>
 <item>1|2|2</item>
 <item>3|3|3</item>
@@ -25,6 +28,10 @@
     <item>12|18|0</item>
     <item>16|20|0</item>
     <item>20|22|0</item>
+    <item>24|24|0</item>
+    <item>28|26|0</item>
+    <!-- Depths come from settings_*_custom, see GlobalSettingsLoader -->
+    <item>custom</item>
 </string-array>
 <string-array name="settings_engine_function_preferences">
 <item>Nobody (two players)</item>

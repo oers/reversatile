@@ -39,6 +39,11 @@
     <string name="settings_analysis_strength_preference_title">Profondeur d\'analyse (analyse de partie)</string>
     <string name="settings_strength_preference_title">Profondeur d\'analyse</string>
     <string name="settings_strength_dialog_title">Choix</string>
+    <string name="settings_strength_custom_dialog_title">Profondeur personnalisée</string>
+    <string name="settings_strength_custom_midgame">Coups calculés à l\'avance</string>
+    <string name="settings_strength_custom_endgame">Jeu parfait sur les … derniers coups (0 = désactivé)</string>
+    <string name="settings_strength_custom_hint">Des valeurs élevées peuvent prendre plusieurs minutes par coup.</string>
+    <string name="settings_strength_custom_summary">Personnalisé : %1$d coups + derniers %2$d parfaits</string>
     <string name="app_name">Reversatile</string>
     <string name="gameover_text_white_wins">Blanc a gagné</string>
     <string name="gameover_text_black_wins">Noir a gagné</string>
