@@ -8,6 +8,8 @@ import com.shurik.droidzebra.ZebraEngine;
 
 import org.junit.Test;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -15,6 +17,24 @@ import static org.junit.Assert.assertTrue;
 @SmallTest
 public class DroidZebraTest extends BasicTest{
 
+
+    // Sharing an e-mail without a text body used to crash the app with a
+    // NullPointerException in the move parser.
+    @Test
+    public void testSharedMailWithoutTextStartsNewGame() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+
+        zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+        getInstrumentation().waitForIdleSync();
+        waitForSquareCount(ZebraEngine.PLAYER_EMPTY, 60, 20000);
+
+        assertFalse(zebra.isFinishing());
+        assertSame(60, countSquares(ZebraEngine.PLAYER_EMPTY));
+        assertSame(2, countSquares(ZebraEngine.PLAYER_WHITE));
+        assertSame(2, countSquares(ZebraEngine.PLAYER_BLACK));
+    }
 
     @Test
     public void testSkipWithFinalEmptySquares() throws InterruptedException {

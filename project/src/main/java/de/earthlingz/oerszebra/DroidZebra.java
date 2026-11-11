@@ -147,6 +147,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
     private Runnable pendingActionAfterAnalysis;
     // True from jumpToMove() until its walk has settled.
     private boolean jumpInProgress = false;
+    // The moves of this game while Guess Move has the engine, see
+    // openGuessMove(). Null otherwise.
+    private byte[] movesToResumeAfterGuessMove;
     // Set when a drawer row is tapped while analysis is still running:
     // jumpToMove() can't fire immediately without racing whatever ply's
     // engine.newGame() call is currently in flight, so the tap is deferred
@@ -376,12 +379,9 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
                 startActivity(i);
             }
             return true;
-            case R.id.menu_guess_move: {
-                // Launch GuessMove activity
-                Intent i = new Intent(this, GuessMoveActivity.class);
-                startActivity(i);
-            }
-            return true;
+            case R.id.menu_guess_move:
+                openGuessMove();
+                return true;
             case R.id.menu_switch_sides: {
                 switchSides();
             }
@@ -479,7 +479,8 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
                     break;
                 case "message/rfc822":
-                    String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    // An e-mail shared without a text body has no EXTRA_TEXT.
+                    String text = Strings.nullToEmpty(intent.getStringExtra(Intent.EXTRA_TEXT));
                     Analytics.converse("intent", null);
                     Analytics.log("intent", text);
                     consumeMovesString(text); // Handle text being sent
@@ -909,6 +910,41 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
 
     public WeakReference<AlertDialog> getAlert() {
         return alert;
+    }
+
+    /**
+     * Opens Guess Move. It plays its own games on the shared engine, which
+     * takes the engine away from this game - remember the moves so
+     * onRestart() can hand the game back to the engine.
+     */
+    void openGuessMove() {
+        if (deferWhileAnalysisBusy(this::openGuessMove)) {
+            return;
+        }
+        movesToResumeAfterGuessMove = gameState != null ? gameState.exportMoveSequence() : new byte[0];
+        startActivity(new Intent(this, GuessMoveActivity.class));
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        byte[] moves = movesToResumeAfterGuessMove;
+        movesToResumeAfterGuessMove = null;
+        if (moves == null || !mIsInitCompleted || engine.isPlaying(gameState)) {
+            return;
+        }
+        // Without this every move, undo and redo on this board was dropped
+        // after coming back, since the engine still played Guess Move's game.
+        if (moves.length > 0) {
+            startNewGameAndResetUI(moves.length, moves);
+        } else {
+            startNewGameAndResetUI();
+        }
+    }
+
+    // Package-private for tests: whether the engine plays the game shown.
+    boolean isGameConnectedToEngine() {
+        return engine != null && engine.isPlaying(gameState);
     }
 
     @Override
