@@ -2,7 +2,7 @@ package de.earthlingz.oerszebra.parser;
 
 import com.shurik.droidzebra.Move;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import java.util.LinkedList;
 
 /**
@@ -17,7 +17,10 @@ public class GameParser {
         this.parser = parser;
     }
 
-    public LinkedList<Move> makeMoveList(@NonNull String moves) {
+    public LinkedList<Move> makeMoveList(@Nullable String moves) {
+        if (moves == null) {
+            return new LinkedList<>();
+        }
         for (Parser parse : parser) {
             if (parse.canParse(moves)) {
                 return parse.makeMoveList(moves);
@@ -26,7 +29,10 @@ public class GameParser {
         return new LinkedList<>();
     }
 
-    public boolean canParse(@NonNull String moves) {
+    public boolean canParse(@Nullable String moves) {
+        if (moves == null) {
+            return false;
+        }
         for (Parser parse : parser) {
             if (parse.canParse(moves)) {
                 return true;

@@ -93,7 +93,8 @@ public class ZebraEngine {
     private PlayerInfo whitePlayerInfo = new PlayerInfo(0, 0, 0);
 
 
-    private transient GameState currentGameState;
+    // Replaced by the engine thread for each game, read from the UI thread.
+    private volatile GameState currentGameState;
 
     // A request to start a game: its start position, settings and listener
     // travel together, so requests that overlap can't mix them up.
@@ -119,7 +120,8 @@ public class ZebraEngine {
     // both guarded by engineStateEventLock, see sendUserEvent().
     private JSONObject mPendingEvent = null;
     private boolean mExitRequested = false;
-    private int mValidMoves[] = null;
+    // Set by the engine thread, read by the UI thread in isValidMove().
+    private volatile int[] mValidMoves = null;
 
     // mPlayerInfoChanged must be always inside synchronized block with playerInfoLock
     // :/ we must change how this work in the future (or we could make whole class synchronized? is it slow?)
@@ -265,6 +267,15 @@ public class ZebraEngine {
         }
         onDebugListener.onDebug("Dropped " + input + ": not the game the engine plays");
         return false;
+    }
+
+    /**
+     * Whether the engine still plays this game. The engine plays one game at
+     * a time, so another screen starting its own game (e.g. Guess Move)
+     * takes it away from the one shown before.
+     */
+    public boolean isPlaying(GameState gameState) {
+        return gameState != null && gameState == currentGameState;
     }
 
     public void makeMove(GameState gameState, Move move) throws InvalidMove {
@@ -511,12 +522,14 @@ public class ZebraEngine {
                 case MSG_CANDIDATE_MOVES: {
                     JSONArray jscmoves = data.getJSONArray("moves");
                     CandidateMove cmoves[] = new CandidateMove[jscmoves.length()];
-                    mValidMoves = new int[jscmoves.length()];
+                    int[] validMoves = new int[jscmoves.length()];
                     for (int i = 0; i < jscmoves.length(); i++) {
                         int move = jscmoves.getJSONObject(i).getInt("move");
-                        mValidMoves[i] = move;
+                        validMoves[i] = move;
                         cmoves[i] = new CandidateMove(move);
                     }
+                    // published only once filled in
+                    mValidMoves = validMoves;
                     currentGameState.setCandidateMoves(cmoves);
                 }
                 break;
@@ -708,16 +721,17 @@ public class ZebraEngine {
     }
 
     private boolean isValidMove(Move move) {
-        if (mValidMoves == null)
+        // Read the field once: the engine thread clears it as soon as it
+        // takes the user's input, and a second read could see null.
+        int[] validMoves = mValidMoves;
+        if (validMoves == null)
             return false;
 
-        boolean valid = false;
-        for (int m : mValidMoves)
+        for (int m : validMoves)
             if (m == move.getMoveInt()) {
-                valid = true;
-                break;
+                return true;
             }
-        return valid;
+        return false;
     }
 
     public boolean isHumanToMove(GameState gameState, EngineConfig config) {
