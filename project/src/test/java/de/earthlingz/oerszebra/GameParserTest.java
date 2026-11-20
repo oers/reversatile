@@ -19,6 +19,13 @@ public class GameParserTest {
 
     private GameParser parser = ZebraServices.getGameParser();
 
+    // An e-mail shared without a text body arrives as null.
+    @Test
+    public void nullInputGivesNoMoves() {
+        assertThat(parser.canParse(null), is(false));
+        assertThat(parser.makeMoveList(null).size(), is(0));
+    }
+
     @Test
     public void oerszebra() {
         String game = "Generiert von Reversatile (https://play.google.com/store/apps/details?id=de.earthlingz.oerszebra) \n" +
