@@ -535,6 +535,7 @@ extended_compute_move( int side_to_move, int book_only,
   EvaluatedMove temp;
   EvaluationType book_eval_info;
   EvalResult res;
+  int entry_disks = disks_played;
 
   /* Disable all time control mechanisms and randomization */
 
@@ -563,6 +564,7 @@ extended_compute_move( int side_to_move, int book_only,
       flags = WLD_SOLVED;
 
     fill_move_alternatives( side_to_move, flags );
+    drift_check( entry_disks, "fill_move_alternatives" );
 
     game_evaluated_count = get_candidate_count();
     for ( i = 0; i < game_evaluated_count; i++ ) {
@@ -684,6 +686,7 @@ extended_compute_move( int side_to_move, int book_only,
       }
 
       unmake_move( side_to_move, this_move );
+      drift_check( entry_disks, "extended_compute_move: shallow search" );
       evals[disks_played][this_move] = shallow_eval;
     }
 
@@ -892,6 +895,7 @@ extended_compute_move( int side_to_move, int book_only,
 	    best_pv[j] = pv[0][j];
 	}
 	unmake_move( side_to_move, this_move );
+	drift_check( entry_disks, "extended_compute_move: search" );
 
 	/* Sort the moves evaluated */
 
@@ -958,6 +962,7 @@ extended_compute_move( int side_to_move, int book_only,
     if ( move_count[disks_played] > 0 )
       set_current_eval( evaluated_list[0].eval );
   }
+  drift_check( entry_disks, "extended_compute_move" );
 
   /* Reset the hash transformation masks prior to leaving */
 
@@ -1168,6 +1173,7 @@ compute_move( int side_to_move,
   int book_move_found;
   int endgame_reached;
   int offset;
+  int entry_disks = disks_played;
 
   log_file = NULL;
   if ( use_log_file )
@@ -1373,6 +1379,8 @@ compute_move( int side_to_move,
      shallow searches when there is no time limit and hence no danger
      starting to solve only to get interrupted. */
 
+  drift_check( entry_disks, "compute_move: openings and book" );
+
   if ( !timed_depth && (empties <= MAX( exact, wld ) ) )
     mid = MAX( MIN( MIN( mid, empties - 7 ), 28 ), 2 );
 
@@ -1395,6 +1403,7 @@ compute_move( int side_to_move,
       max_depth_reached = midgame_depth;
       midgame_move = middle_game( side_to_move, midgame_depth,
 				  update_all, &mid_eval_info );
+      drift_check( entry_disks, "middle_game" );
       set_current_eval( mid_eval_info );
 #if ADAPTIVE_SOLVE_DEPTH
       midgame_diff = 1.3 * mid_eval_info.score / 128.0;
@@ -1472,6 +1481,7 @@ compute_move( int side_to_move,
 	else
 	  curr_move = end_game( side_to_move, TRUE, FALSE,
 				book, komi, &end_eval_info);
+      drift_check( entry_disks, "end_game" );
       set_current_eval( end_eval_info );
       if ( abs( root_eval ) == abs( SEARCH_ABORT ) )
 	move_type = INTERRUPTED_MOVE;
@@ -1535,6 +1545,7 @@ compute_move( int side_to_move,
   /* Write the principal variation, if available, to the log file
      and, optionally, to screen. */
 
+  drift_check( entry_disks, "compute_move: after the search" );
   if ( !get_ponder_move() ) {
     complete_pv( side_to_move );
     if ( display_pv && echo )
