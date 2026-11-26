@@ -92,6 +92,46 @@ public class PlayModeButtonTest extends BasicTest {
         }
     }
 
+    // A game shared to the app (or pasted via "Enter moves", which ends in
+    // the same consumeMovesString) is there to be looked at: it switches to
+    // analysis, and the computer doesn't take over a side of it.
+    @Test
+    public void sharedGameSwitchesToAnalysis() throws InterruptedException {
+        try {
+            cycleUntil(PlayMode.VS_COMPUTER);
+
+            android.content.Intent intent = new android.content.Intent();
+            intent.setAction(android.content.Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(android.content.Intent.EXTRA_TEXT, "F5D6C3D3C4");
+            zebra.runOnUiThread(() -> zebra.onNewIntent(intent));
+            waitUntil(() -> zebra.getGameState() != null
+                    && "f5d6c3d3c4".equalsIgnoreCase(zebra.getGameState().getMoveSequenceAsString()), 20000);
+            getInstrumentation().waitForIdleSync();
+
+            assertEquals(PlayMode.ANALYSIS, onUiMode());
+            assertEquals(FUNCTION_HUMAN_VS_HUMAN, function());
+            assertTrue(prefs().getBoolean(SETTINGS_KEY_DISPLAY_MOVES, false));
+            assertTrue(onUi(() -> zebra.evalsDisplayEnabled()));
+            assertTrue("F5D6C3D3C4".equalsIgnoreCase(zebra.getGameState().getMoveSequenceAsString()));
+        } finally {
+            restoreAnalysisAndSettle();
+        }
+    }
+
+    // Text without a readable move sequence keeps the mode as it is.
+    @Test
+    public void unreadableTextKeepsTheMode() {
+        try {
+            cycleUntil(PlayMode.VS_HUMAN);
+            getInstrumentation().runOnMainSync(() -> zebra.consumeMovesString("no moves here"));
+            getInstrumentation().waitForIdleSync();
+            assertEquals(PlayMode.VS_HUMAN, onUiMode());
+        } finally {
+            restoreAnalysisAndSettle();
+        }
+    }
+
     // Every mode change makes the engine reload its settings and, in
     // analysis, start evaluating the position again. Leaving while it is
     // still busy let the next test's activity start a game on a busy engine

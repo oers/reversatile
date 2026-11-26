@@ -869,8 +869,19 @@ public class DroidZebra extends AppCompatActivity implements MoveStringConsumer,
         showDialog(newFragment, "dialog_moves");
     }
 
+    /**
+     * Loads a pasted or shared move sequence (menu "Enter moves" and text
+     * shared to the app). A game that comes in this way is there to be
+     * looked at, so a recognized sequence switches to analysis first -
+     * before the game is loaded, so the computer doesn't start playing a
+     * side of it. Empty or unreadable text leaves the mode as it is.
+     */
     public void consumeMovesString(String s) {
         final LinkedList<Move> moves = parser.makeMoveList(s);
+        if (!moves.isEmpty() && settingsProvider != null && mBoardView != null
+                && currentPlayMode() != PlayMode.ANALYSIS) {
+            setPlayMode(PlayMode.ANALYSIS);
+        }
         startNewGameAndResetUI(moves);
     }
 
